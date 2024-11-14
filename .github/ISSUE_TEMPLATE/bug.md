@@ -1,5 +1,6 @@
 ---
 name: '🐞 Bug report'
+about: '버그가 생겼어요'
 title: '🐞 [Bug] 제목을 입력해주세요'
 labels: ["bug"]
 assignees: []

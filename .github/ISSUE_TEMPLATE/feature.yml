@@ -1,8 +1,8 @@
 ---
-name: '💡 기능 요청'
+name: '💡 Feature report'
 title: '💡 [Feature] 제목을 입력해주세요'
 labels: ["feature"]
-assignees: ["username"]
+assignees: []
 ---
 
 ## 어떤 기능인가요?

@@ -1,5 +1,6 @@
 ---
 name: '💡 Feature report'
+about: '해야 할 것이 생겼어요'
 title: '💡 [Feature] 제목을 입력해주세요'
 labels: ["feature"]
 assignees: []

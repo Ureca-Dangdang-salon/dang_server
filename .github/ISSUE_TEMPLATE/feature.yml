@@ -1,9 +1,8 @@
 ---
-name: '💡 Feature report'
-about: '해야 할 것이 생겼어요'
-title: '💡'
-labels: ''
-assignees: ''
+name: '💡 기능 요청'
+title: '💡 [Feature] 제목을 입력해주세요'
+labels: ["feature"]
+assignees: ["username"]
 ---
 
 ## 어떤 기능인가요?
@@ -16,4 +15,6 @@ assignees: ''
 - [ ] TODO
 - [ ] TODO
 
-## 📖 참고할만한 자료(선택)
+## 📖 참고할만한 자료 (선택)
+
+> 참고할 만한 링크나 문서가 있다면 추가해주세요

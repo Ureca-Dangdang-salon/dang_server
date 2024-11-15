@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.contest.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ContestPost {
+public class ContestPost extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

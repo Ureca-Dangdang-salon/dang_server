@@ -1,4 +1,5 @@
 package com.dangdangsalon.domain.dogprofile.entity;
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.user.entity.User;
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "dog_profile")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class DogProfile {
+public class DogProfile extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

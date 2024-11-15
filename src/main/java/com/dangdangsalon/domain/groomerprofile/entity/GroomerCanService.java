@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.groomerprofile.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "groomer_profile_service")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroomerCanService {
+public class GroomerCanService extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

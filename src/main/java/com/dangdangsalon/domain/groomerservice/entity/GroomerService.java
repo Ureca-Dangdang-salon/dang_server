@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.groomerservice.entity;
 
 
+import com.dangdangsalon.config.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "service")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroomerService {
+public class GroomerService extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

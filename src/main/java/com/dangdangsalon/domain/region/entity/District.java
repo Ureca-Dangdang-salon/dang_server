@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.region.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "district")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class District {
+public class District extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

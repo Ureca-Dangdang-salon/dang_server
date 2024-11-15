@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.dogprofile.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.dogprofile.feature.entity.Feature;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "dog_profile_feature")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class DogProfileFeature {
+public class DogProfileFeature extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

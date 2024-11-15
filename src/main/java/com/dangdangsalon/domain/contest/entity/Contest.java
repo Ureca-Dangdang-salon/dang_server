@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.contest.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "contest")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Contest {
+public class Contest extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

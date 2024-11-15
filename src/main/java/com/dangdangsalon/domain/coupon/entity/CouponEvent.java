@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.coupon.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "coupon_event")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CouponEvent {
+public class CouponEvent extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

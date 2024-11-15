@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.estimate.request.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.groomerprofile.entity.ServiceType;
 import com.dangdangsalon.domain.region.entity.District;
 import com.dangdangsalon.domain.user.entity.User;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Table(name = "estimate_request")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class EstimateRequest {
+public class EstimateRequest extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

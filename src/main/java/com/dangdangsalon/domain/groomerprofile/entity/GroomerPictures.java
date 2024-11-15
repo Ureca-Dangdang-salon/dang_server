@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.groomerprofile.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "groomer_profile_pictures")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroomerPictures {
+public class GroomerPictures extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

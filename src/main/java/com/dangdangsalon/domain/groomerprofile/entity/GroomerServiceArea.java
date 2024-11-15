@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.groomerprofile.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.region.entity.District;
 import jakarta.persistence.*;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "district_service")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroomerServiceArea {
+public class GroomerServiceArea extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

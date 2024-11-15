@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.estimate.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import jakarta.persistence.*;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "estimate")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Estimate {
+public class Estimate extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

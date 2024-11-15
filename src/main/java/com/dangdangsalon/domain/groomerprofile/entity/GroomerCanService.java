@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "groomer_profile_service")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroomerProfileService {
+public class GroomerCanService {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +33,7 @@ public class GroomerProfileService {
     private GroomerService groomerService;
 
     @Builder
-    public GroomerProfileService(GroomerProfile groomerProfile, GroomerService groomerService) {
+    public GroomerCanService(GroomerProfile groomerProfile, GroomerService groomerService) {
         this.groomerProfile = groomerProfile;
         this.groomerService = groomerService;
     }

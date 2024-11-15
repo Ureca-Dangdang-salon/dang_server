@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "groomer_profile_pictures")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroomerProfilePictures {
+public class GroomerPictures {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +25,7 @@ public class GroomerProfilePictures {
     private GroomerProfile groomerProfile;
 
     @Builder
-    public GroomerProfilePictures(String imageKey, GroomerProfile groomerProfile) {
+    public GroomerPictures(String imageKey, GroomerProfile groomerProfile) {
         this.imageKey = imageKey;
         this.groomerProfile = groomerProfile;
     }

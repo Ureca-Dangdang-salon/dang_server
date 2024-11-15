@@ -11,18 +11,18 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Badge {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "badge_id")
     private Long id;
 
     private String name;
 
-    private String image;
+    private String imageKey;
 
     @Builder
-    public Badge(String name, String image) {
+    public Badge(String name, String imageKey) {
         this.name = name;
-        this.image = image;
+        this.imageKey = imageKey;
     }
 }

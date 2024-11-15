@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "estimate_service_price")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class EstimateServicePrice {
+public class EstimateGroomerServicePrice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "price_id")
@@ -28,7 +28,7 @@ public class EstimateServicePrice {
     private GroomerService groomerService;
 
     @Builder
-    public EstimateServicePrice(int price, Estimate estimate, GroomerService groomerService) {
+    public EstimateGroomerServicePrice(int price, Estimate estimate, GroomerService groomerService) {
         this.price = price;
         this.estimate = estimate;
         this.groomerService = groomerService;

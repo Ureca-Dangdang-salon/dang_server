@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Contest {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "contest_id")
     private Long id;
 
     private String title;
@@ -28,11 +28,16 @@ public class Contest {
     @Column(name = "end_at")
     private LocalDateTime endAt;
 
+    @OneToOne
+    @JoinColumn(name = "winner_post_id", nullable = true)
+    private ContestPost winnerPost;
+
     @Builder
-    public Contest(String title, String description, LocalDateTime startedAt, LocalDateTime endAt) {
+    public Contest(String title, String description, LocalDateTime startedAt, LocalDateTime endAt, ContestPost winnerPost) {
         this.title = title;
         this.description = description;
         this.startedAt = startedAt;
         this.endAt = endAt;
+        this.winnerPost = winnerPost;
     }
 }

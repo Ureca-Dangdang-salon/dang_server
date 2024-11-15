@@ -14,28 +14,36 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Coupon {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "coupon_user_id")
     private Long id;
 
-    private LocalDateTime expired_at;
+    @Column(name = "expired_at")
+    private LocalDateTime expiredAt;
 
+    @Enumerated(EnumType.STRING)
     private CouponStatus status;
 
-    @ManyToOne
-    @JoinColumn(name = "coupon_id", nullable = false)
-    private CouponEvent couponEvent;
+    private String couponName;
+
+    private int discountAmount;
+
+    @Enumerated(EnumType.STRING)
+    private DiscountType discountType;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Builder
-    public Coupon(LocalDateTime expired_at, CouponStatus status, CouponEvent couponEvent, User user) {
-        this.expired_at = expired_at;
+    public Coupon(LocalDateTime expiredAt, CouponStatus status, String couponName, int discountAmount,
+                  DiscountType discountType, User user) {
+        this.expiredAt = expiredAt;
         this.status = status;
-        this.couponEvent = couponEvent;
+        this.couponName = couponName;
+        this.discountAmount = discountAmount;
+        this.discountType = discountType;
         this.user = user;
     }
 }

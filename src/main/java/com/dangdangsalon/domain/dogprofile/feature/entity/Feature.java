@@ -1,4 +1,4 @@
-package com.dangdangsalon.domain.feature.entity;
+package com.dangdangsalon.domain.dogprofile.feature.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

@@ -14,9 +14,9 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id")
     private Long id;
 
     @Column(name = "payment_key")
@@ -25,13 +25,14 @@ public class Payment {
     @Column(name = "total_amount")
     private int totalAmount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_status")
     private PaymentStatus paymentStatus;
 
     @Column(name = "requested_at")
     private LocalDateTime requestedAt;
 
-    private String method;
+    private String paymentMethod; //Enum 고민.
 
     @OneToOne
     @JoinColumn(name = "order_id")
@@ -39,12 +40,12 @@ public class Payment {
 
     @Builder
     public Payment(String paymentKey, int totalAmount, PaymentStatus paymentStatus,
-                   LocalDateTime requestedAt, String method, Orders orders) {
+                   LocalDateTime requestedAt, String paymentMethod, Orders orders) {
         this.paymentKey = paymentKey;
         this.totalAmount = totalAmount;
         this.paymentStatus = paymentStatus;
         this.requestedAt = requestedAt;
-        this.method = method;
+        this.paymentMethod = paymentMethod;
         this.orders = orders;
     }
 }

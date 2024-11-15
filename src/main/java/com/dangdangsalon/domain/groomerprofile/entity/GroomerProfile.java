@@ -16,56 +16,36 @@ public class GroomerProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "profile_id")
     private Long id;
 
     private String name;
 
-    @Column(name = "contact_hours")
     private String contactHours;
 
-    @Column(name = "service_type")
+    @Enumerated(EnumType.STRING)
     private ServiceType serviceType;
-
-    @Column(name = "business_number")
-    private String businessNumber;
-
-    private String certification;
-
-    private String description;
-
-    @Column(name = "chat_start")
-    private String chatStart;
-
-    private String address;
-
-    @Column(columnDefinition = "TEXT")
-    private String faq;
 
     private String phone;
 
     @Column(name = "image_key")
     private String imageKey;
 
+    @Embedded
+    private GroomerDetails details;
+
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
 
     @Builder
-    public GroomerProfile(String name, String contactHours, ServiceType serviceType, String businessNumber,
-                          String certification, String description, String chatStart, String address,
-                          String faq, String phone, String imageKey, User user) {
+    public GroomerProfile(String name, String contactHours, ServiceType serviceType, String phone, String imageKey,
+                          GroomerDetails details, User user) {
         this.name = name;
         this.contactHours = contactHours;
         this.serviceType = serviceType;
-        this.businessNumber = businessNumber;
-        this.certification = certification;
-        this.description = description;
-        this.chatStart = chatStart;
-        this.address = address;
-        this.faq = faq;
         this.phone = phone;
         this.imageKey = imageKey;
+        this.details = details;
         this.user = user;
     }
 }

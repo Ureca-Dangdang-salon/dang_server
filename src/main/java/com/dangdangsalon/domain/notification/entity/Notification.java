@@ -24,22 +24,21 @@ public class Notification {
 
     private String description;
 
+    @Enumerated(EnumType.STRING)
     private NotificationStatus status;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime noticeAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
     @Builder
-    public Notification(String name, String description, NotificationStatus status,
-                        LocalDateTime createdAt, User user) {
+    public Notification(String name, String description, NotificationStatus status, LocalDateTime noticeAt, User user) {
         this.name = name;
         this.description = description;
         this.status = status;
-        this.createdAt = createdAt;
+        this.noticeAt = noticeAt;
         this.user = user;
     }
 }

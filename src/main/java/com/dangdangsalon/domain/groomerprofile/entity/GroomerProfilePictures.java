@@ -1,4 +1,4 @@
-package com.dangdangsalon.domain.estimate.entity;
+package com.dangdangsalon.domain.groomerprofile.entity;
 
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import jakarta.persistence.*;
@@ -8,13 +8,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "estimate_picture")
+@Table(name = "groomer_profile_pictures")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class EstimatePicture {
+public class GroomerProfilePictures {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "key")
     private Long id;
 
     @Column(name = "image_key")
@@ -25,7 +25,7 @@ public class EstimatePicture {
     private GroomerProfile groomerProfile;
 
     @Builder
-    public EstimatePicture(String imageKey, GroomerProfile groomerProfile) {
+    public GroomerProfilePictures(String imageKey, GroomerProfile groomerProfile) {
         this.imageKey = imageKey;
         this.groomerProfile = groomerProfile;
     }

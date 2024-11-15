@@ -13,31 +13,27 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CouponEvent {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "coupon_id")
     private Long id;
 
     private String name;
 
-    @Column(name = "discount_amount")
     private int discountAmount;
 
-    @Column(name = "discount_type")
+    @Enumerated(EnumType.STRING)
     private DiscountType discountType;
 
-    @Column(name = "started_at")
     private LocalDateTime startedAt;
 
-    @Column(name = "ended_at")
     private LocalDateTime endedAt;
 
-    @Column(name = "total_quantity")
     private int totalQuantity;
 
-    @Column(name = "remain_quantity")
     private int remainQuantity;
 
+    @Enumerated(EnumType.STRING)
     private CouponEventStatus status;
 
     @Builder

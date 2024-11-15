@@ -1,6 +1,8 @@
 package com.dangdangsalon.domain.dogprofile.entity;
 import com.dangdangsalon.domain.user.entity.User;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,18 +16,17 @@ public class DogProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "profile_id")
     private Long id;
+
+    @Column(name = "image_key")
+    private String imageKey;
 
     private String name;
 
-    private String species;
+    private String species; //UI 보고 Enum 고민.
 
-    @Column(name = "age_yaer")
-    private int ageYear;
-
-    @Column(name = "age_month")
-    private int ageMonth;
+    @Embedded
+    private DogAge age;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
@@ -40,11 +41,12 @@ public class DogProfile {
     private User user;
 
     @Builder
-    public DogProfile(String name, String species, int ageYear, int ageMonth, Gender gender, Neutering neutering, int weight, User user) {
+    public DogProfile(String imageKey, String name, String species, DogAge age, Gender gender, Neutering neutering,
+                      int weight, User user) {
+        this.imageKey = imageKey;
         this.name = name;
         this.species = species;
-        this.ageYear = ageYear;
-        this.ageMonth = ageMonth;
+        this.age = age;
         this.gender = gender;
         this.neutering = neutering;
         this.weight = weight;

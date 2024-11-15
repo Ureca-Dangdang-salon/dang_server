@@ -1,4 +1,4 @@
-package com.dangdangsalon.domain.review.entity;
+package com.dangdangsalon.domain.groomerprofile.review.entity;
 
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.user.entity.User;
@@ -16,16 +16,13 @@ public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "review_id")
     private Long id;
 
-    @Column(name = "star_score")
     private double starScore;
 
     @Column(columnDefinition = "TEXT")
     private String text;
 
-    @Column(name = "image_key")
     private String imageKey;
 
     @ManyToOne
@@ -33,7 +30,7 @@ public class Review {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "profile_id")
+    @JoinColumn(name = "groomer_profile_id")
     private GroomerProfile groomerProfile;
 
     @Builder

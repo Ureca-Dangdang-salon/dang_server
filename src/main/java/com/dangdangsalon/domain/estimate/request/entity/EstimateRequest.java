@@ -1,4 +1,4 @@
-package com.dangdangsalon.domain.estimaterequest.entity;
+package com.dangdangsalon.domain.estimate.request.entity;
 
 import com.dangdangsalon.domain.groomerprofile.entity.ServiceType;
 import com.dangdangsalon.domain.region.entity.District;
@@ -15,25 +15,24 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EstimateRequest {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "request_id")
     private Long id;
 
-    private LocalDateTime date;
+    private LocalDateTime requestDate;
 
-    private String region;
+    @Enumerated(EnumType.STRING)
+    private RequestStatus requestStatus;
 
-    private RequestStatus status;
-
-    @Column(name = "service_type")
+    @Enumerated(EnumType.STRING)
     private ServiceType serviceType;
 
     @Column(name = "current_photo_key")
-    private String currentPhotoKey;
+    private String currentImageKey;
 
     @Column(name = "style_ref_photo_key")
-    private String styleRefPhotoKey;
+    private String styleRefImageKey;
 
     private boolean aggression;
 
@@ -47,4 +46,18 @@ public class EstimateRequest {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "district_id")
     private District district;
+
+    public EstimateRequest(LocalDateTime requestDate, RequestStatus requestStatus, ServiceType serviceType,
+                           String currentImageKey, String styleRefImageKey, boolean aggression, boolean healthIssue,
+                           User user, District district) {
+        this.requestDate = requestDate;
+        this.requestStatus = requestStatus;
+        this.serviceType = serviceType;
+        this.currentImageKey = currentImageKey;
+        this.styleRefImageKey = styleRefImageKey;
+        this.aggression = aggression;
+        this.healthIssue = healthIssue;
+        this.user = user;
+        this.district = district;
+    }
 }

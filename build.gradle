@@ -39,6 +39,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 	testImplementation 'io.rest-assured:rest-assured'
+	implementation 'org.flywaydb:flyway-core'
+	implementation "org.flywaydb:flyway-mysql"
 }
 
 tasks.named('test') {

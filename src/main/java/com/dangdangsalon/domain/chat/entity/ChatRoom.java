@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.chat.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.user.entity.User;
@@ -15,37 +16,33 @@ import java.time.LocalDateTime;
 @Table(name = "chat_room")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ChatRoom {
+public class ChatRoom extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "room_id")
     private Long id;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "customer_left", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+    private Boolean customerLeft;
 
-    @Column(name = "customer_left")
-    private boolean customerLeft;
-
-    @Column(name = "groomer_left")
-    private boolean groomerLeft;
+    @Column(name = "groomer_left", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+    private Boolean groomerLeft;
 
     @ManyToOne
-    @JoinColumn(name = "estimate_id", nullable = false)
+    @JoinColumn(name = "estimate_id")
     private Estimate estimate;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "profile_id", nullable = false)
+    @JoinColumn(name = "groomer_profile_id")
     private GroomerProfile groomerProfile;
 
     @Builder
-    public ChatRoom(LocalDateTime createdAt, Boolean customerLeft, Boolean groomerLeft,
+    public ChatRoom(Boolean customerLeft, Boolean groomerLeft,
                     Estimate estimate, User user, GroomerProfile groomerProfile) {
-        this.createdAt = createdAt;
         this.customerLeft = customerLeft;
         this.groomerLeft = groomerLeft;
         this.estimate = estimate;

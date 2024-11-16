@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.groomerprofile.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,19 +11,19 @@ import lombok.NoArgsConstructor;
 @Table(name = "badge")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Badge {
+public class Badge extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "badge_id")
     private Long id;
 
     private String name;
 
-    private String image;
+    private String imageKey;
 
     @Builder
-    public Badge(String name, String image) {
+    public Badge(String name, String imageKey) {
         this.name = name;
-        this.image = image;
+        this.imageKey = imageKey;
     }
 }

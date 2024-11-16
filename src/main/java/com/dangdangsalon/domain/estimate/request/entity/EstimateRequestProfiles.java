@@ -1,6 +1,7 @@
-package com.dangdangsalon.domain.groomerprofile.entity;
+package com.dangdangsalon.domain.estimate.request.entity;
 
 import com.dangdangsalon.config.base.BaseEntity;
+import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -15,26 +16,26 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "groomer_badge")
+@Table(name = "estimate_request_profiles")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroomerBadge extends BaseEntity {
+public class EstimateRequestProfiles extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "profile_id")
-    private GroomerProfile groomerProfile;
+    @JoinColumn(name = "request_id")
+    private EstimateRequest estimateRequest;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "badge_id")
-    private Badge badge;
+    @JoinColumn(name = "profile_id")
+    private DogProfile dogProfile;
 
     @Builder
-    public GroomerBadge(GroomerProfile groomerProfile, Badge badge) {
-        this.groomerProfile = groomerProfile;
-        this.badge = badge;
+    public EstimateRequestProfiles(EstimateRequest estimateRequest, DogProfile dogProfile) {
+        this.estimateRequest = estimateRequest;
+        this.dogProfile = dogProfile;
     }
 }

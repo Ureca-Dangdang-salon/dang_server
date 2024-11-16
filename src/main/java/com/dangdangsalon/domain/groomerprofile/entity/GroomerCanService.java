@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.groomerprofile.entity;
 
 import com.dangdangsalon.config.base.BaseEntity;
+import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -15,10 +16,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "groomer_badge")
+@Table(name = "groomer_profile_service")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroomerBadge extends BaseEntity {
+public class GroomerCanService extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,12 +30,12 @@ public class GroomerBadge extends BaseEntity {
     private GroomerProfile groomerProfile;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "badge_id")
-    private Badge badge;
+    @JoinColumn(name = "service_id")
+    private GroomerService groomerService;
 
     @Builder
-    public GroomerBadge(GroomerProfile groomerProfile, Badge badge) {
+    public GroomerCanService(GroomerProfile groomerProfile, GroomerService groomerService) {
         this.groomerProfile = groomerProfile;
-        this.badge = badge;
+        this.groomerService = groomerService;
     }
 }

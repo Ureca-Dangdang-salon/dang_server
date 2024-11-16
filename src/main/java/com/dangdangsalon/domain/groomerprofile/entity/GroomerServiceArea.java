@@ -1,6 +1,7 @@
-package com.dangdangsalon.domain.user.entity;
+package com.dangdangsalon.domain.groomerprofile.entity;
 
 import com.dangdangsalon.config.base.BaseEntity;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.region.entity.District;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -8,36 +9,28 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+
 @Entity
-@Table(name = "user")
+@Table(name = "district_service")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User extends BaseEntity {
+public class GroomerServiceArea extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_id")
+    private GroomerProfile groomerProfile;
 
-    private String email;
-
-    @Column(name = "image_key")
-    private String imageKey;
-
-    @Enumerated(EnumType.STRING)
-    private Role role;
-
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "district_id")
     private District district;
 
     @Builder
-    public User(String name, String email, String imageKey, Role role, District district) {
-        this.name = name;
-        this.email = email;
-        this.imageKey = imageKey;
-        this.role = role;
+    public GroomerServiceArea(GroomerProfile groomerProfile, District district) {
+        this.groomerProfile = groomerProfile;
         this.district = district;
     }
 }

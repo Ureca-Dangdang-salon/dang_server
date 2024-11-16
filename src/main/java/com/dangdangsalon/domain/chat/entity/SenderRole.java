@@ -1,5 +1,5 @@
 package com.dangdangsalon.domain.chat.entity;
 
-public enum SendRole {
+public enum SenderRole {
     GROOMER, CUSTOMER
 }

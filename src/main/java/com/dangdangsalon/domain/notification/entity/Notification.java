@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.notification.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @Table(name = "notification")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Notification {
+public class Notification extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,22 +25,21 @@ public class Notification {
 
     private String description;
 
+    @Enumerated(EnumType.STRING)
     private NotificationStatus status;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime noticeAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
     @Builder
-    public Notification(String name, String description, NotificationStatus status,
-                        LocalDateTime createdAt, User user) {
+    public Notification(String name, String description, NotificationStatus status, LocalDateTime noticeAt, User user) {
         this.name = name;
         this.description = description;
         this.status = status;
-        this.createdAt = createdAt;
+        this.noticeAt = noticeAt;
         this.user = user;
     }
 }

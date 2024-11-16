@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.orders.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -14,11 +15,10 @@ import java.time.LocalDateTime;
 @Table(name = "orders")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Orders {
+public class Orders extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id")
     private Long id;
 
     @Column(name = "order_name")
@@ -27,10 +27,8 @@ public class Orders {
     @Column(name = "amount_value")
     private int amountValue;
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
 
     @OneToOne
     @JoinColumn(name = "estimate_id")
@@ -41,12 +39,10 @@ public class Orders {
     private User user;
 
     @Builder
-    public Orders(String orderName, int amountValue, OrderStatus status,
-                  LocalDateTime createdAt, Estimate estimate, User user) {
+    public Orders(String orderName, int amountValue, OrderStatus status, Estimate estimate, User user) {
         this.orderName = orderName;
         this.amountValue = amountValue;
         this.status = status;
-        this.createdAt = createdAt;
         this.estimate = estimate;
         this.user = user;
     }

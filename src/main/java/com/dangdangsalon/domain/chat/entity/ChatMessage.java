@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.chat.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -12,11 +13,10 @@ import java.time.LocalDateTime;
 @Table(name = "chat_message")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ChatMessage {
+public class ChatMessage extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "message_id")
     private Long id;
 
     @Column(columnDefinition = "TEXT", name = "message_text")
@@ -31,8 +31,9 @@ public class ChatMessage {
     @Column(name = "sender_id")
     private Long senderId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "sender_role")
-    private SendRole senderRole;
+    private SenderRole senderRole;
 
     @ManyToOne
     @JoinColumn(name = "room_id", nullable = false)
@@ -40,7 +41,7 @@ public class ChatMessage {
 
     @Builder
     public ChatMessage(String messageText, String imageKey, LocalDateTime sendAt, Long senderId,
-                       SendRole senderRole, ChatRoom chatRoom) {
+                       SenderRole senderRole, ChatRoom chatRoom) {
         this.messageText = messageText;
         this.imageKey = imageKey;
         this.sendAt = sendAt;

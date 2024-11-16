@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.region.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -13,11 +14,10 @@ import jakarta.persistence.*;
 @Table(name = "city")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class City {
+public class City extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "city_id")
     private Long id;
 
     private String name;

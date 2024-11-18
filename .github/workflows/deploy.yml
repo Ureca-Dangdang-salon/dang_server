@@ -75,6 +75,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
+            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && \
             cd /home/ubuntu/app && \
             docker-compose pull && \
             docker-compose up -d

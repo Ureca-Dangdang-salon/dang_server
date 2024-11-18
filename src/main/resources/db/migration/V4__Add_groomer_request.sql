@@ -20,3 +20,12 @@ CREATE TABLE groomer_certification (
 
 ALTER TABLE `groomer_profile`
     DROP COLUMN `certification`;
+
+ALTER TABLE `estimate`
+    ADD COLUMN `date` datetime(6) DEFAULT NULL;
+
+ALTER TABLE `estimate_request_service`
+DROP FOREIGN KEY `FKoam8pap713fsbclf3i4mweol3`;
+
+ALTER TABLE `estimate_request_service`
+    ADD FOREIGN KEY (`request_id`) REFERENCES `estimate_request_profiles` (`id`);

@@ -27,15 +27,15 @@ public class EstimateRequestService extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_id")
-    private EstimateRequest estimateRequest;
+    private EstimateRequestProfiles estimateRequestProfiles;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id")
     private GroomerService groomerService;
 
     @Builder
-    public EstimateRequestService(EstimateRequest estimateRequest, GroomerService groomerService) {
-        this.estimateRequest = estimateRequest;
+    public EstimateRequestService(EstimateRequestProfiles estimateRequestProfiles, GroomerService groomerService) {
+        this.estimateRequestProfiles = estimateRequestProfiles;
         this.groomerService = groomerService;
     }
 }

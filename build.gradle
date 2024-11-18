@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.5'
 	id 'io.spring.dependency-management' version '1.1.6'
+	id "com.gorylenko.gradle-git-properties" version "2.4.1"
+	id 'jacoco'
 }
 
 group = 'com.dangdangsalon'
@@ -32,8 +34,85 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+	testImplementation 'io.rest-assured:rest-assured'
+	implementation 'org.flywaydb:flyway-core'
+	implementation "org.flywaydb:flyway-mysql"
+	testImplementation 'com.h2database:h2'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy 'jacocoTestReport'
+}
+
+jacocoTestReport {
+	reports {
+		xml.required = true    // CI/CD에서 커버리지 통합용 XML 리포트
+		html.required = true   // 사람이 읽을 수 있는 HTML 리포트
+		csv.required = false   // CSV 리포트 비활성화
+	}
+
+	getClassDirectories().setFrom(
+			files(classDirectories.files.collect {
+				fileTree(dir: it, exclude: [
+						'**/dto/**',       // DTO 패키지 제외
+						'**/entity/**',    // Entity 패키지 제외
+						'**/config/**',    // 설정 관련 클래스 제외
+						'**/exception/**',  // 예외 처리 관련 클래스 제외
+						'**/util/**' // util 관련 클래스 제외
+				])
+			})
+	)
+
+	finalizedBy 'jacocoTestCoverageVerification'
+}
+
+jacocoTestCoverageVerification {
+	getClassDirectories().setFrom(
+			files(classDirectories.files.collect {
+				fileTree(dir: it, exclude: [
+						'**/dto/**',       // DTO 패키지 제외
+						'**/entity/**',    // Entity 패키지 제외
+						'**/config/**',    // 설정 관련 클래스 제외
+						'**/exception/**',  // 예외 처리 관련 클래스 제외
+						'**/util/**' // util 관련 클래스 제외
+				])
+			})
+	)
+
+	violationRules {
+		rule {
+			enabled = true
+			element = 'CLASS'
+
+			// 전체 라인 커버리지 최소 80%
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.30
+			}
+
+			// 브랜치 커버리지 최소 70%
+			limit {
+				counter = 'BRANCH'
+				value = 'COVEREDRATIO'
+				minimum = 0.30
+			}
+
+			// 한 파일에 최대 500줄 제한
+			limit {
+				counter = 'LINE'
+				value = 'TOTALCOUNT'
+				maximum = 500
+			}
+		}
+	}
+}
+
+springBoot {
+	buildInfo()
 }

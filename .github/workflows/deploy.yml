@@ -47,14 +47,12 @@ jobs:
           chmod +x ./gradlew
           ./gradlew clean build -Dspring.profiles.active=test
 
-      - name: Copy JAR to Docker context
-        run: |
-          mkdir -p docker-build
-          cp build/libs/dangdang-salon-service-*-SNAPSHOT.jar docker-build/
+      - name: Copy JAR to build context
+        run: cp build/libs/dangdang-salon-service-*-SNAPSHOT.jar .
 
       - name: Build Docker image
         run: |
-          docker build -t dangdang-salon:latest -f docker-build/Dockerfile ./docker-build
+          docker build -t dangdang-salon:latest .
 
       - name: Push Docker image to Docker Hub
         env:

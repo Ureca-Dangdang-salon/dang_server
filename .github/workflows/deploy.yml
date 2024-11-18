@@ -53,6 +53,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t dangdang-salon:latest .
+          docker tag dangdang-salon:latest ${{ secrets.DOCKER_USERNAME }}/dangdang-salon:latest
 
       - name: Push Docker image to Docker Hub
         env:

@@ -3,10 +3,10 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main # main 브랜치에 Push 이벤트 발생 시 실행
+      - main
   pull_request:
     branches:
-      - main # main 브랜치에 대한 PR 생성 시 실행
+      - main
 
 jobs:
   # 1. 빌드와 테스트
@@ -28,11 +28,11 @@ jobs:
       - name: Build JAR file
         run: |
           chmod +x ./gradlew
-          ./gradlew clean build
+          ./gradlew clean build -Dspring.profiles.active=test
 
       # 4. 테스트 실행
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test -Dspring.profiles.active=test
 
   # 2. 배포
   deploy:

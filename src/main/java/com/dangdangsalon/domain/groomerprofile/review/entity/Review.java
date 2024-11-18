@@ -24,8 +24,6 @@ public class Review extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String text;
 
-    private String imageKey;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -35,10 +33,9 @@ public class Review extends BaseEntity {
     private GroomerProfile groomerProfile;
 
     @Builder
-    public Review(double starScore, String text, String imageKey, User user, GroomerProfile groomerProfile) {
+    public Review(double starScore, String text, User user, GroomerProfile groomerProfile) {
         this.starScore = starScore;
         this.text = text;
-        this.imageKey = imageKey;
         this.user = user;
         this.groomerProfile = groomerProfile;
     }

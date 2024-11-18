@@ -13,8 +13,6 @@ public class GroomerDetails {
 
     private String businessNumber;
 
-    private String certification;
-
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -26,11 +24,10 @@ public class GroomerDetails {
     private String faq;
 
     @Builder
-    public GroomerDetails(String businessNumber, String certification, String description, String startChat,
+    public GroomerDetails(String businessNumber, String description, String startChat,
                           String address,
                           String faq) {
         this.businessNumber = businessNumber;
-        this.certification = certification;
         this.description = description;
         this.startChat = startChat;
         this.address = address;

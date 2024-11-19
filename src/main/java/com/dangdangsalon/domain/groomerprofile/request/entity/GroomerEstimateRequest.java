@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.groomerprofile.request.entity;
 
+import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import jakarta.persistence.*;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Table
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroomerEstimateRequest {
+public class GroomerEstimateRequest extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

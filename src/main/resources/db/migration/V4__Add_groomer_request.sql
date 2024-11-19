@@ -3,6 +3,8 @@ CREATE TABLE `groomer_estimate_request` (
     `groomer_request_status` ENUM('PAID', 'PENDING', 'CANCEL', 'COMPLETED'),
     `request_id` BIGINT NOT NULL,
     `groomer_profile_id` BIGINT NOT NULL,
+    `created_at`         datetime(6) DEFAULT NULL,
+    `updated_at`         datetime(6) DEFAULT NULL,
     PRIMARY KEY (`id`),
     FOREIGN KEY (`request_id`) REFERENCES `estimate_request` (`id`),
     FOREIGN KEY (`groomer_profile_id`) REFERENCES `groomer_profile` (`id`)

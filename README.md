@@ -2,8 +2,6 @@
 
 **Client Repo**: [DangDang Salon Client](https://github.com/Ureca-Dangdang-salon/dang_client)
 
-![alt text](public/images/소개글.jpg)
-
 ## 주요 기능
 
 - 소셜 로그인

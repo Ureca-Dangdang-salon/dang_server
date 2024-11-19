@@ -85,10 +85,11 @@
 
 ## 🔨 Tech Stack
 
-- **Backend**: Java 17, Spring Boot 3.3, Spring Data JPA, OAuth2
-- **DB**: Mysql, MongDB, Redis
+- **Backend**: Java 17, Spring Boot 3.3, Spring Data JPA, OAuth2, Spring Security, JWT
+- **DB**: Mysql, MongDB, Redis, Flyway
 - **Test Tool**: JUnit, Mockito, Postman, Jacoco, Rest-Assured
-- **Infra**: Nginx, Docker, AWS EC2, AWS S3, Github Actions, Prometheus, Grafana, AWS CloudFront
+- **Infra**: Nginx, Docker, AWS EC2, AWS S3, Github Actions, AWS CloudFront, AWS RDS, AWS Elasticache
+- **Monitoring**: Prometheus, Grafana, Loki
 
 ## 🖥️ Project Setup
 

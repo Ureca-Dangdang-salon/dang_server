@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.estimate.request.service;
 
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
+import com.dangdangsalon.domain.estimate.request.dto.EstimateResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerCanService;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
@@ -11,7 +12,9 @@ import com.dangdangsalon.domain.groomerprofile.repository.GroomerServiceAreaRepo
 import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerEstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerRequestStatus;
 import com.dangdangsalon.domain.groomerprofile.request.repository.GroomerEstimateRequestRepository;
+import com.dangdangsalon.domain.region.entity.City;
 import com.dangdangsalon.domain.region.entity.District;
+import com.dangdangsalon.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +41,36 @@ public class GroomerEstimateRequestService {
                 saveGroomerEstimateRequest(estimateRequest, groomerProfile);
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<EstimateResponseDto> getEstimateRequest(Long groomerProfileId) {
+
+        List<GroomerEstimateRequest> groomerEstimateRequests = groomerEstimateRequestRepository.findByGroomerProfileId(groomerProfileId);
+
+        return groomerEstimateRequests.stream()
+                .map(request -> {
+                    EstimateRequest estimateRequest = request.getEstimateRequest();
+                    User user = estimateRequest.getUser();
+                    District district = estimateRequest.getDistrict();
+
+                    // 시 정보 가져오기
+                    City city = district.getCity();
+
+                    // ex) 서울특별시 강남구
+                    String fullRegion = String.format("%s %s", city.getName(), district.getName());
+
+                    return EstimateResponseDto.builder()
+                            .name(user.getName())
+                            .date(estimateRequest.getRequestDate().toLocalDate())
+                            .serviceType(estimateRequest.getServiceType().name())
+                            .region(fullRegion)
+                            .imageKey(user.getImageKey())
+                            .estimateRequestStatus(estimateRequest.getRequestStatus().name())
+                            .groomerEstimateRequestStatus(String.valueOf(request.getGroomerRequestStatus()))
+                            .build();
+                })
+                .toList();
     }
 
     // 두가지 조건이 만족해야 요청이 간다.

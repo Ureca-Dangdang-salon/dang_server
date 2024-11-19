@@ -44,6 +44,7 @@ public class GroomerEstimateRequestService {
         }
     }
 
+    // 미용사에게 온 견적 요청들 조회
     @Transactional(readOnly = true)
     public List<EstimateResponseDto> getEstimateRequest(Long groomerProfileId) {
 
@@ -51,28 +52,7 @@ public class GroomerEstimateRequestService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 지역에 대한 미용사 정보를 찾을 수 없습니다"));
 
         return groomerEstimateRequestList.stream()
-                .map(request -> {
-                    EstimateRequest estimateRequest = request.getEstimateRequest();
-                    User user = estimateRequest.getUser();
-                    District district = estimateRequest.getDistrict();
-
-                    // 시 정보 가져오기
-                    City city = district.getCity();
-
-                    // ex) 서울특별시 강남구
-                    String fullRegion = String.format("%s %s", city.getName(), district.getName());
-
-                    return EstimateResponseDto.builder()
-                            .estimateId(estimateRequest.getId())
-                            .name(user.getName())
-                            .date(estimateRequest.getRequestDate().toLocalDate())
-                            .serviceType(estimateRequest.getServiceType().name())
-                            .region(fullRegion)
-                            .imageKey(user.getImageKey())
-                            .estimateRequestStatus(estimateRequest.getRequestStatus().name())
-                            .groomerEstimateRequestStatus(String.valueOf(request.getGroomerRequestStatus()))
-                            .build();
-                })
+                .map(EstimateResponseDto::toDto)
                 .toList();
     }
 

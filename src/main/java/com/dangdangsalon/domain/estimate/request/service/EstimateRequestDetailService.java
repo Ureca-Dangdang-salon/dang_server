@@ -60,7 +60,7 @@ public class EstimateRequestDetailService {
     private List<ServiceResponseDto> getServiceList(EstimateRequestProfiles profile) {
 
         List<EstimateRequestService> serviceList = estimateRequestServiceRepository.findByEstimateRequestProfiles(profile)
-                .orElseThrow(() -> new IllegalArgumentException("견적 요청 서비스가 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("견적 요청 서비스가 없습니다 : " + profile.getId()));
 
         return serviceList.stream()
                 .map(service -> new ServiceResponseDto(

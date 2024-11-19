@@ -60,7 +60,6 @@ CREATE TABLE `user`
     `role`        enum('ADMIN','SALON','USER') DEFAULT NULL,
     `district_id` bigint       DEFAULT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `UKiytqhx37ab15i8h04tgwme11l` (`district_id`),
     CONSTRAINT `FKq6a9571l40g6c02up8o4ky79b` FOREIGN KEY (`district_id`) REFERENCES `district` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 

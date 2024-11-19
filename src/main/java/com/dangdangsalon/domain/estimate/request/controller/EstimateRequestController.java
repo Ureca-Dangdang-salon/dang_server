@@ -31,7 +31,7 @@ public class EstimateRequestController {
     }
 
     /**
-     *  미용사한테 전달된 견적 요청 조회
+     *  미용사에게 전달된 견적 요청 조회
      */
     @GetMapping("/{groomerProfileId}")
     public ApiUtil.ApiSuccess<?> getEstimateRequests(@PathVariable Long groomerProfileId) {
@@ -46,5 +46,14 @@ public class EstimateRequestController {
     public ApiUtil.ApiSuccess<?> getEstimateRequestDetail(@PathVariable Long requestId) {
         List<EstimateDetailResponseDto> estimateRequestDetailList = estimateRequestDetailService.getEstimateRequestDetail(requestId);
         return ApiUtil.success(estimateRequestDetailList);
+    }
+
+    /**
+     *  미용사 견적 요청 삭제 버튼 클릭 api
+     */
+    @PutMapping("/{requestId}/cancel")
+    public ApiUtil.ApiSuccess<?> cancelEstimateRequest(@PathVariable Long requestId) {
+        groomerEstimateRequestService.cancelGroomerEstimateRequest(requestId);
+        return ApiUtil.success("견적 요청 삭제에 성공하였습니다.");
     }
 }

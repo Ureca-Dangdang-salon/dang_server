@@ -32,9 +32,10 @@ public class GroomerEstimateRequestService {
 
     @Transactional
     public void insertGroomerEstimateRequests(EstimateRequest estimateRequest, District district, EstimateRequestDto estimateRequestDto) {
-        List<GroomerServiceArea> groomerServiceAreas = groomerServiceAreaRepository.findByDistrict(district);
+        List<GroomerServiceArea> groomerServiceAreaList = groomerServiceAreaRepository.findByDistrict(district)
+                .orElseThrow(() -> new IllegalArgumentException("미용사"));
 
-        for (GroomerServiceArea groomerServiceArea : groomerServiceAreas) {
+        for (GroomerServiceArea groomerServiceArea : groomerServiceAreaList) {
             GroomerProfile groomerProfile = groomerServiceArea.getGroomerProfile();
 
             if (canGroomerHandleRequest(estimateRequestDto, estimateRequest, groomerProfile)) {
@@ -46,9 +47,10 @@ public class GroomerEstimateRequestService {
     @Transactional(readOnly = true)
     public List<EstimateResponseDto> getEstimateRequest(Long groomerProfileId) {
 
-        List<GroomerEstimateRequest> groomerEstimateRequests = groomerEstimateRequestRepository.findByGroomerProfileId(groomerProfileId);
+        List<GroomerEstimateRequest> groomerEstimateRequestList = groomerEstimateRequestRepository.findByGroomerProfileId(groomerProfileId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 지역에 대한 미용사 정보를 찾을 수 없습니다"));
 
-        return groomerEstimateRequests.stream()
+        return groomerEstimateRequestList.stream()
                 .map(request -> {
                     EstimateRequest estimateRequest = request.getEstimateRequest();
                     User user = estimateRequest.getUser();
@@ -72,6 +74,18 @@ public class GroomerEstimateRequestService {
                             .build();
                 })
                 .toList();
+    }
+
+    /**
+     *  미용사가 받은 견적 요청 상태를 CANCEL 로 변경
+     */
+    @Transactional
+    public void cancelGroomerEstimateRequest(Long estimateRequestId) {
+
+        GroomerEstimateRequest request = groomerEstimateRequestRepository.findByEstimateRequestId(estimateRequestId)
+                .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다: " + estimateRequestId));
+
+        request.updateStatus(GroomerRequestStatus.CANCEL);
     }
 
     // 두가지 조건이 만족해야 요청이 간다.

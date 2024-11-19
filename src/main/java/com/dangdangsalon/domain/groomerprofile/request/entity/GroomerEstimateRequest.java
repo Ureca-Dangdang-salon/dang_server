@@ -36,4 +36,8 @@ public class GroomerEstimateRequest extends BaseEntity {
         this.estimateRequest = estimateRequest;
         this.groomerProfile = groomerProfile;
     }
+
+    public void updateStatus(GroomerRequestStatus status) {
+        this.groomerRequestStatus = status;
+    }
 }

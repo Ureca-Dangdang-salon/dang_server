@@ -9,8 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,10 +25,11 @@ public class DogProfileService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저 아이디를 찾을 수 없습니다 : " + userId));
 
-        List<DogProfile> dogProfiles = dogProfileRepository.findByUser(user);
+        List<DogProfile> dogProfiles = dogProfileRepository.findByUser(user)
+                .orElse(Collections.emptyList());
 
         return dogProfiles.stream()
                 .map(dog -> new DogProfileResponseDto(dog.getImageKey(), dog.getName()))
-                .collect(Collectors.toList());
+                .toList();
     }
 }

@@ -5,7 +5,8 @@ import com.dangdangsalon.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DogProfileRepository extends JpaRepository<DogProfile, Long> {
-    List<DogProfile> findByUser(User user);
+    Optional<List<DogProfile>> findByUser(User user);
 }

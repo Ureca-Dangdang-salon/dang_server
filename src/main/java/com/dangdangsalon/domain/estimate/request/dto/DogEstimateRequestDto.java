@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class DogRequestDto {
+public class DogEstimateRequestDto {
     private Long dogProfileId;
     private String currentImageKey;
     private String styleRefImageKey;

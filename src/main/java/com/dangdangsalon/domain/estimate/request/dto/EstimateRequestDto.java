@@ -13,5 +13,5 @@ public class EstimateRequestDto {
     private String district;
     private LocalDateTime date;
     private String serviceType;
-    private List<DogRequestDto> dogs;
+    private List<DogEstimateRequestDto> dogEstimateRequestList;
 }

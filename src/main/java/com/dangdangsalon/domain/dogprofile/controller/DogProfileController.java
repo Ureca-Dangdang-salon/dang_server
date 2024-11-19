@@ -22,7 +22,7 @@ public class DogProfileController {
      *  userId 토큰에서 가져오는 걸로 추후 변경
      */
     @GetMapping("/estimaterequest/dogprofiles")
-    public ApiUtil.ApiSuccess<List<DogProfileResponseDto>> getDogProfiles(@RequestParam Long userId) {
+    public ApiUtil.ApiSuccess<?> getEstimateRequestDogProfiles(@RequestParam Long userId) {
         List<DogProfileResponseDto> dogProfiles = dogProfileService.getDogProfilesByUserId(userId);
         return ApiUtil.success(dogProfiles);
     }

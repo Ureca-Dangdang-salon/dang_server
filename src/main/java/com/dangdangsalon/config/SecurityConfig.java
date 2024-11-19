@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/**")
+                        .requestMatchers("/api/**", "/actuator/**")
                         .permitAll() // 인증 없이 접근 가능한 경로
                         .anyRequest().authenticated() // 나머지 경로는 인증 필요
                 );

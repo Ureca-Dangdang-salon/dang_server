@@ -15,4 +15,16 @@ public class DogEstimateRequestDto {
     private boolean healthIssue;
     private String description;
     private List<Long> servicesOffered;
+
+    public DogEstimateRequestDto(Long dogProfileId, String currentImageKey, String styleRefImageKey,
+                                 boolean aggression, boolean healthIssue, String description, List<Long> servicesOffered) {
+        this.dogProfileId = dogProfileId;
+        this.currentImageKey = currentImageKey;
+        this.styleRefImageKey = styleRefImageKey;
+        this.aggression = aggression;
+        this.healthIssue = healthIssue;
+        this.description = description;
+        this.servicesOffered = servicesOffered;
+    }
+
 }

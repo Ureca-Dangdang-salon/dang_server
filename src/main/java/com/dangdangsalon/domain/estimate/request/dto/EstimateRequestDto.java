@@ -14,4 +14,12 @@ public class EstimateRequestDto {
     private LocalDateTime date;
     private String serviceType;
     private List<DogEstimateRequestDto> dogEstimateRequestList;
+
+    public EstimateRequestDto(String city, String district, LocalDateTime date, String serviceType, List<DogEstimateRequestDto> dogEstimateRequestList) {
+        this.city = city;
+        this.district = district;
+        this.date = date;
+        this.serviceType = serviceType;
+        this.dogEstimateRequestList = dogEstimateRequestList;
+    }
 }

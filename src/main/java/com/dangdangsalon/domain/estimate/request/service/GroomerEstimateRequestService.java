@@ -61,6 +61,7 @@ public class GroomerEstimateRequestService {
                     String fullRegion = String.format("%s %s", city.getName(), district.getName());
 
                     return EstimateResponseDto.builder()
+                            .estimateId(estimateRequest.getId())
                             .name(user.getName())
                             .date(estimateRequest.getRequestDate().toLocalDate())
                             .serviceType(estimateRequest.getServiceType().name())

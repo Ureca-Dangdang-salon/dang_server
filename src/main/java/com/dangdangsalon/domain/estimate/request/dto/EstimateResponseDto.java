@@ -9,6 +9,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 public class EstimateResponseDto {
+    private Long estimateId;
     private String name;
     private LocalDate date;
     private String serviceType;
@@ -18,7 +19,8 @@ public class EstimateResponseDto {
     private String groomerEstimateRequestStatus;
 
     @Builder
-    public EstimateResponseDto(String name, LocalDate date, String serviceType, String region, String status, String imageKey, String estimateRequestStatus, String groomerEstimateRequestStatus) {
+    public EstimateResponseDto(Long estimateId ,String name, LocalDate date, String serviceType, String region, String status, String imageKey, String estimateRequestStatus, String groomerEstimateRequestStatus) {
+        this.estimateId = estimateId;
         this.name = name;
         this.date = date;
         this.serviceType = serviceType;

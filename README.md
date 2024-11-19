@@ -58,10 +58,14 @@
 - 알림 서비스
   - **알림 조건**:
     - 고객:
-      - 견적서 도착 알림.
-      - 결제 완료.
-      - 리뷰 작성 요청
-      - 예약 하루 전 알림(이메일).
+      - 견적 요청 수락/거절 (푸시) 알림.
+      - 견적서 도착 (푸시) 알림.
+      - 예약 취소 (푸시, 이메일) 알림.
+    - 미용사:
+      - 새로운 견적 요청 도착 (푸시) 알림.
+      - 결제 완료 (푸시) 알림.
+      - 예약일 하루 전 (푸시, 이메일) 알림.
+      - 리뷰 작성 (푸시) 알림.
   - **알림 방식**:
     - 실시간 푸시 알림 또는 이메일.
 - 쿠폰 서비스
@@ -84,38 +88,20 @@
 
 ## 🔨 Tech Stack
 
-- **Backend**: Java 17, Spring Boot 3.3, Spring Data JPA, OAuth2, Spring Security, JWT
-- **DB**: Mysql, MongDB, Redis, Flyway
+- **Backend**: Java 17, Spring Boot 3.3, Spring Data JPA, OAuth2
+- **DB**: Mysql, MongoDB, Redis
 - **Test Tool**: JUnit, Mockito, Postman, Jacoco, Rest-Assured
-- **Infra**: Nginx, Docker, AWS EC2, AWS S3, Github Actions, AWS CloudFront, AWS RDS, AWS Elasticache
-- **Monitoring**: Prometheus, Grafana, Loki
+- **Infra**: Nginx, Docker, AWS EC2, AWS S3, Github Actions, Prometheus, Grafana, AWS CloudFront
 
-## 🖥️ Project Setup
+## ERD
 
-### **Prerequisites**
+![ERD](https://file.notion.so/f/f/e01fa883-e589-4301-9d54-e4c6b88f1ac1/b5c0c6aa-06cd-4091-9c12-91ffc1aed859/DangDangSalon_(3).png?table=block&id=d7f5d202-099d-4c26-bda7-892d19d4f099&spaceId=e01fa883-e589-4301-9d54-e4c6b88f1ac1&expirationTimestamp=1732075200000&signature=HBNrn3Vt_1gMuW7i6mwf5mIkngHVOrLSDcBVax5I7io&downloadName=DangDangSalon+%283%29.png)
 
-- **Node.js**
-- **npm** (or **yarn**)
+## 서비스 요청 흐름도
 
-### **Installation**
+![서비스 요청 흐름도](https://blog.kakaocdn.net/dn/uqxT8/btsKNyDEDiR/JUBVzkF6hpmpkizkcNBdaK/img.png)
 
-1. **Clone the Repository**
+## CI/CD
 
-   ```bash
-   git clone https://github.com/URECA-Dangdang-salon/dang_backend.git
-   cd dang_backend
-   ```
+![CI/CD](https://blog.kakaocdn.net/dn/bgQxzO/btsKNpUzLo2/hIwvoaFXiNQ7WYPpz9aky1/img.png)
 
-2. Install Dependencies
-   ```bash
-   npm install (or npm i)
-   ```
-3. Set Up Environment Variables
-
-   Please contact one of our members to obtain the variables
-
-4. Start the Server
-   ```bash
-   npm run dev
-   ```
-   The server should now be running at http://localhost:5173

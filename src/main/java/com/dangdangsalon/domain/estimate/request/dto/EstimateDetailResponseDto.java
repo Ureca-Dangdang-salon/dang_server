@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.estimate.request.dto;
 import com.dangdangsalon.domain.dogprofile.dto.DogProfileResponseDto;
+import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,5 +37,22 @@ public class EstimateDetailResponseDto {
         this.description = description;
         this.serviceList = serviceList;
         this.featureList = featureList;
+    }
+
+    public static EstimateDetailResponseDto toDto(EstimateRequestProfiles profile,
+                                                  DogProfileResponseDto dogProfileResponseDto,
+                                                  List<ServiceResponseDto> serviceList,
+                                                  List<FeatureResponseDto> featureList) {
+        return EstimateDetailResponseDto.builder()
+                .dogProfileId(profile.getDogProfile().getId())
+                .dogProfileResponseDto(dogProfileResponseDto)
+                .currentPhotoKey(profile.getCurrentImageKey())
+                .styleRefPhotoKey(profile.getStyleRefImageKey())
+                .aggression(profile.isAggression())
+                .healthIssue(profile.isHealthIssue())
+                .description(profile.getDescription())
+                .serviceList(serviceList)
+                .featureList(featureList)
+                .build();
     }
 }

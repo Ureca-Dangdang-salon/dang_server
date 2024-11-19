@@ -40,19 +40,13 @@ public class EstimateRequestDetailService {
                 .orElseThrow(() -> new IllegalArgumentException("견적 요청 프로필 정보를 찾을 수 없습니다"));
 
         return profileList.stream()
-                .map(profile -> EstimateDetailResponseDto.builder()
-                        .dogProfileId(profile.getDogProfile().getId())
-                        .dogProfileResponseDto(new DogProfileResponseDto(
+                .map(profile -> EstimateDetailResponseDto.toDto(
+                        profile,
+                        new DogProfileResponseDto(
                                 profile.getDogProfile().getImageKey(),
-                                profile.getDogProfile().getName()))
-                        .currentPhotoKey(profile.getCurrentImageKey())
-                        .styleRefPhotoKey(profile.getStyleRefImageKey())
-                        .aggression(profile.isAggression())
-                        .healthIssue(profile.isHealthIssue())
-                        .description(profile.getDescription())
-                        .serviceList(getServiceList(profile))
-                        .featureList(getFeatureList(profile.getDogProfile()))
-                        .build())
+                                profile.getDogProfile().getName()),
+                        getServiceList(profile),
+                        getFeatureList(profile.getDogProfile())))
                 .toList();
     }
 

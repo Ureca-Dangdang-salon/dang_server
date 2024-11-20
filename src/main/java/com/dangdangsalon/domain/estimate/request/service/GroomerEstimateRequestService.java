@@ -12,9 +12,7 @@ import com.dangdangsalon.domain.groomerprofile.repository.GroomerServiceAreaRepo
 import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerEstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerRequestStatus;
 import com.dangdangsalon.domain.groomerprofile.request.repository.GroomerEstimateRequestRepository;
-import com.dangdangsalon.domain.region.entity.City;
 import com.dangdangsalon.domain.region.entity.District;
-import com.dangdangsalon.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

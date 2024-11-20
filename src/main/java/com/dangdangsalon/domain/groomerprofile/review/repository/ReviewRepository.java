@@ -11,6 +11,7 @@ import java.util.Optional;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("SELECT r FROM Review r LEFT JOIN FETCH r.reviewImages WHERE r.user.id = :userId")
     Optional<List<Review>> findAllByUserIdWithImages(@Param("userId") Long userId);
+    
     @Query("SELECT r FROM Review r LEFT JOIN FETCH r.reviewImages WHERE r.id = :reviewId")
     Optional<Review> findByIdWithImages(@Param("reviewId") Long reviewId);
 

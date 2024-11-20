@@ -28,48 +28,34 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final GroomerProfileRepository groomerProfileRepository;
 
-    /*
-    내가 쓴 리뷰 조회
-    토큰으로 유저 ID 뽑아올 예정
-     */
+    // 내가 쓴 리뷰 조회
     @Transactional(readOnly = true)
     public List<ReviewUserResponseDto> getUserReviews(Long userId) {
-
         List<Review> reviews = reviewRepository.findAllByUserIdWithImages(userId)
                 .orElse(Collections.emptyList());
 
-        // 리뷰 없으면 빈 리스트, 있으면 조회
-        if (reviews.isEmpty()) {
-            return Collections.emptyList();
-        }
         return reviews.stream().map(ReviewUserResponseDto::fromEntity).toList();
 
     }
 
-    /*
-    미용사에게 쓴 리뷰 조회
-    토큰으로 유저 ID 뽑아올 예정
-     */
+
+    // 미용사에게 쓴 리뷰 조회
     @Transactional(readOnly = true)
     public List<ReviewGroomerResponseDto> getGroomerReviews(Long profileId) {
-
         List<Review> reviews = reviewRepository.findAllByGroomerProfileIdWithImages(profileId)
                 .orElse(Collections.emptyList());
 
-        // 리뷰 없으면 빈 리스트, 있으면 조회
-        if (reviews.isEmpty()) {
-            return Collections.emptyList();
-        }
         return reviews.stream().map(ReviewGroomerResponseDto::fromEntity).toList();
     }
 
+    // 리뷰 등록
     @Transactional
-    public String insertReview(Long userId, Long profileId, ReviewInsertRequestDto reviewInsertRequestDto) {
+    public void insertReview(Long userId, Long profileId, ReviewInsertRequestDto reviewInsertRequestDto) {
         User user = userRepository.findById(userId).orElseThrow(() ->
-                new IllegalArgumentException("유저 아이디를 찾을 수 없습니다 : " + userId));
+                new IllegalArgumentException("유저 아이디를 찾을 수 없습니다. userId : " + userId));
 
         GroomerProfile groomerProfile = groomerProfileRepository.findById(profileId).orElseThrow(() ->
-                new IllegalArgumentException("프로필 아이디를 찾을 수 없습니다 : " + profileId));
+                new IllegalArgumentException("프로필 아이디를 찾을 수 없습니다. profileId : " + profileId));
 
         // 리뷰 생성
         Review review = Review.builder()
@@ -90,18 +76,16 @@ public class ReviewService {
                     .toList();
             reviewImageRepository.saveAll(reviewImages);
         }
-
-        return "리뷰 등록이 완료되었습니다.";
     }
 
+    // 리뷰 수정
     @Transactional
-    public String updateReview(Long userId, Long reviewId, ReviewUpdateRequestDto reviewUpdateRequestDto) {
+    public void updateReview(Long userId, Long reviewId, ReviewUpdateRequestDto reviewUpdateRequestDto) {
         Review review = reviewRepository.findByIdWithImages(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다 : " + reviewId));
+                .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다. reviewId : " + reviewId));
 
-
-        if (!review.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("해당 리뷰를 수정할 권한이 없습니다.");
+        if (!review.isValidUser(userId)) {
+            throw new IllegalArgumentException("해당 리뷰를 수정할 권한이 없습니다. userId : " + userId);
         }
 
         // 내용 수정
@@ -122,22 +106,19 @@ public class ReviewService {
         }else{
             reviewImageRepository.deleteByReviewId(reviewId);
         }
-
-        return "리뷰 수정이 완료되었습니다.";
     }
 
+    // 리뷰 삭제
     @Transactional
-    public String deleteReview(Long userId, Long reviewId) {
+    public void deleteReview(Long userId, Long reviewId) {
 
         Review review = reviewRepository.findByIdWithImages(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다 : " + reviewId));
+                .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다. reviewId : " + reviewId));
 
         // 어드민도 적용 할 예정
         if (!review.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("해당 리뷰를 삭제할 권한이 없습니다.");
+            throw new IllegalArgumentException("해당 리뷰를 삭제할 권한이 없습니다. userId : " + userId);
         }
         reviewRepository.delete(review);
-
-        return "리뷰 삭제가 완료되었습니다.";
     }
 }

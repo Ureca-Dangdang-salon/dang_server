@@ -1,10 +1,11 @@
-package com.dangdangsalon.domain.estimate.request.service;
+package com.dangdangsalon.domain.estimate.service;
 
 import com.dangdangsalon.domain.dogprofile.dto.DogProfileResponseDto;
 import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
 import com.dangdangsalon.domain.dogprofile.entity.DogProfileFeature;
 import com.dangdangsalon.domain.dogprofile.repository.DogProfileFeatureRepository;
-import com.dangdangsalon.domain.estimate.request.dto.EstimateDetailResponseDto;
+import com.dangdangsalon.domain.estimate.dto.EstimateWriteDetailResponseDto;
+import com.dangdangsalon.domain.estimate.dto.EstimateWriteResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.FeatureResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.ServiceResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
@@ -21,17 +22,17 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class EstimateRequestDetailService {
+public class EstimateWriteService {
 
     private final EstimateRequestRepository estimateRequestRepository;
     private final EstimateRequestProfilesRepository estimateRequestProfilesRepository;
     private final EstimateRequestServiceRepository estimateRequestServiceRepository;
     private final DogProfileFeatureRepository dogProfileFeatureRepository;
 
+    // 견적서 작성 반려견 요청 목록 조회
     @Transactional(readOnly = true)
-    public List<EstimateDetailResponseDto> getEstimateRequestDetail(Long requestId) {
+    public List<EstimateWriteResponseDto> getEstimateRequestDog(Long requestId) {
 
-        // 견적 요청 조회(미용사) 할 때 견적 요청 아이디 넘겨줬으니까 클릭하면 요청 아이디를 받는다.
         EstimateRequest estimateRequest = estimateRequestRepository.findById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다 : " + requestId));
 
@@ -40,15 +41,38 @@ public class EstimateRequestDetailService {
                 .orElseThrow(() -> new IllegalArgumentException("견적 요청 프로필 정보를 찾을 수 없습니다"));
 
         return profileList.stream()
-                .map(profile -> EstimateDetailResponseDto.toDto(
-                        profile,
-                        new DogProfileResponseDto(
+                .map(profile -> EstimateWriteResponseDto.builder()
+                        .dogProfileResponseDto(new DogProfileResponseDto(
                                 profile.getDogProfile().getId(),
                                 profile.getDogProfile().getImageKey(),
-                                profile.getDogProfile().getName()),
-                        getServiceList(profile),
-                        getFeatureList(profile.getDogProfile())))
+                                profile.getDogProfile().getName()))
+                        .description(profile.getDescription())
+                        .isAggression(profile.isAggression())
+                        .isHealthIssue(profile.isHealthIssue())
+                        .serviceList(getServiceList(profile))
+                        .build())
                 .toList();
+
+    }
+
+    // 견적서 작성요 반려견 요청 상세 보기
+    @Transactional(readOnly = true)
+    public EstimateWriteDetailResponseDto getEstimateRequestDogDetail(Long requestId, Long dogProfileId) {
+
+        EstimateRequest estimateRequest = estimateRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다 : " + requestId));
+
+        // 강아지 아이디로 특정 강아지 프로필 조회
+        EstimateRequestProfiles profile = estimateRequestProfilesRepository.findByEstimateRequestAndDogProfileId(estimateRequest, dogProfileId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 강아지 프로필 정보를 찾을 수 없습니다 : " + dogProfileId));
+
+        DogProfile dogProfile = profile.getDogProfile();
+
+        List<ServiceResponseDto> serviceList = getServiceList(profile);
+
+        List<FeatureResponseDto> featureList = getFeatureList(dogProfile);
+
+        return EstimateWriteDetailResponseDto.toDto(dogProfile, profile, serviceList, featureList);
     }
 
     // 견적 요청한 서비스 정보 가져오기
@@ -64,7 +88,6 @@ public class EstimateRequestDetailService {
                 .toList();
     }
 
-    // 강아지 프로필에 연결된 특징 가져오기
     private List<FeatureResponseDto> getFeatureList(DogProfile dogProfile) {
 
         // 강아지 특징이 없을 수도 있다??

@@ -11,7 +11,6 @@ import java.util.List;
 @NoArgsConstructor
 public class EstimateDetailResponseDto {
 
-    private Long dogProfileId;
     private DogProfileResponseDto dogProfileResponseDto;
     private String currentPhotoKey;
     private String styleRefPhotoKey;
@@ -22,13 +21,12 @@ public class EstimateDetailResponseDto {
     private List<FeatureResponseDto> featureList;
 
     @Builder
-    public EstimateDetailResponseDto(Long dogProfileId, DogProfileResponseDto dogProfileResponseDto, String currentPhotoKey, String styleRefPhotoKey,
+    public EstimateDetailResponseDto(DogProfileResponseDto dogProfileResponseDto, String currentPhotoKey, String styleRefPhotoKey,
                                      boolean aggression,
                                      boolean healthIssue,
                                      String description,
                                      List<ServiceResponseDto> serviceList,
                                      List<FeatureResponseDto> featureList) {
-        this.dogProfileId = dogProfileId;
         this.dogProfileResponseDto = dogProfileResponseDto;
         this.currentPhotoKey = currentPhotoKey;
         this.styleRefPhotoKey = styleRefPhotoKey;
@@ -44,7 +42,6 @@ public class EstimateDetailResponseDto {
                                                   List<ServiceResponseDto> serviceList,
                                                   List<FeatureResponseDto> featureList) {
         return EstimateDetailResponseDto.builder()
-                .dogProfileId(profile.getDogProfile().getId())
                 .dogProfileResponseDto(dogProfileResponseDto)
                 .currentPhotoKey(profile.getCurrentImageKey())
                 .styleRefPhotoKey(profile.getStyleRefImageKey())

@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "review")
@@ -26,7 +27,7 @@ public class Review extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String text;
 
-    @OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReviewImage> reviewImages;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -49,5 +50,9 @@ public class Review extends BaseEntity {
 
     public void updateReview(String text) {
         this.text = text;
+    }
+
+    public boolean isValidUser(Long userId) {
+        return this.getUser().getId().equals(userId);
     }
 }

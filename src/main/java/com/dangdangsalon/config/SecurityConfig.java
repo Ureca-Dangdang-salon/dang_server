@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/authorization/**","/api/test", "/actuator/**")
                         .permitAll()
                         .requestMatchers("/api/auth/join").hasRole("PENDING")
-                        .anyRequest().authenticated() // 나머지 경로는 인증 필요
+                        .anyRequest().hasAnyRole("USER", "SALON", "ADMIN") // 나머지 경로는 인증 필요
                 )
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));

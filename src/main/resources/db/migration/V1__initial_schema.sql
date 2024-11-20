@@ -57,7 +57,8 @@ CREATE TABLE `user`
     `email`       varchar(255) DEFAULT NULL,
     `image_key`   varchar(255) DEFAULT NULL,
     `name`        varchar(255) DEFAULT NULL,
-    `role`        enum('ADMIN','SALON','USER') DEFAULT NULL,
+    `username`    varchar(255) DEFAULT NULL,
+    `role`        enum('ROLE_ADMIN','ROLE_SALON','ROLE_USER','ROLE_PENDING') DEFAULT NULL,
     `district_id` bigint       DEFAULT NULL,
     PRIMARY KEY (`id`),
     CONSTRAINT `FKq6a9571l40g6c02up8o4ky79b` FOREIGN KEY (`district_id`) REFERENCES `district` (`id`)
@@ -158,32 +159,34 @@ CREATE TABLE `groomer_badge`
     CONSTRAINT `FKqudot3gj25rp1j4jklaek4ls3` FOREIGN KEY (`badge_id`) REFERENCES `badge` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `contest_post` (
-                                `id` bigint NOT NULL AUTO_INCREMENT,
-                                `created_at` datetime(6) DEFAULT NULL,
-                                `updated_at` datetime(6) DEFAULT NULL,
-                                `description` varchar(255) DEFAULT NULL,
-                                `image_key` varchar(255) DEFAULT NULL,
-                                `like_count` int DEFAULT '0',
-                                `contest_id` bigint DEFAULT NULL,
-                                `groomer_profile_id` bigint NOT NULL,
-                                `user_id` bigint NOT NULL,
-                                PRIMARY KEY (`id`),
-                                KEY `FKp0ahhbideeq4wl0j71k0w9qey` (`groomer_profile_id`),
-                                KEY `FKsruxnbgdbee6l78bxnxejmtdx` (`user_id`)
+CREATE TABLE `contest_post`
+(
+    `id`                 bigint NOT NULL AUTO_INCREMENT,
+    `created_at`         datetime(6) DEFAULT NULL,
+    `updated_at`         datetime(6) DEFAULT NULL,
+    `description`        varchar(255) DEFAULT NULL,
+    `image_key`          varchar(255) DEFAULT NULL,
+    `like_count`         int          DEFAULT '0',
+    `contest_id`         bigint       DEFAULT NULL,
+    `groomer_profile_id` bigint NOT NULL,
+    `user_id`            bigint NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY                  `FKp0ahhbideeq4wl0j71k0w9qey` (`groomer_profile_id`),
+    KEY                  `FKsruxnbgdbee6l78bxnxejmtdx` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `contest` (
-                           `id` bigint NOT NULL AUTO_INCREMENT,
-                           `created_at` datetime(6) DEFAULT NULL,
-                           `updated_at` datetime(6) DEFAULT NULL,
-                           `description` varchar(255) DEFAULT NULL,
-                           `end_at` datetime(6) DEFAULT NULL,
-                           `started_at` datetime(6) DEFAULT NULL,
-                           `title` varchar(255) DEFAULT NULL,
-                           `winner_post_id` bigint DEFAULT NULL,
-                           PRIMARY KEY (`id`),
-                           UNIQUE KEY `UKkkyqo0k63mv2cf4nue8keqbbw` (`winner_post_id`)
+CREATE TABLE `contest`
+(
+    `id`             bigint NOT NULL AUTO_INCREMENT,
+    `created_at`     datetime(6) DEFAULT NULL,
+    `updated_at`     datetime(6) DEFAULT NULL,
+    `description`    varchar(255) DEFAULT NULL,
+    `end_at`         datetime(6) DEFAULT NULL,
+    `started_at`     datetime(6) DEFAULT NULL,
+    `title`          varchar(255) DEFAULT NULL,
+    `winner_post_id` bigint       DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `UKkkyqo0k63mv2cf4nue8keqbbw` (`winner_post_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 ALTER TABLE `contest`

@@ -11,12 +11,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -62,6 +64,11 @@ public class JwtFilter extends OncePerRequestFilter {
 
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
+        log.info("Authorization Header: {}", authorization);
+        log.info("Token: {}", token);
+        log.info("Extracted Claims - userId: {}, username: {}, role: {}", userId, username, role);
+        log.info("SecurityContext Authentication: {}", SecurityContextHolder.getContext().getAuthentication());
         filterChain.doFilter(request, response);
+
     }
 }

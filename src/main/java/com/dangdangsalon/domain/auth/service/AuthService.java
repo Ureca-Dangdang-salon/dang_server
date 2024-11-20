@@ -8,6 +8,8 @@ import com.dangdangsalon.domain.user.repository.UserRepository;
 import com.dangdangsalon.exception.TokenExpiredException;
 import com.dangdangsalon.util.JwtUtil;
 import com.dangdangsalon.util.RedisUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,5 +59,32 @@ public class AuthService {
                         .orElseThrow(() -> new IllegalArgumentException(
                                 "존재하지 않는 지역입니다. districtId: " + requestDto.getDistrictId())
         ));
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        userRepository.deleteById(userId);
+
+        redisUtil.deleteRefreshToken(userId.toString());
+    }
+
+    public void logout(String refreshToken, HttpServletResponse response) {
+        // Refresh Token 삭제 (서버 측)
+        Long userId = jwtUtil.getUserId(refreshToken);
+        redisUtil.deleteRefreshToken(userId.toString());
+
+        // 쿠키 삭제
+        Cookie accessTokenCookie = new Cookie("Authorization", null);
+        accessTokenCookie.setMaxAge(0); // 만료 시간 0
+        accessTokenCookie.setPath("/"); // 적용 경로
+        accessTokenCookie.setHttpOnly(true);
+
+        Cookie refreshTokenCookie = new Cookie("Refresh-Token", null);
+        refreshTokenCookie.setMaxAge(0); // 만료 시간 0
+        refreshTokenCookie.setPath("/"); // 적용 경로
+        refreshTokenCookie.setHttpOnly(true);
+
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
     }
 }

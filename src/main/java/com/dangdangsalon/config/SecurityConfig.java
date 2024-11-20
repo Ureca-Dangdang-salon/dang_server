@@ -2,6 +2,7 @@ package com.dangdangsalon.config;
 
 import com.dangdangsalon.domain.auth.handler.CustomSuccessHandler;
 import com.dangdangsalon.domain.auth.service.CustomOAuth2UserService;
+import com.dangdangsalon.filter.JwtFilter;
 import com.dangdangsalon.util.JwtUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -38,13 +40,16 @@ public class SecurityConfig {
                         .successHandler(customSuccessHandler))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/test", "/actuator/**")
+                        .requestMatchers("/oauth2/authorization/**","/api/test", "/actuator/**")
                         .permitAll()
                         .requestMatchers("/api/auth/join").hasRole("PENDING")
-                        .anyRequest().hasAnyRole("USER", "ADMIN", "SALON") // 나머지 경로는 인증 필요
+                        .anyRequest().authenticated() // 나머지 경로는 인증 필요
                 )
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        http
+                .addFilterAfter(new JwtFilter(jwtUtil), OAuth2LoginAuthenticationFilter.class);
 
         return http.build();
     }

@@ -25,7 +25,7 @@ public class EstimateResponseDto {
     private String groomerEstimateRequestStatus;
 
     @Builder
-    public EstimateResponseDto(Long estimateId ,String name, LocalDate date, String serviceType, String region, String status, String imageKey, String estimateRequestStatus, String groomerEstimateRequestStatus) {
+    public EstimateResponseDto(Long estimateId ,String name, LocalDate date, String serviceType, String region, String imageKey, String estimateRequestStatus, String groomerEstimateRequestStatus) {
         this.estimateId = estimateId;
         this.name = name;
         this.date = date;

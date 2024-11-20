@@ -43,6 +43,7 @@ public class EstimateRequestDetailService {
                 .map(profile -> EstimateDetailResponseDto.toDto(
                         profile,
                         new DogProfileResponseDto(
+                                profile.getDogProfile().getId(),
                                 profile.getDogProfile().getImageKey(),
                                 profile.getDogProfile().getName()),
                         getServiceList(profile),

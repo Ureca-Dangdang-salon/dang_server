@@ -29,7 +29,7 @@ public class DogProfileService {
                 .orElse(Collections.emptyList());
 
         return dogProfiles.stream()
-                .map(dog -> new DogProfileResponseDto(dog.getImageKey(), dog.getName()))
+                .map(dog -> new DogProfileResponseDto(dog.getId(), dog.getImageKey(), dog.getName()))
                 .toList();
     }
 }

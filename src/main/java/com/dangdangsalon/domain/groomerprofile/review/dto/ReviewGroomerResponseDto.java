@@ -5,10 +5,11 @@ import com.dangdangsalon.domain.groomerprofile.review.entity.ReviewImage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 
 import java.util.List;
 
-@Data
+@Getter
 @AllArgsConstructor
 @Builder
 public class ReviewGroomerResponseDto {

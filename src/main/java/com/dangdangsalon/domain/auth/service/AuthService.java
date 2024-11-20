@@ -69,19 +69,18 @@ public class AuthService {
     }
 
     public void logout(String refreshToken, HttpServletResponse response) {
-        // Refresh Token 삭제 (서버 측)
         Long userId = jwtUtil.getUserId(refreshToken);
         redisUtil.deleteRefreshToken(userId.toString());
 
         // 쿠키 삭제
         Cookie accessTokenCookie = new Cookie("Authorization", null);
-        accessTokenCookie.setMaxAge(0); // 만료 시간 0
-        accessTokenCookie.setPath("/"); // 적용 경로
+        accessTokenCookie.setMaxAge(0);
+        accessTokenCookie.setPath("/");
         accessTokenCookie.setHttpOnly(true);
 
         Cookie refreshTokenCookie = new Cookie("Refresh-Token", null);
-        refreshTokenCookie.setMaxAge(0); // 만료 시간 0
-        refreshTokenCookie.setPath("/"); // 적용 경로
+        refreshTokenCookie.setMaxAge(0);
+        refreshTokenCookie.setPath("/");
         refreshTokenCookie.setHttpOnly(true);
 
         response.addCookie(accessTokenCookie);

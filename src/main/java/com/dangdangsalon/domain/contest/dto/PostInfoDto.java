@@ -16,8 +16,9 @@ public class PostInfoDto {
     private String imageUrl;
     private String description;
     private LocalDateTime createdAt;
+    private boolean isLiked;
 
-    public static PostInfoDto fromEntity(ContestPost post) {
+    public static PostInfoDto create(ContestPost post, boolean isLiked) {
         return PostInfoDto.builder()
                 .postId(post.getId())
                 .userId(post.getUser().getId())
@@ -26,6 +27,7 @@ public class PostInfoDto {
                 .imageUrl(post.getImageKey())
                 .description(post.getDescription())
                 .createdAt(post.getCreatedAt())
+                .isLiked(isLiked)
                 .build();
     }
 }

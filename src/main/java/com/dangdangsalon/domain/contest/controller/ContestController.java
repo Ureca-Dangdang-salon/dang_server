@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.contest.controller;
 
+import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.contest.dto.ContestDetailDto;
 import com.dangdangsalon.domain.contest.dto.ContestInfoDto;
 import com.dangdangsalon.domain.contest.dto.PostInfoDto;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,8 +38,11 @@ public class ContestController {
     }
 
     @GetMapping("/{contestId}/posts")
-    public ApiSuccess<?> getContestPosts(@PathVariable Long contestId, @PageableDefault(size = 3) Pageable pageable) {
-        Page<PostInfoDto> contestPosts = contestService.getContestPosts(contestId, pageable);
+    public ApiSuccess<?> getContestPosts(@AuthenticationPrincipal CustomOAuth2User user, @PathVariable Long contestId,
+                                         @PageableDefault(size = 3) Pageable pageable) {
+        Long userId = user.getUserId();
+
+        Page<PostInfoDto> contestPosts = contestService.getContestPosts(contestId, userId, pageable);
 
         return ApiUtil.success(contestPosts);
     }

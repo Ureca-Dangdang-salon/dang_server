@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -61,5 +62,13 @@ public class ContestController {
         contestPostService.joinContest(contestId, requestDto, userId);
 
         return ApiUtil.success("콘테스트 참여에 성공했습니다!");
+    }
+
+    @DeleteMapping("/{postId}")
+    public ApiSuccess<?> deletePost(@PathVariable Long postId, @AuthenticationPrincipal CustomOAuth2User user) {
+        Long userId = user.getUserId();
+        contestPostService.deletePost(postId, userId);
+
+        return ApiUtil.success("포스트 삭제가 완료되었습니다.");
     }
 }

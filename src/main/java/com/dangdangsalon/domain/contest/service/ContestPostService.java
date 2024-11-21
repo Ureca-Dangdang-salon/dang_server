@@ -70,7 +70,22 @@ public class ContestPostService {
         contestPostRepository.save(joinPost);
     }
 
+    public void deletePost(Long postId, Long userId) {
+        ContestPost post = contestPostRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 포스트가 존재하지 않습니다. InputId: " + postId));
+
+        if (isInValidUser(userId, post)) {
+            throw new IllegalStateException("작성자가 아닙니다.");
+        }
+
+        contestPostRepository.delete(post);
+    }
+
     private boolean isAlreadyJoined(Long contestId, Long userId) {
         return contestPostRepository.existsByContestIdAndUserId(contestId, userId);
+    }
+
+    private static boolean isInValidUser(Long userId, ContestPost post) {
+        return !post.getUser().getId().equals(userId);
     }
 }

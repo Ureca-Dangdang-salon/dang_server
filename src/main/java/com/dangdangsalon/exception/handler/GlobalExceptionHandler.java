@@ -34,6 +34,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpServletResponse.SC_NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler({
+            IllegalStateException.class
+    })
+    protected ResponseEntity<?> handleIllegalStateException(Exception e) {
+        ApiError<String> error = ApiUtil.error(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+        return ResponseEntity.status(HttpServletResponse.SC_FORBIDDEN).body(error);
+    }
+
     @ExceptionHandler(TokenExpiredException.class)
     protected ResponseEntity<?> handleExpiredJwtException(TokenExpiredException e) {
         ApiError<String> error = ApiUtil.error(HttpServletResponse.SC_NOT_FOUND, e.getMessage());

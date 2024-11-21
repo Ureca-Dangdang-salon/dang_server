@@ -62,7 +62,8 @@ public class EstimateRequestServices {
 
                     return MyEstimateRequestResponseDto.builder()
                             .dogList(dogList)
-                            .date(estimateRequest.getRequestDate().toLocalDate())
+                            .requestId(estimateRequest.getId())
+                            .date(estimateRequest.getRequestDate())
                             .status(estimateRequest.getRequestStatus())
                             .build();
                 })

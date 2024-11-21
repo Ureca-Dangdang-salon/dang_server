@@ -6,17 +6,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
 @NoArgsConstructor
 public class MyEstimateRequestResponseDto {
+    private Long requestId;
     private List<DogNameResponseDto> dogList;
-    private LocalDate date;
+    private LocalDateTime date;
     private RequestStatus status;
 
     @Builder
-    public MyEstimateRequestResponseDto(List<DogNameResponseDto> dogList, LocalDate date, RequestStatus status) {
+    public MyEstimateRequestResponseDto(Long requestId,List<DogNameResponseDto> dogList, LocalDateTime date, RequestStatus status) {
+        this.requestId = requestId;
         this.dogList = dogList;
         this.date = date;
         this.status = status;

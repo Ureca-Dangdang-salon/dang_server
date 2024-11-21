@@ -36,17 +36,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
-        OAuth2Response oAuth2Response = null;
-
-        if (registrationId.equals(NAVER.getName())) {
-            oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
-        } else if (registrationId.equals(GOOGLE.getName())) {
-            oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
-        } else if (registrationId.equals(KAKAO.getName())) {
-            oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
-        } else {
-            return null;
-        }
+        Social social = Social.fromName(registrationId);
+        OAuth2Response oAuth2Response = social.createResponse(oAuth2User.getAttributes());
 
         // 리소스 서버에서 발급 받은 정보로 사용자를 특정할 수 있는 아이디
         String username = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();

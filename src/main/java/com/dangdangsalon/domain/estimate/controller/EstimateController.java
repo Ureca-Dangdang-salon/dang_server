@@ -61,4 +61,11 @@ public class EstimateController {
         MyEstimateDetailResponseDto myEstimateDetailResponseDto = estimateService.getEstimateDetail(estimateId);
         return ApiUtil.success(myEstimateDetailResponseDto);
     }
+
+    // 내 견적 조회
+    @GetMapping("/my/{requestId}")
+    public ApiSuccess<?> getMyEstimate(@PathVariable Long requestId) {
+        List<MyEstimateResponseDto> myEstimateResponseDtoList = estimateService.getMyEstimate(requestId);
+        return ApiUtil.success(myEstimateResponseDtoList);
+    }
 }

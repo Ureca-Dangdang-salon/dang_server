@@ -159,7 +159,24 @@ public class EstimateService {
         return EstimateDogDetailResponseDto.toDto(dogProfile, profile, serviceList, featureList);
     }
 
-    // 내 견적 상세 조화
+    // 내 견적 조회(채팅)
+    @Transactional(readOnly = true)
+    public List<MyEstimateResponseDto> getMyEstimate(Long requestId) {
+
+        EstimateRequest estimateRequest = estimateRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다: " + requestId));
+
+        List<Estimate> estimates = estimateRepository.findByEstimateRequest(estimateRequest)
+                .orElseThrow(() -> new IllegalArgumentException("견적 요청에 맞는 견적서를 찾을 수 없습니다: " + requestId));
+
+        return estimates.stream()
+                .map(estimate -> MyEstimateResponseDto.builder()
+                        .totalAmount(estimate.getTotalAmount())
+                        .build())
+                .toList();
+    }
+
+    // 내 견적 상세 조회(채팅)
     @Transactional(readOnly = true)
     public MyEstimateDetailResponseDto getEstimateDetail(Long estimateId) {
 

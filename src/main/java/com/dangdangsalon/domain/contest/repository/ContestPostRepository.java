@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ContestPostRepository extends JpaRepository<ContestPost, Long> {
 
     Page<ContestPost> findByContestId(Long contestId, Pageable pageable);
+
+    boolean existsByContestIdAndUserId(Long contestId, Long userId);
 }

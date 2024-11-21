@@ -3,7 +3,9 @@ package com.dangdangsalon.domain.contest.controller;
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.contest.dto.ContestDetailDto;
 import com.dangdangsalon.domain.contest.dto.ContestInfoDto;
+import com.dangdangsalon.domain.contest.dto.ContestJoinRequestDto;
 import com.dangdangsalon.domain.contest.dto.PostInfoDto;
+import com.dangdangsalon.domain.contest.service.ContestPostService;
 import com.dangdangsalon.domain.contest.service.ContestService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
@@ -14,6 +16,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ContestController {
 
     private final ContestService contestService;
+    private final ContestPostService contestPostService;
 
     @GetMapping
     public ApiSuccess<?> getContest() {
@@ -42,8 +47,19 @@ public class ContestController {
                                          @PageableDefault(size = 3) Pageable pageable) {
         Long userId = user.getUserId();
 
-        Page<PostInfoDto> contestPosts = contestService.getContestPosts(contestId, userId, pageable);
+        Page<PostInfoDto> contestPosts = contestPostService.getContestPosts(contestId, userId, pageable);
 
         return ApiUtil.success(contestPosts);
+    }
+
+    @PostMapping("/{contestId}/join")
+    public ApiSuccess<?> joinContest(@PathVariable Long contestId,
+                                     @RequestBody ContestJoinRequestDto requestDto,
+                                     @AuthenticationPrincipal CustomOAuth2User user) {
+
+        Long userId = user.getUserId();
+        contestPostService.joinContest(contestId, requestDto, userId);
+
+        return ApiUtil.success("콘테스트 참여에 성공했습니다!");
     }
 }

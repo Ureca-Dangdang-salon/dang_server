@@ -5,6 +5,7 @@ import com.dangdangsalon.domain.region.entity.District;
 import com.dangdangsalon.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
@@ -34,6 +35,7 @@ public class EstimateRequest extends BaseEntity {
     @JoinColumn(name = "district_id")
     private District district;
 
+    @Builder
     public EstimateRequest(LocalDateTime requestDate, RequestStatus requestStatus, ServiceType serviceType,
                            User user, District district) {
         this.requestDate = requestDate;

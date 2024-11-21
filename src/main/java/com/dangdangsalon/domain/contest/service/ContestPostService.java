@@ -24,22 +24,17 @@ public class ContestPostService {
 
     private final ContestRepository contestRepository;
     private final ContestPostRepository contestPostRepository;
-    private final ContestPostLikeRepository contestPostLikeRepository;
     private final GroomerProfileRepository groomerProfileRepository;
     private final UserRepository userRepository;
+
+    private final ContestPostLikeService contestPostLikeService;
 
     @Transactional(readOnly = true)
     public Page<PostInfoDto> getContestPosts(Long contestId, Long userId, Pageable pageable) {
         Page<ContestPost> posts = contestPostRepository.findByContestId(contestId, pageable);
 
-        List<Long> postIds = posts.getContent().stream()
-                .map(ContestPost::getId)
-                .toList();
-
-        List<Long> likedPostIds = contestPostLikeRepository.findLikedPostIdsByUserId(userId, postIds);
-
         return posts.map(post -> {
-            boolean isLiked = likedPostIds.contains(post.getId());
+            boolean isLiked = contestPostLikeService.checkIsLiked(userId, post.getId());
             return PostInfoDto.create(post, isLiked);
         });
     }

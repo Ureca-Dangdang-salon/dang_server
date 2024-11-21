@@ -1,8 +1,7 @@
 package com.dangdangsalon.domain.estimate.controller;
 
-import com.dangdangsalon.domain.estimate.dto.EstimateWriteDetailResponseDto;
-import com.dangdangsalon.domain.estimate.dto.EstimateWriteRequestDto;
-import com.dangdangsalon.domain.estimate.dto.EstimateWriteResponseDto;
+import com.dangdangsalon.domain.estimate.dto.*;
+import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
 import com.dangdangsalon.domain.estimate.service.EstimateService;
 import com.dangdangsalon.domain.estimate.service.EstimateWriteService;
 import com.dangdangsalon.util.ApiUtil;
@@ -39,5 +38,19 @@ public class EstimateController {
     public ApiSuccess<?> insertEstimate(@RequestBody EstimateWriteRequestDto requestDto) {
         estimateService.insertEstimate(requestDto);
         return ApiUtil.success("견적서가 성공적으로 등록되었습니다.");
+    }
+
+    // 견적서 수정 조회
+    @GetMapping("{estimateId}")
+    public ApiSuccess<?> getEstimateGroomer(@PathVariable Long estimateId) {
+        EstimateResponseDto estimateResponseDtoList = estimateService.getEstimateGroomer(estimateId);
+        return ApiUtil.success(estimateResponseDtoList);
+    }
+
+    // 견적서 수정 강아지별 상세 조회
+    @GetMapping("{requestId}/{dogProfileId}")
+    public ApiSuccess<?> getEstimateDogDetail(@PathVariable Long requestId, @PathVariable Long dogProfileId) {
+        EstimateDogDetailResponseDto estimateDogDetailResponseDto = estimateService.getEstimateDogDetail(requestId,dogProfileId);
+        return ApiUtil.success(estimateDogDetailResponseDto);
     }
 }

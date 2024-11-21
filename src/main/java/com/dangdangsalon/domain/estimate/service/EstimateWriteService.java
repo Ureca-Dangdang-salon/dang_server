@@ -88,6 +88,7 @@ public class EstimateWriteService {
                 .toList();
     }
 
+    // 회원가입 할 때 입력한 강아지 특징
     private List<FeatureResponseDto> getFeatureList(DogProfile dogProfile) {
 
         // 강아지 특징이 없을 수도 있다??

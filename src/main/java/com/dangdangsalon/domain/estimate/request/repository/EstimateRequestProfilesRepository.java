@@ -8,7 +8,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface EstimateRequestProfilesRepository extends JpaRepository<EstimateRequestProfiles, Long> {
+
     Optional<List<EstimateRequestProfiles>> findByEstimateRequest(EstimateRequest estimateRequest);
+
     Optional<EstimateRequestProfiles> findByEstimateRequestAndDogProfileId(EstimateRequest estimateRequest, Long dogProfile_id);
+
     Optional<EstimateRequestProfiles> findByDogProfileIdAndEstimateRequestId(Long dogProfileId, Long estimateRequestId);
+
+    Optional<List<EstimateRequestProfiles>> findByEstimateRequestId(Long estimateRequestId);
 }

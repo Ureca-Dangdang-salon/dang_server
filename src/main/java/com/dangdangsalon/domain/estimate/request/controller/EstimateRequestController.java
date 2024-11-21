@@ -2,7 +2,7 @@ package com.dangdangsalon.domain.estimate.request.controller;
 
 import com.dangdangsalon.domain.estimate.request.dto.EstimateDetailResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
-import com.dangdangsalon.domain.estimate.request.dto.EstimateResponseDto;
+import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
 import com.dangdangsalon.domain.estimate.request.service.EstimateRequestDetailService;
 import com.dangdangsalon.domain.estimate.request.service.EstimateRequestServices;
 import com.dangdangsalon.domain.estimate.request.service.GroomerEstimateRequestService;
@@ -36,7 +36,7 @@ public class EstimateRequestController {
      */
     @GetMapping("/{groomerProfileId}")
     public ApiSuccess<?> getEstimateRequests(@PathVariable Long groomerProfileId) {
-        List<EstimateResponseDto> estimateRequests = groomerEstimateRequestService.getEstimateRequest(groomerProfileId);
+        List<EstimateRequestResponseDto> estimateRequests = groomerEstimateRequestService.getEstimateRequest(groomerProfileId);
         return ApiUtil.success(estimateRequests);
     }
 

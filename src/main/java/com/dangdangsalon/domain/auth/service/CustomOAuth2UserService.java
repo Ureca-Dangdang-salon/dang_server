@@ -5,6 +5,7 @@ import static com.dangdangsalon.domain.auth.Social.*;
 import com.dangdangsalon.domain.auth.Social;
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.auth.dto.GoogleResponse;
+import com.dangdangsalon.domain.auth.dto.KakaoResponse;
 import com.dangdangsalon.domain.auth.dto.NaverResponse;
 import com.dangdangsalon.domain.auth.dto.OAuth2Response;
 import com.dangdangsalon.domain.auth.dto.UserDto;
@@ -41,6 +42,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
         } else if (registrationId.equals(GOOGLE.getName())) {
             oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
+        } else if (registrationId.equals(KAKAO.getName())) {
+            oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
         } else {
             return null;
         }

@@ -49,4 +49,8 @@ public class Contest extends BaseEntity {
         this.winnerPost = winnerPost;
         this.contestPosts = contestPosts;
     }
+
+    public void updateWinner(ContestPost winnerPost) {
+        this.winnerPost = winnerPost;
+    }
 }

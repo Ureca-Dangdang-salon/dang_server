@@ -11,6 +11,7 @@ import com.dangdangsalon.domain.contest.entity.ContestPost;
 import com.dangdangsalon.domain.contest.repository.ContestPostLikeRepository;
 import com.dangdangsalon.domain.contest.repository.ContestPostRepository;
 import com.dangdangsalon.domain.contest.repository.ContestRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -85,5 +86,16 @@ public class ContestService {
         List<PostRankDto> rankPosts = contestPostRepository.findTopRankPostsByContestId(previousContest.getId());
 
         return WinnerRankDto.create(previousContest.getId(), winnerDto, rankPosts);
+    }
+
+    @Transactional
+    public void savePreviousContestWinner() {
+        Contest previousContest = contestRepository.findPreviousContest()
+                .orElseThrow(() -> new IllegalArgumentException("지난 달에 진행된 콘테스트가 없습니다."));
+
+        ContestPost winnerPost = contestPostRepository.findTopLikedPostByContestId(previousContest.getId())
+                .orElseThrow(() -> new IllegalArgumentException("지난 달 콘테스트에 포스트가 없습니다."));
+
+        previousContest.updateWinner(winnerPost);
     }
 }

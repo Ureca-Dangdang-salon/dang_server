@@ -2,6 +2,7 @@ package com.dangdangsalon.domain.contest.service;
 
 import com.dangdangsalon.domain.contest.dto.ContestDetailDto;
 import com.dangdangsalon.domain.contest.dto.ContestInfoDto;
+import com.dangdangsalon.domain.contest.dto.ContestJoinRequestDto;
 import com.dangdangsalon.domain.contest.dto.PostInfoDto;
 import com.dangdangsalon.domain.contest.dto.SimpleWinnerInfoDto;
 import com.dangdangsalon.domain.contest.entity.Contest;
@@ -9,6 +10,8 @@ import com.dangdangsalon.domain.contest.entity.ContestPost;
 import com.dangdangsalon.domain.contest.repository.ContestPostLikeRepository;
 import com.dangdangsalon.domain.contest.repository.ContestPostRepository;
 import com.dangdangsalon.domain.contest.repository.ContestRepository;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
+import com.dangdangsalon.domain.groomerprofile.repository.GroomerProfileRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,8 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ContestService {
 
     private final ContestRepository contestRepository;
-    private final ContestPostRepository contestPostRepository;
-    private final ContestPostLikeRepository contestPostLikeRepository;
 
     @Transactional(readOnly = true)
     public ContestInfoDto getLatestContest() {
@@ -47,21 +48,5 @@ public class ContestService {
         }
 
         return ContestDetailDto.create(nowContest, previousWinnerDto);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<PostInfoDto> getContestPosts(Long contestId, Long userId, Pageable pageable) {
-        Page<ContestPost> posts = contestPostRepository.findByContestId(contestId, pageable);
-
-        List<Long> postIds = posts.getContent().stream()
-                .map(ContestPost::getId)
-                .toList();
-
-        List<Long> likedPostIds = contestPostLikeRepository.findLikedPostIdsByUserId(userId, postIds);
-
-        return posts.map(post -> {
-            boolean isLiked = likedPostIds.contains(post.getId());
-            return PostInfoDto.create(post, isLiked);
-        });
     }
 }

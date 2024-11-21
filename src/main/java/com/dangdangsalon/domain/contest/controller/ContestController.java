@@ -3,7 +3,9 @@ package com.dangdangsalon.domain.contest.controller;
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.contest.dto.ContestDetailDto;
 import com.dangdangsalon.domain.contest.dto.ContestInfoDto;
+import com.dangdangsalon.domain.contest.dto.LastContestWinnerDto;
 import com.dangdangsalon.domain.contest.dto.PostInfoDto;
+import com.dangdangsalon.domain.contest.dto.WinnerRankDto;
 import com.dangdangsalon.domain.contest.service.ContestPostService;
 import com.dangdangsalon.domain.contest.service.ContestService;
 import com.dangdangsalon.util.ApiUtil;
@@ -57,5 +59,19 @@ public class ContestController {
         boolean alreadyParticipated = contestService.checkUserParticipated(contestId, userId);
 
         return ApiUtil.success(Map.of("already_participated", alreadyParticipated));
+    }
+
+    @GetMapping("/winner/last")
+    public ApiSuccess<?> getLastContestWinner() {
+        LastContestWinnerDto winner = contestService.getLastContestWinner();
+
+        return ApiUtil.success(winner);
+    }
+
+    @GetMapping("/winner/rank")
+    public ApiSuccess<?> getWinnerAndRankPost() {
+        WinnerRankDto rankDto = contestService.getWinnerAndRankPost();
+
+        return ApiUtil.success(rankDto);
     }
 }

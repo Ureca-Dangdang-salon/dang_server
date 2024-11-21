@@ -36,11 +36,12 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable) // Form 로그인 방식 disable
                 .httpBasic(AbstractHttpConfigurer::disable) // HTTP Basic 인증 방식 disable
                 .oauth2Login((oauth2) -> oauth2.userInfoEndpoint(
-                        (userInfoEndpointConfig) -> userInfoEndpointConfig.userService(customOAuth2UserService))
+                                (userInfoEndpointConfig) -> userInfoEndpointConfig.userService(customOAuth2UserService))
                         .successHandler(customSuccessHandler))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/oauth2/authorization/**","/api/test", "/actuator/**")
+                        .requestMatchers("/oauth2/authorization/**", "/api/test", "/actuator/**",
+                                "/api/contests/winner/**")
                         .permitAll()
                         .requestMatchers("/api/auth/join").hasRole("PENDING")
                         .anyRequest().hasAnyRole("USER", "SALON", "ADMIN") // 나머지 경로는 인증 필요
@@ -57,7 +58,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://dangdangsalon.netlify.app", "http://localhost:5173")); // 허용할 Origin
+        configuration.setAllowedOrigins(
+                List.of("https://dangdangsalon.netlify.app", "http://localhost:5173")); // 허용할 Origin
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE")); // 허용할 HTTP 메서드
         configuration.setAllowedHeaders(List.of("*")); // 허용할 헤더
         configuration.setExposedHeaders(List.of("*")); // 노출할 헤더

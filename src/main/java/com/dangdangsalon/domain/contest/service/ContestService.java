@@ -2,20 +2,17 @@ package com.dangdangsalon.domain.contest.service;
 
 import com.dangdangsalon.domain.contest.dto.ContestDetailDto;
 import com.dangdangsalon.domain.contest.dto.ContestInfoDto;
-import com.dangdangsalon.domain.contest.dto.ContestJoinRequestDto;
-import com.dangdangsalon.domain.contest.dto.PostInfoDto;
+import com.dangdangsalon.domain.contest.dto.LastContestWinnerDto;
+import com.dangdangsalon.domain.contest.dto.PostRankDto;
 import com.dangdangsalon.domain.contest.dto.SimpleWinnerInfoDto;
+import com.dangdangsalon.domain.contest.dto.WinnerRankDto;
 import com.dangdangsalon.domain.contest.entity.Contest;
 import com.dangdangsalon.domain.contest.entity.ContestPost;
 import com.dangdangsalon.domain.contest.repository.ContestPostLikeRepository;
 import com.dangdangsalon.domain.contest.repository.ContestPostRepository;
 import com.dangdangsalon.domain.contest.repository.ContestRepository;
-import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
-import com.dangdangsalon.domain.groomerprofile.repository.GroomerProfileRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +22,7 @@ public class ContestService {
 
     private final ContestRepository contestRepository;
     private final ContestPostRepository contestPostRepository;
+    private final ContestPostLikeRepository contestPostLikeRepository;
 
     @Transactional(readOnly = true)
     public ContestInfoDto getLatestContest() {
@@ -54,5 +52,38 @@ public class ContestService {
     @Transactional(readOnly = true)
     public boolean checkUserParticipated(Long contestId, Long userId) {
         return contestPostRepository.existsByContestIdAndUserId(contestId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public LastContestWinnerDto getLastContestWinner() {
+        Contest lastContest = contestRepository.findPreviousContest()
+                .orElseThrow(() -> new IllegalArgumentException("지난달 콘테스트가 존재하지 않습니다."));
+
+        return LastContestWinnerDto.fromEntity(lastContest);
+    }
+
+    @Transactional(readOnly = true)
+    public WinnerRankDto getWinnerAndRankPost() {
+        Contest previousContest = contestRepository.findPreviousContest()
+                .orElseThrow(() -> new IllegalArgumentException("지난 콘테스트가 없습니다."));
+
+        ContestPost winnerPost = previousContest.getWinnerPost();
+        if (winnerPost == null) {
+            throw new IllegalArgumentException("지난 콘테스트의 우승자가 없습니다.");
+        }
+
+        Long winnerLikeCount = contestPostLikeRepository.getLikeCountByPostId(winnerPost.getId());
+
+        PostRankDto winnerDto = PostRankDto.builder()
+                .postId(winnerPost.getId())
+                .userId(winnerPost.getUser().getId())
+                .dogName(winnerPost.getGroomerProfile().getName())
+                .imageUrl(winnerPost.getImageKey())
+                .likeCount(winnerLikeCount)
+                .build();
+
+        List<PostRankDto> rankPosts = contestPostRepository.findTopRankPostsByContestId(previousContest.getId());
+
+        return WinnerRankDto.create(previousContest.getId(), winnerDto, rankPosts);
     }
 }

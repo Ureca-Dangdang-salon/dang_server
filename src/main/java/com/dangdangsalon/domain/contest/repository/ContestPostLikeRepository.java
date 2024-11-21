@@ -8,8 +8,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ContestPostLikeRepository extends JpaRepository<ContestPostLike, Long> {
 
-    @Query("SELECT pl.contestPost.id FROM ContestPostLike pl WHERE pl.user.id = :userId AND pl.contestPost.id IN :postIds")
-    List<Long> findLikedPostIdsByUserId(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
+    @Query("SELECT COUNT(pl) FROM ContestPostLike pl WHERE pl.contestPost.id = :postId")
+    Long getLikeCountByPostId(@Param("postId") Long postId);
 
     boolean existsByUserIdAndContestPostId(Long userId, Long postId);
 

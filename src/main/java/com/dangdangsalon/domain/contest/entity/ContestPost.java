@@ -43,12 +43,11 @@ public class ContestPost extends BaseEntity {
     private User user;
 
     @Builder
-    public ContestPost(String imageKey, String description, int likeCount, Contest contest,
+    public ContestPost(String imageKey, String description, Contest contest,
                        GroomerProfile groomerProfile,
                        User user) {
         this.imageKey = imageKey;
         this.description = description;
-        this.likeCount = likeCount;
         this.contest = contest;
         this.groomerProfile = groomerProfile;
         this.user = user;

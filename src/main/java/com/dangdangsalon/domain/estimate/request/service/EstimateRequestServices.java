@@ -5,7 +5,10 @@ import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
 import com.dangdangsalon.domain.estimate.request.dto.DogNameResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.MyEstimateRequestResponseDto;
+import com.dangdangsalon.domain.estimate.request.dto.ServiceResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
+import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
+import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestService;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestProfilesRepository;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
 import com.dangdangsalon.domain.region.entity.District;
@@ -41,7 +44,7 @@ public class EstimateRequestServices {
         groomerEstimateRequestService.insertGroomerEstimateRequests(estimateRequest, district, estimateRequestDto);
     }
 
-    // 내 견적 요청 조회
+    // 내 견적 요청 조회 (채팅)
     @Transactional(readOnly = true)
     public List<MyEstimateRequestResponseDto> getMyEstimateRequest(Long userId) {
         // 내 견적 요청 다 가져오고

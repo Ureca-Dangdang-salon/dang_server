@@ -1,10 +1,7 @@
 package com.dangdangsalon.domain.estimate.request.controller;
 
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
-import com.dangdangsalon.domain.estimate.request.dto.EstimateDetailResponseDto;
-import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
-import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
-import com.dangdangsalon.domain.estimate.request.dto.MyEstimateRequestResponseDto;
+import com.dangdangsalon.domain.estimate.request.dto.*;
 import com.dangdangsalon.domain.estimate.request.service.EstimateRequestDetailService;
 import com.dangdangsalon.domain.estimate.request.service.EstimateRequestServices;
 import com.dangdangsalon.domain.estimate.request.service.GroomerEstimateRequestService;
@@ -70,5 +67,14 @@ public class EstimateRequestController {
         Long userId = user.getUserId();
         List<MyEstimateRequestResponseDto> myEstimateRequests = estimateRequestServices.getMyEstimateRequest(userId);
         return ApiUtil.success(myEstimateRequests);
+    }
+
+    /**
+     * 유저가 본인의 견적 요청 상세 조회 (채팅)
+     */
+    @GetMapping("/my/detail/{requestId}")
+    public ApiSuccess<?> getMyEstimateRequestDetail(@PathVariable Long requestId) {
+        List<MyEstimateRequestDetailResponseDto> myEstimateRequestDetailList = estimateRequestDetailService.getMyEstimateDetailRequest(requestId);
+        return ApiUtil.success(myEstimateRequestDetailList);
     }
 }

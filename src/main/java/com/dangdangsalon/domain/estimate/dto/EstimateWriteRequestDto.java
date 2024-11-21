@@ -19,4 +19,6 @@ public class EstimateWriteRequestDto {
     private int totalAmount;
     private LocalDateTime date;
     private List<ServiceRequestDto> serviceList;
+    private List<DogPriceRequestDto> dogPriceList;
+
 }

@@ -5,11 +5,8 @@ import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
 import com.dangdangsalon.domain.estimate.request.dto.DogNameResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.MyEstimateRequestResponseDto;
-import com.dangdangsalon.domain.estimate.request.dto.ServiceResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
-import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
-import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestService;
-import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestProfilesRepository;
+import com.dangdangsalon.domain.estimate.request.entity.RequestStatus;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
 import com.dangdangsalon.domain.region.entity.District;
 import com.dangdangsalon.domain.region.repository.DistrictRepository;
@@ -20,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,5 +67,17 @@ public class EstimateRequestServices {
                             .build();
                 })
                 .toList();
+    }
+
+    // 견적 그만 받기( 견적 요청을 CANCEL 로 바꾸면 미용사들이 견적서를 보내지 못한다.
+    @Transactional
+    public void stopEstimate(Long requestId) {
+
+        EstimateRequest estimateRequest = estimateRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다: " + requestId));
+
+        estimateRequest.updateRequestStatus(RequestStatus.CANCEL);
+
+        estimateRequestRepository.save(estimateRequest);
     }
 }

@@ -50,4 +50,8 @@ public class EstimateRequest extends BaseEntity {
         this.user = user;
         this.district = district;
     }
+
+    public void updateRequestStatus(RequestStatus requestStatus) {
+        this.requestStatus = requestStatus;
+    }
 }

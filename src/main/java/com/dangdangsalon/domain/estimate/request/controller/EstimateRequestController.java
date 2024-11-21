@@ -77,4 +77,13 @@ public class EstimateRequestController {
         List<MyEstimateRequestDetailResponseDto> myEstimateRequestDetailList = estimateRequestDetailService.getMyEstimateDetailRequest(requestId);
         return ApiUtil.success(myEstimateRequestDetailList);
     }
+
+    /**
+     * 견적 요청 상태를 CANCEL 로 변경
+     */
+    @PutMapping("/{requestId}/stop")
+    public ApiSuccess<?> stopEstimate(@PathVariable Long requestId) {
+        estimateRequestServices.stopEstimate(requestId);
+        return ApiUtil.success("견적 그만 받기에 성공하였습니다.");
+    }
 }

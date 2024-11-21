@@ -8,6 +8,8 @@ import lombok.Getter;
 @Builder
 public class ContestJoinRequestDto {
 
+    private Long contestId;
+
     @JsonProperty("groomer_profile_id")
     private Long groomerProfileId;
 

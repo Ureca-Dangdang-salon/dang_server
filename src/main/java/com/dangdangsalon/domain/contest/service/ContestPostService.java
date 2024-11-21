@@ -45,9 +45,10 @@ public class ContestPostService {
     }
 
     @Transactional
-    public void joinContest(Long contestId, ContestJoinRequestDto requestDto, Long userId) {
-        Contest contest = contestRepository.findById(contestId)
-                .orElseThrow(() -> new IllegalArgumentException("해당하는 콘테스트가 없습니다. InputId: " + contestId));
+    public void joinContest(ContestJoinRequestDto requestDto, Long userId) {
+        Contest contest = contestRepository.findById(requestDto.getContestId())
+                .orElseThrow(
+                        () -> new IllegalArgumentException("해당하는 콘테스트가 없습니다. InputId: " + requestDto.getContestId()));
 
         GroomerProfile groomerProfile = groomerProfileRepository.findById(requestDto.getGroomerProfileId())
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -55,7 +56,7 @@ public class ContestPostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당하는 유저가 없습니다. InputId: " + userId));
 
-        if (isAlreadyJoined(contestId, userId)) {
+        if (isAlreadyJoined(requestDto.getContestId(), userId)) {
             throw new IllegalStateException("이미 해당 콘테스트에 참여하셨습니다.");
         }
 
@@ -70,6 +71,7 @@ public class ContestPostService {
         contestPostRepository.save(joinPost);
     }
 
+    @Transactional
     public void deletePost(Long postId, Long userId) {
         ContestPost post = contestPostRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 포스트가 존재하지 않습니다. InputId: " + postId));

@@ -51,6 +51,7 @@ public class ContestService {
         return ContestDetailDto.create(nowContest, previousWinnerDto);
     }
 
+    @Transactional(readOnly = true)
     public boolean checkUserParticipated(Long contestId, Long userId) {
         return contestPostRepository.existsByContestIdAndUserId(contestId, userId);
     }

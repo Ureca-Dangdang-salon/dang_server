@@ -3,7 +3,6 @@ package com.dangdangsalon.domain.contest.controller;
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.contest.dto.ContestDetailDto;
 import com.dangdangsalon.domain.contest.dto.ContestInfoDto;
-import com.dangdangsalon.domain.contest.dto.ContestJoinRequestDto;
 import com.dangdangsalon.domain.contest.dto.PostInfoDto;
 import com.dangdangsalon.domain.contest.service.ContestPostService;
 import com.dangdangsalon.domain.contest.service.ContestService;
@@ -15,11 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,25 +48,6 @@ public class ContestController {
         Page<PostInfoDto> contestPosts = contestPostService.getContestPosts(contestId, userId, pageable);
 
         return ApiUtil.success(contestPosts);
-    }
-
-    @PostMapping("/{contestId}/join")
-    public ApiSuccess<?> joinContest(@PathVariable Long contestId,
-                                     @RequestBody ContestJoinRequestDto requestDto,
-                                     @AuthenticationPrincipal CustomOAuth2User user) {
-
-        Long userId = user.getUserId();
-        contestPostService.joinContest(contestId, requestDto, userId);
-
-        return ApiUtil.success("콘테스트 참여에 성공했습니다!");
-    }
-
-    @DeleteMapping("/{postId}")
-    public ApiSuccess<?> deletePost(@PathVariable Long postId, @AuthenticationPrincipal CustomOAuth2User user) {
-        Long userId = user.getUserId();
-        contestPostService.deletePost(postId, userId);
-
-        return ApiUtil.success("포스트 삭제가 완료되었습니다.");
     }
 
     @GetMapping("/{contestId}/check")

@@ -44,7 +44,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(TokenExpiredException.class)
     protected ResponseEntity<?> handleExpiredJwtException(TokenExpiredException e) {
-        ApiError<String> error = ApiUtil.error(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+        ApiError<String> error = ApiUtil.error(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
         return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(error);
     }
 }

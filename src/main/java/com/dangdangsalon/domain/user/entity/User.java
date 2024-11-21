@@ -18,6 +18,8 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String username;
+
     private String name;
 
     private String email;
@@ -33,10 +35,23 @@ public class User extends BaseEntity {
     private District district;
 
     @Builder
-    public User(String name, String email, String imageKey, Role role, District district) {
+    public User(Long id, String username, String name, String email, String imageKey, Role role, District district) {
+        this.id = id;
+        this.username = username;
         this.name = name;
         this.email = email;
         this.imageKey = imageKey;
+        this.role = role;
+        this.district = district;
+    }
+
+    public void updateData(String name, String email, String profileImage) {
+        this.name = name;
+        this.email = email;
+        this.imageKey = profileImage;
+    }
+
+    public void updateAdditionalInfo(Role role, District district) {
         this.role = role;
         this.district = district;
     }

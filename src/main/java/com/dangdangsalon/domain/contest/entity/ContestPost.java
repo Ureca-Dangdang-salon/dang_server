@@ -30,9 +30,6 @@ public class ContestPost extends BaseEntity {
 
     private String description;
 
-    @Column(name = "like_count", columnDefinition = "INT DEFAULT 0")
-    private int likeCount;
-
     @ManyToOne
     @JoinColumn(name = "contest_id", nullable = false)
     private Contest contest;

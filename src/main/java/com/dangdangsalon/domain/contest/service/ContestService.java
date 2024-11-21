@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ContestService {
 
     private final ContestRepository contestRepository;
+    private final ContestPostRepository contestPostRepository;
 
     @Transactional(readOnly = true)
     public ContestInfoDto getLatestContest() {
@@ -48,5 +49,9 @@ public class ContestService {
         }
 
         return ContestDetailDto.create(nowContest, previousWinnerDto);
+    }
+
+    public boolean checkUserParticipated(Long contestId, Long userId) {
+        return contestPostRepository.existsByContestIdAndUserId(contestId, userId);
     }
 }

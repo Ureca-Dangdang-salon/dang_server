@@ -9,6 +9,7 @@ import com.dangdangsalon.domain.contest.service.ContestPostService;
 import com.dangdangsalon.domain.contest.service.ContestService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -70,5 +71,14 @@ public class ContestController {
         contestPostService.deletePost(postId, userId);
 
         return ApiUtil.success("포스트 삭제가 완료되었습니다.");
+    }
+
+    @GetMapping("/{contestId}/check")
+    public ApiSuccess<?> checkAlreadyJoin(@PathVariable Long contestId,
+                                          @AuthenticationPrincipal CustomOAuth2User user) {
+        Long userId = user.getUserId();
+        boolean alreadyParticipated = contestService.checkUserParticipated(contestId, userId);
+
+        return ApiUtil.success(Map.of("already_participated", alreadyParticipated));
     }
 }

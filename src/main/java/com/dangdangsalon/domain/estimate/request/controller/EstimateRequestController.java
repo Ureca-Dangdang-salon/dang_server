@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.estimate.request.controller;
 
+import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateDetailResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
@@ -9,6 +10,7 @@ import com.dangdangsalon.domain.estimate.request.service.GroomerEstimateRequestS
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,10 +25,11 @@ public class EstimateRequestController {
     private final EstimateRequestDetailService estimateRequestDetailService;
 
     /**
-     * userId 토큰에서 가져오는 걸로 추후 변경
+     *  견적 요청 등록
      */
     @PostMapping
-    public ApiSuccess<?> createEstimateRequest(@RequestBody EstimateRequestDto estimateRequestDto, @RequestParam Long userId) {
+    public ApiSuccess<?> createEstimateRequest(@RequestBody EstimateRequestDto estimateRequestDto, @AuthenticationPrincipal CustomOAuth2User user) {
+        Long userId = user.getUserId();
         estimateRequestServices.insertEstimateRequest(estimateRequestDto, userId);
         return ApiUtil.success("견적 요청 등록에 성공하였습니다.");
     }

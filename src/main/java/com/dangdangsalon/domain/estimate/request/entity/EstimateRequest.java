@@ -9,6 +9,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "estimate_request")
 @Getter
@@ -34,6 +37,9 @@ public class EstimateRequest extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "district_id")
     private District district;
+
+    @OneToMany(mappedBy = "estimateRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EstimateRequestProfiles> estimateRequestProfiles = new ArrayList<>();
 
     @Builder
     public EstimateRequest(LocalDateTime requestDate, RequestStatus requestStatus, ServiceType serviceType,

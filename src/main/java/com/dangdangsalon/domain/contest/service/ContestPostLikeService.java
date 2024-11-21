@@ -21,7 +21,7 @@ public class ContestPostLikeService {
     @Transactional
     @CacheEvict(value = "likeStatus", key = "'like_status:' + #userId + ':' + #postId")
     public void likePost(Long postId, Long userId) {
-        if (isValidLike(postId, userId)) {
+        if (isLike(postId, userId)) {
             throw new IllegalStateException("이미 좋아요를 눌렀습니다.");
         }
 
@@ -39,7 +39,7 @@ public class ContestPostLikeService {
     @Transactional
     @CacheEvict(value = "likeStatus", key = "'like_status:' + #userId + ':' + #postId")
     public void unlikePost(Long postId, Long userId) {
-        if (!isValidLike(postId, userId)) {
+        if (!isLike(postId, userId)) {
             throw new IllegalStateException("좋아요를 누르지 않았습니다");
         }
 
@@ -51,7 +51,7 @@ public class ContestPostLikeService {
         return contestPostLikeRepository.existsByUserIdAndContestPostId(userId, postId);
     }
 
-    private boolean isValidLike(Long postId, Long userId) {
+    private boolean isLike(Long postId, Long userId) {
         return contestPostLikeRepository.existsByUserIdAndContestPostId(userId, postId);
     }
 }

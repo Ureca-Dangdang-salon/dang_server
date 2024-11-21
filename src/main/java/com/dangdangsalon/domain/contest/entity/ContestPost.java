@@ -26,6 +26,8 @@ public class ContestPost extends BaseEntity {
     @Column(name = "image_key")
     private String imageKey;
 
+    private String dogName;
+
     private String description;
 
     @Column(name = "like_count", columnDefinition = "INT DEFAULT 0")

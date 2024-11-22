@@ -55,7 +55,7 @@ public class EstimateWriteService {
 
     }
 
-    // 견적서 작성요 반려견 요청 상세 보기
+    // 견적서 작성 반려견 요청 상세 보기
     @Transactional(readOnly = true)
     public EstimateWriteDetailResponseDto getEstimateRequestDogDetail(Long requestId, Long dogProfileId) {
 
@@ -64,7 +64,7 @@ public class EstimateWriteService {
 
         // 강아지 아이디로 특정 강아지 프로필 조회
         EstimateRequestProfiles profile = estimateRequestProfilesRepository.findByEstimateRequestAndDogProfileId(estimateRequest, dogProfileId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 강아지 프로필 정보를 찾을 수 없습니다 : " + dogProfileId));
+                .orElseThrow(() -> new IllegalArgumentException("견적 요청에 해당하는 강아지 프로필을 찾을 수 없습니다."));
 
         DogProfile dogProfile = profile.getDogProfile();
 

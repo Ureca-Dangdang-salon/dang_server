@@ -26,30 +26,28 @@ public class ContestPost extends BaseEntity {
     @Column(name = "image_key")
     private String imageKey;
 
+    private String dogName;
+
     private String description;
 
-    @Column(name = "like_count", columnDefinition = "INT DEFAULT 0")
-    private int likeCount;
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contest_id", nullable = false)
     private Contest contest;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "groomer_profile_id", nullable = false)
     private GroomerProfile groomerProfile;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Builder
-    public ContestPost(String imageKey, String description, int likeCount, Contest contest,
+    public ContestPost(String imageKey, String description, Contest contest,
                        GroomerProfile groomerProfile,
                        User user) {
         this.imageKey = imageKey;
         this.description = description;
-        this.likeCount = likeCount;
         this.contest = contest;
         this.groomerProfile = groomerProfile;
         this.user = user;

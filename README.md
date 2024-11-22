@@ -58,14 +58,13 @@
 - 알림 서비스
   - **알림 조건**:
     - 고객:
-      - 견적 요청 수락/거절 (푸시) 알림.
-      - 견적서 도착 (푸시) 알림.
-      - 예약 취소 (푸시, 이메일) 알림.
-    - 미용사:
-      - 새로운 견적 요청 도착 (푸시) 알림.
+      - 새로운 견적서 도착 (푸시) 알림.
       - 결제 완료 (푸시) 알림.
       - 예약일 하루 전 (푸시, 이메일) 알림.
       - 리뷰 작성 (푸시) 알림.
+    - 미용사:
+      - 새로운 견적 요청 도착 (푸시) 알림.
+      - 결제 완료 (푸시) 알림.
   - **알림 방식**:
     - 실시간 푸시 알림 또는 이메일.
 - 쿠폰 서비스
@@ -95,7 +94,7 @@
 
 ## ERD
 
-![ERD](https://file.notion.so/f/f/e01fa883-e589-4301-9d54-e4c6b88f1ac1/b5c0c6aa-06cd-4091-9c12-91ffc1aed859/DangDangSalon_(3).png?table=block&id=d7f5d202-099d-4c26-bda7-892d19d4f099&spaceId=e01fa883-e589-4301-9d54-e4c6b88f1ac1&expirationTimestamp=1732075200000&signature=HBNrn3Vt_1gMuW7i6mwf5mIkngHVOrLSDcBVax5I7io&downloadName=DangDangSalon+%283%29.png)
+![ERD](https://github.com/user-attachments/assets/1a3193c1-116a-46d2-a233-ef2429656cea)
 
 ## 서비스 요청 흐름도
 

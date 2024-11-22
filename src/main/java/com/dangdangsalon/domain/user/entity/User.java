@@ -35,8 +35,7 @@ public class User extends BaseEntity {
     private District district;
 
     @Builder
-    public User(Long id, String username, String name, String email, String imageKey, Role role, District district) {
-        this.id = id;
+    public User(String username, String name, String email, String imageKey, Role role, District district) {
         this.username = username;
         this.name = name;
         this.email = email;

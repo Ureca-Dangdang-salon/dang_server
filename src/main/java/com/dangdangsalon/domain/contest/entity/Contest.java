@@ -35,7 +35,7 @@ public class Contest extends BaseEntity {
     @JoinColumn(name = "winner_post_id", nullable = true)
     private ContestPost winnerPost;
 
-    @OneToMany(mappedBy = "contest", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "contest", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ContestPost> contestPosts = new ArrayList<>();
 
     @Builder

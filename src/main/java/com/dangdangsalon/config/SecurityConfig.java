@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/oauth2/authorization/**", "/api/test", "/actuator/**",
-                                "/api/contests/winner/**")
+                                "/api/contests/winner/**", "/api/images/**")
                         .permitAll()
                         .requestMatchers("/api/auth/join").hasRole("PENDING")
                         .anyRequest().hasAnyRole("USER", "SALON", "ADMIN") // 나머지 경로는 인증 필요

@@ -15,6 +15,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,7 +88,10 @@ public class ContestService {
                 .likeCount(winnerLikeCount)
                 .build();
 
-        List<PostRankDto> rankPosts = contestPostRepository.findTopRankPostsByContestId(previousContest.getId());
+        Pageable pageable = PageRequest.of(0, 6);
+        Page<PostRankDto> rankPostPage = contestPostRepository.findTopRankPostsByContestId(previousContest.getId(),
+                pageable);
+        List<PostRankDto> rankPosts = rankPostPage.getContent();
 
         return WinnerRankDto.create(previousContest.getId(), winnerDto, rankPosts);
     }

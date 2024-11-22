@@ -21,8 +21,8 @@ public interface ContestPostRepository extends JpaRepository<ContestPost, Long> 
             "JOIN p.groomerProfile gp " +
             "WHERE p.contest.id = :contestId " +
             "GROUP BY p.id, p.user.id, gp.name, p.imageKey " +
-            "ORDER BY COUNT(pl) DESC")
-    List<PostRankDto> findTopRankPostsByContestId(@Param("contestId") Long contestId);
+            "ORDER BY COUNT(pl) DESC, p.createdAt ASC")
+    Page<PostRankDto> findTopRankPostsByContestId(@Param("contestId") Long contestId, Pageable pageable);
 
     @Query("SELECT p FROM ContestPost p " +
             "LEFT JOIN ContestPostLike l ON p.id = l.contestPost.id " +

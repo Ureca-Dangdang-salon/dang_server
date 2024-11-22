@@ -11,7 +11,7 @@ public interface EstimateRequestProfilesRepository extends JpaRepository<Estimat
 
     Optional<List<EstimateRequestProfiles>> findByEstimateRequest(EstimateRequest estimateRequest);
 
-    Optional<EstimateRequestProfiles> findByEstimateRequestAndDogProfileId(EstimateRequest estimateRequest, Long dogProfile_id);
+    Optional<EstimateRequestProfiles> findByEstimateRequestAndDogProfileId(EstimateRequest estimateRequest, Long dogProfileId);
 
     Optional<EstimateRequestProfiles> findByDogProfileIdAndEstimateRequestId(Long dogProfileId, Long estimateRequestId);
 

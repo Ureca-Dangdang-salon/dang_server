@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.estimate.controller;
 
 import com.dangdangsalon.domain.estimate.dto.*;
+import com.dangdangsalon.domain.estimate.request.dto.EstimateDetailResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
 import com.dangdangsalon.domain.estimate.service.EstimateService;
 import com.dangdangsalon.domain.estimate.service.EstimateWriteService;
@@ -52,5 +53,19 @@ public class EstimateController {
     public ApiSuccess<?> getEstimateDogDetail(@PathVariable Long requestId, @PathVariable Long dogProfileId) {
         EstimateDogDetailResponseDto estimateDogDetailResponseDto = estimateService.getEstimateDogDetail(requestId,dogProfileId);
         return ApiUtil.success(estimateDogDetailResponseDto);
+    }
+
+    // 견적서 상세 조회
+    @GetMapping("/detail/{estimateId}")
+    public ApiSuccess<?> getEstimateDetail(@PathVariable Long estimateId) {
+        MyEstimateDetailResponseDto myEstimateDetailResponseDto = estimateService.getEstimateDetail(estimateId);
+        return ApiUtil.success(myEstimateDetailResponseDto);
+    }
+
+    // 내 견적 조회
+    @GetMapping("/my/{requestId}")
+    public ApiSuccess<?> getMyEstimate(@PathVariable Long requestId) {
+        List<MyEstimateResponseDto> myEstimateResponseDtoList = estimateService.getMyEstimate(requestId);
+        return ApiUtil.success(myEstimateResponseDtoList);
     }
 }

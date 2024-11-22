@@ -4,9 +4,7 @@ import com.dangdangsalon.domain.dogprofile.dto.DogProfileResponseDto;
 import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
 import com.dangdangsalon.domain.dogprofile.entity.DogProfileFeature;
 import com.dangdangsalon.domain.dogprofile.repository.DogProfileFeatureRepository;
-import com.dangdangsalon.domain.estimate.request.dto.EstimateDetailResponseDto;
-import com.dangdangsalon.domain.estimate.request.dto.FeatureResponseDto;
-import com.dangdangsalon.domain.estimate.request.dto.ServiceResponseDto;
+import com.dangdangsalon.domain.estimate.request.dto.*;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestService;
@@ -48,6 +46,31 @@ public class EstimateRequestDetailService {
                                 profile.getDogProfile().getName()),
                         getServiceList(profile),
                         getFeatureList(profile.getDogProfile())))
+                .toList();
+    }
+
+    // 내 견적 요청 상세 조회 (채팅)
+    @Transactional(readOnly = true)
+    public List<MyEstimateRequestDetailResponseDto> getMyEstimateDetailRequest(Long requestId) {
+
+        // 견적 요청 조회(미용사) 할 때 견적 요청 아이디 넘겨줬으니까 클릭하면 요청 아이디를 받는다.
+        EstimateRequest estimateRequest = estimateRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다 : " + requestId));
+
+        // 해당 요청의 프로필 리스트 가져오기
+        List<EstimateRequestProfiles> profileList = estimateRequestProfilesRepository.findByEstimateRequest(estimateRequest)
+                .orElseThrow(() -> new IllegalArgumentException("견적 요청 프로필 정보를 찾을 수 없습니다"));
+
+
+        return profileList.stream()
+                .map(profile -> MyEstimateRequestDetailResponseDto.builder()
+                        .imageKey(profile.getDogProfile().getImageKey())
+                        .dogName(profile.getDogProfile().getName())
+                        .aggression(profile.isAggression())
+                        .healthIssue(profile.isHealthIssue())
+                        .description(profile.getDescription())
+                        .serviceList(getServiceList(profile))
+                        .build())
                 .toList();
     }
 

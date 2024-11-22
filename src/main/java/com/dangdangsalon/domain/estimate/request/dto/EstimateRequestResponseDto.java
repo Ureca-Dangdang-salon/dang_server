@@ -1,6 +1,5 @@
 package com.dangdangsalon.domain.estimate.request.dto;
 
-import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerEstimateRequest;
 import com.dangdangsalon.domain.region.entity.City;
@@ -14,7 +13,7 @@ import java.time.LocalDate;
 
 @Getter
 @NoArgsConstructor
-public class EstimateResponseDto {
+public class EstimateRequestResponseDto {
     private Long estimateId;
     private String name;
     private LocalDate date;
@@ -25,7 +24,7 @@ public class EstimateResponseDto {
     private String groomerEstimateRequestStatus;
 
     @Builder
-    public EstimateResponseDto(Long estimateId ,String name, LocalDate date, String serviceType, String region, String imageKey, String estimateRequestStatus, String groomerEstimateRequestStatus) {
+    public EstimateRequestResponseDto(Long estimateId , String name, LocalDate date, String serviceType, String region, String imageKey, String estimateRequestStatus, String groomerEstimateRequestStatus) {
         this.estimateId = estimateId;
         this.name = name;
         this.date = date;
@@ -36,7 +35,7 @@ public class EstimateResponseDto {
         this.groomerEstimateRequestStatus = groomerEstimateRequestStatus;
     }
 
-    public static EstimateResponseDto toDto(GroomerEstimateRequest groomerEstimateRequest) {
+    public static EstimateRequestResponseDto toDto(GroomerEstimateRequest groomerEstimateRequest) {
 
         EstimateRequest estimateRequest = groomerEstimateRequest.getEstimateRequest();
         User user = estimateRequest.getUser();
@@ -45,7 +44,7 @@ public class EstimateResponseDto {
 
         String fullRegion = String.format("%s %s", city.getName(), district.getName());
 
-        return EstimateResponseDto.builder()
+        return EstimateRequestResponseDto.builder()
                 .estimateId(estimateRequest.getId())
                 .name(user.getName())
                 .date(estimateRequest.getRequestDate().toLocalDate())

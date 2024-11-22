@@ -5,11 +5,13 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class ServiceResponseDto {
+public class ServicePriceResponseDto {
     private Long serviceId;
     private String description;
+    private int price;
 
-    public ServiceResponseDto(Long serviceId, String description) {
+    public ServicePriceResponseDto(Long serviceId, String description, int price) {
+        this.price = price;
         this.serviceId = serviceId;
         this.description = description;
     }

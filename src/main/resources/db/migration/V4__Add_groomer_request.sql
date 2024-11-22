@@ -31,3 +31,16 @@ DROP FOREIGN KEY `FKoam8pap713fsbclf3i4mweol3`;
 
 ALTER TABLE `estimate_request_service`
     ADD FOREIGN KEY (`request_id`) REFERENCES `estimate_request_profiles` (`id`);
+
+ALTER TABLE `estimate`
+DROP COLUMN `aggression_charge`,
+    DROP COLUMN `health_issue_charge`;
+
+DROP TABLE `estimate_service_price`;
+
+ALTER TABLE `estimate_request_profiles`
+    ADD COLUMN `aggression_charge` int ,
+    ADD COLUMN `health_issue_charge`int ;
+
+ALTER TABLE `estimate_request_service`
+    ADD COLUMN `price` int ;

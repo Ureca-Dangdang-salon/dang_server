@@ -20,10 +20,6 @@ public class Estimate extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int aggressionCharge;
-
-    private int healthIssueCharge;
-
     @Enumerated(EnumType.STRING)
     private EstimateStatus status;
 
@@ -45,11 +41,9 @@ public class Estimate extends BaseEntity {
     private EstimateRequest estimateRequest;
 
     @Builder
-    public Estimate(int aggressionCharge, int healthIssueCharge, EstimateStatus status, String description,
+    public Estimate(EstimateStatus status, String description,
                     String imageKey,
                     GroomerProfile groomerProfile, EstimateRequest estimateRequest, int totalAmount, LocalDateTime date) {
-        this.aggressionCharge = aggressionCharge;
-        this.healthIssueCharge = healthIssueCharge;
         this.status = status;
         this.description = description;
         this.imageKey = imageKey;

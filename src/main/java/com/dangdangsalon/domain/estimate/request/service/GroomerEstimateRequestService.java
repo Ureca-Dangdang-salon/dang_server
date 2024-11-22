@@ -1,7 +1,7 @@
 package com.dangdangsalon.domain.estimate.request.service;
 
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
-import com.dangdangsalon.domain.estimate.request.dto.EstimateResponseDto;
+import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerCanService;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
@@ -44,13 +44,13 @@ public class GroomerEstimateRequestService {
 
     // 미용사에게 온 견적 요청들 조회
     @Transactional(readOnly = true)
-    public List<EstimateResponseDto> getEstimateRequest(Long groomerProfileId) {
+    public List<EstimateRequestResponseDto> getEstimateRequest(Long groomerProfileId) {
 
         List<GroomerEstimateRequest> groomerEstimateRequestList = groomerEstimateRequestRepository.findByGroomerProfileId(groomerProfileId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 지역에 대한 미용사 정보를 찾을 수 없습니다"));
 
         return groomerEstimateRequestList.stream()
-                .map(EstimateResponseDto::toDto)
+                .map(EstimateRequestResponseDto::toDto)
                 .toList();
     }
 

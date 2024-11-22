@@ -28,6 +28,6 @@ public interface ContestPostRepository extends JpaRepository<ContestPost, Long> 
             "LEFT JOIN ContestPostLike l ON p.id = l.contestPost.id " +
             "WHERE p.contest.id = :contestId " +
             "GROUP BY p.id " +
-            "ORDER BY COUNT(l) DESC")
-    Optional<ContestPost> findTopLikedPostByContestId(@Param("contestId") Long contestId);
+            "ORDER BY COUNT(l) DESC, p.createdAt ASC")
+    List<ContestPost> findTopLikedPostByContestId(@Param("contestId") Long contestId);
 }

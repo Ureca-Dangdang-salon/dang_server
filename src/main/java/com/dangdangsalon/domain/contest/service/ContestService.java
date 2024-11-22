@@ -14,6 +14,7 @@ import com.dangdangsalon.domain.contest.repository.ContestRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +65,7 @@ public class ContestService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "winnerRank", key = "'getWinnerAndRankPost'")
     public WinnerRankDto getWinnerAndRankPost() {
         Contest previousContest = contestRepository.findPreviousContest()
                 .orElseThrow(() -> new IllegalArgumentException("지난 콘테스트가 없습니다."));

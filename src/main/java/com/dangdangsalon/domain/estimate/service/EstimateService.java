@@ -174,8 +174,8 @@ public class EstimateService {
                 .orElse(List.of());
 
         return featureList.stream()
-                .map(feature -> new FeatureResponseDto(
-                        feature.getFeature().getDescription()))
+                .map(dogProfileFeature -> new FeatureResponseDto(
+                        dogProfileFeature.getFeature().getDescription()))
                 .toList();
     }
 }

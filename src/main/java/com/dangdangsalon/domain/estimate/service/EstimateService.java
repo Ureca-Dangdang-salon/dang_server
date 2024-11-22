@@ -79,8 +79,6 @@ public class EstimateService {
                     dogPriceDto.getHealthIssueCharge()
             );
 
-            estimateRequestProfilesRepository.save(estimateRequestProfiles);
-
             dogPriceDto.getServiceList().forEach(serviceDto -> {
                 // serviceId를 사용해 GroomerService 찾기
                 GroomerService groomerService = groomerServiceRepository.findById(serviceDto.getServiceId())
@@ -90,8 +88,6 @@ public class EstimateService {
                         .orElseThrow(() -> new IllegalArgumentException("해당 프로필과 서비스에 대한 견적 요청 서비스가 존재하지 않습니다: " + "프로필 ID = " + estimateRequestProfiles.getId() + ", 서비스 ID = " + groomerService.getId()));
 
                 estimateRequestService.updatePrice(serviceDto.getPrice());
-
-                estimateRequestServiceRepository.save(estimateRequestService);
             });
         });
     }
@@ -217,8 +213,8 @@ public class EstimateService {
                 .orElse(List.of());
 
         return featureList.stream()
-                .map(feature -> new FeatureResponseDto(
-                        feature.getFeature().getDescription()))
+                .map(dogProfileFeature -> new FeatureResponseDto(
+                        dogProfileFeature.getFeature().getDescription()))
                 .toList();
     }
 }

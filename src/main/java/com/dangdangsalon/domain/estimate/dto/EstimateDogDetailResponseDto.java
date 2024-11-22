@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
+@Builder
 public class EstimateDogDetailResponseDto {
 
     private String dogName;
@@ -33,45 +33,6 @@ public class EstimateDogDetailResponseDto {
     private boolean healthIssue;
     private String description;
     private List<FeatureResponseDto> featureList;
-
-    @Builder
-    public EstimateDogDetailResponseDto(
-            String dogName,
-            int year,
-            int month,
-            int dogWeight,
-            Gender gender,
-            Neutering neutering,
-            String imageKey,
-            String currentImageKey,
-            String styleRefImageKey,
-            String species,
-            List<ServicePriceResponseDto> serviceList,
-            boolean aggression,
-            boolean healthIssue,
-            int aggressionCharge,
-            int healthIssueCharge,
-            String description,
-            List<FeatureResponseDto> featureList
-    ) {
-        this.dogName = dogName;
-        this.year = year;
-        this.month = month;
-        this.dogWeight = dogWeight;
-        this.gender = gender;
-        this.neutering = neutering;
-        this.imageKey = imageKey;
-        this.currentImageKey = currentImageKey;
-        this.styleRefImageKey = styleRefImageKey;
-        this.species = species;
-        this.serviceList = serviceList;
-        this.aggression = aggression;
-        this.healthIssue = healthIssue;
-        this.aggressionCharge = aggressionCharge;
-        this.healthIssueCharge = healthIssueCharge;
-        this.description = description;
-        this.featureList = featureList;
-    }
 
     public static EstimateDogDetailResponseDto toDto(
             DogProfile dogProfile,

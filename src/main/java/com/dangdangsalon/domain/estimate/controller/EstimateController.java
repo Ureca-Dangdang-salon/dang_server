@@ -28,7 +28,7 @@ public class EstimateController {
     }
 
     // 견적서 작성 반려견 요청 상세 보기
-    @GetMapping("/dogrequest/detail/{requestId}/{dogProfileId}")
+    @GetMapping("/dogrequest/{requestId}/detail/{dogProfileId}")
     public ApiSuccess<?> getEstimateRequestDogDetail(@PathVariable Long requestId, @PathVariable Long dogProfileId) {
         EstimateWriteDetailResponseDto detailResponseDto = estimateWriteService.getEstimateRequestDogDetail(requestId, dogProfileId);
         return ApiUtil.success(detailResponseDto);

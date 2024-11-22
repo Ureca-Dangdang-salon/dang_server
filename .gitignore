@@ -37,4 +37,4 @@ out/
 .vscode/
 
 application-dev.properties
-**/test/resources/application-test.properties
+**/application-test.properties

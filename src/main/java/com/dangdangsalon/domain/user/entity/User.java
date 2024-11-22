@@ -45,12 +45,6 @@ public class User extends BaseEntity {
         this.district = district;
     }
 
-    public void updateData(String name, String email, String profileImage) {
-        this.name = name;
-        this.email = email;
-        this.imageKey = profileImage;
-    }
-
     public void updateAdditionalInfo(Role role, District district) {
         this.role = role;
         this.district = district;

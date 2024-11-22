@@ -165,6 +165,7 @@ CREATE TABLE `contest_post`
     `created_at`         datetime(6) DEFAULT NULL,
     `updated_at`         datetime(6) DEFAULT NULL,
     `description`        varchar(255) DEFAULT NULL,
+    `dog_name`           varchar(255) DEFAULT NULL,
     `image_key`          varchar(255) DEFAULT NULL,
     `like_count`         int          DEFAULT '0',
     `contest_id`         bigint       DEFAULT NULL,

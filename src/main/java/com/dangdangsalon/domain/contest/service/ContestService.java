@@ -68,7 +68,6 @@ public class ContestService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "winnerRank", key = "'getWinnerAndRankPost'")
     public WinnerRankDto getWinnerAndRankPost() {
         Contest previousContest = contestRepository.findPreviousContest()
                 .orElseThrow(() -> new IllegalArgumentException("지난 콘테스트가 없습니다."));
@@ -83,7 +82,7 @@ public class ContestService {
         PostRankDto winnerDto = PostRankDto.builder()
                 .postId(winnerPost.getId())
                 .userId(winnerPost.getUser().getId())
-                .dogName(winnerPost.getGroomerProfile().getName())
+                .dogName(winnerPost.getDogName())
                 .imageUrl(winnerPost.getImageKey())
                 .likeCount(winnerLikeCount)
                 .build();
@@ -91,7 +90,11 @@ public class ContestService {
         Pageable pageable = PageRequest.of(0, 6);
         Page<PostRankDto> rankPostPage = contestPostRepository.findTopRankPostsByContestId(previousContest.getId(),
                 pageable);
-        List<PostRankDto> rankPosts = rankPostPage.getContent();
+
+        List<PostRankDto> rankPosts = rankPostPage.getContent().stream()
+                .filter(post -> !post.getPostId().equals(winnerPost.getId()))
+                .limit(5)
+                .toList();
 
         return WinnerRankDto.create(previousContest.getId(), winnerDto, rankPosts);
     }

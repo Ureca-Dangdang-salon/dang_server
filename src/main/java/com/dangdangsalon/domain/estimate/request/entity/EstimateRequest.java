@@ -5,9 +5,13 @@ import com.dangdangsalon.domain.region.entity.District;
 import com.dangdangsalon.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "estimate_request")
 @Getter
@@ -34,6 +38,10 @@ public class EstimateRequest extends BaseEntity {
     @JoinColumn(name = "district_id")
     private District district;
 
+    @OneToMany(mappedBy = "estimateRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EstimateRequestProfiles> estimateRequestProfiles = new ArrayList<>();
+
+    @Builder
     public EstimateRequest(LocalDateTime requestDate, RequestStatus requestStatus, ServiceType serviceType,
                            User user, District district) {
         this.requestDate = requestDate;
@@ -41,5 +49,9 @@ public class EstimateRequest extends BaseEntity {
         this.serviceType = serviceType;
         this.user = user;
         this.district = district;
+    }
+
+    public void updateRequestStatus(RequestStatus requestStatus) {
+        this.requestStatus = requestStatus;
     }
 }

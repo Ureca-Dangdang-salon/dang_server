@@ -25,6 +25,8 @@ public class EstimateRequestService extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private int price;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_id")
     private EstimateRequestProfiles estimateRequestProfiles;
@@ -34,8 +36,13 @@ public class EstimateRequestService extends BaseEntity {
     private GroomerService groomerService;
 
     @Builder
-    public EstimateRequestService(EstimateRequestProfiles estimateRequestProfiles, GroomerService groomerService) {
+    public EstimateRequestService(EstimateRequestProfiles estimateRequestProfiles, GroomerService groomerService, int price) {
+        this.price = price;
         this.estimateRequestProfiles = estimateRequestProfiles;
         this.groomerService = groomerService;
+    }
+
+    public void updatePrice(int price){
+        this.price = price;
     }
 }

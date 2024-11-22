@@ -1,5 +1,6 @@
 package com.dangdangsalon.exception.handler;
 
+import com.dangdangsalon.exception.TokenExpiredException;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiError;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,5 +32,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<?> handleIllegalArgumentException(Exception e) {
         ApiError<String> error = ApiUtil.error(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         return ResponseEntity.status(HttpServletResponse.SC_NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler({
+            IllegalStateException.class
+    })
+    protected ResponseEntity<?> handleIllegalStateException(Exception e) {
+        ApiError<String> error = ApiUtil.error(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+        return ResponseEntity.status(HttpServletResponse.SC_FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    protected ResponseEntity<?> handleExpiredJwtException(TokenExpiredException e) {
+        ApiError<String> error = ApiUtil.error(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+        return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(error);
     }
 }

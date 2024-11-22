@@ -77,7 +77,5 @@ public class EstimateRequestServices {
                 .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다: " + requestId));
 
         estimateRequest.updateRequestStatus(RequestStatus.CANCEL);
-
-        estimateRequestRepository.save(estimateRequest);
     }
 }

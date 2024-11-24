@@ -34,15 +34,22 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final WebClient webClient;
+
+    @Value("${toss.api.key}")
+    private String tossApiKey;
+
+    @Value("${toss.api.approve-url}")
+    private String tossApproveUrl;
+
+    @Value("${toss.api.cancel-url}")
+    private String tossCancelUrl;
+
     private static final long IDEMPOTENCY_KEY_TTL = 10 * 60 * 1000L; // 10분 설정
 
     private static final String IDEMPOTENCY_KEY_PREFIX = "payment:cancel:idempotency:";
     private static final String PAYMENT_IDEMPOTENCY_KEY_PREFIX = "payment:approve:idempotency:";
     private static final String APPROVE_VALUE = "APPROVE_REQUEST_IN_PROGRESS";
     private static final String CANCEL_VALUE = "CANCEL_REQUEST_IN_PROGRESS";
-
-    @Value("${toss.api.key}")
-    private String tossApiKey;
 
     @Transactional
     public PaymentApproveResponseDto approvePayment(PaymentApproveRequestDto paymentApproveRequestDto, String idempotencyKey) {
@@ -61,8 +68,7 @@ public class PaymentService {
                 throw new IllegalArgumentException("결제 금액이 주문 금액과 일치하지 않습니다.");
             }
 
-            String paymentApprovalUrl = "https://api.tosspayments.com/v1/payments/confirm";
-            PaymentApproveResponseDto paymentResponse = sendApprovalRequestToToss(paymentApproveRequestDto, paymentApprovalUrl, idempotencyKey);
+            PaymentApproveResponseDto paymentResponse = sendApprovalRequestToToss(paymentApproveRequestDto, tossApproveUrl, idempotencyKey);
 
             Payment payment = Payment.builder()
                     .paymentKey(paymentResponse.getPaymentKey())
@@ -94,8 +100,8 @@ public class PaymentService {
             Payment payment = paymentRepository.findByPaymentKey(paymentCancelRequestDto.getPaymentKey())
                     .orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
 
-            String paymentCancelUrl = "https://api.tosspayments.com/v1/payments/" + paymentCancelRequestDto.getPaymentKey() + "/cancel";
-            PaymentCancelResponseDto paymentCancelResponseDto = sendCancelRequestToToss(paymentCancelRequestDto, paymentCancelUrl, idempotencyKey);
+            String cancelUrl = tossCancelUrl.replace("{paymentKey}", paymentCancelRequestDto.getPaymentKey());
+            PaymentCancelResponseDto paymentCancelResponseDto = sendCancelRequestToToss(paymentCancelRequestDto, cancelUrl, idempotencyKey);
 
             payment.updatePaymentStatus(PaymentStatus.CANCELED);
 
@@ -155,7 +161,7 @@ public class PaymentService {
 
     private void validatePaymentAmount(long amount) {
         if (amount <= 0) {
-            throw new IllegalArgumentException("결제 금액은 0보다 커야 합니다");
+            throw new IllegalArgumentException("결제 금액은 0보다 커야 합니다.");
         }
     }
 

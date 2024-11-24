@@ -38,7 +38,8 @@ public class PaymentService {
 
     private static final String IDEMPOTENCY_KEY_PREFIX = "payment:cancel:idempotency:";
     private static final String PAYMENT_IDEMPOTENCY_KEY_PREFIX = "payment:approve:idempotency:";
-    private static final String IDEMPOTENCY_KEY_VALUE = "CANCEL_REQUEST_IN_PROGRESS";
+    private static final String APPROVE_VALUE = "APPROVE_REQUEST_IN_PROGRESS";
+    private static final String CANCEL_VALUE = "CANCEL_REQUEST_IN_PROGRESS";
 
     @Value("${toss.api.key}")
     private String tossApiKey;
@@ -47,7 +48,7 @@ public class PaymentService {
     public PaymentApproveResponseDto approvePayment(PaymentApproveRequestDto paymentApproveRequestDto, String idempotencyKey) {
         String redisKey = PAYMENT_IDEMPOTENCY_KEY_PREFIX + idempotencyKey;
 
-        if (saveIdempotencyKey(redisKey)) {
+        if (saveIdempotencyKey(redisKey, APPROVE_VALUE)) {
             throw new IllegalStateException("이미 동일한 결제 승인 요청이 처리 중입니다.");
         }
 
@@ -81,6 +82,32 @@ public class PaymentService {
         }
     }
 
+    @Transactional
+    public PaymentCancelResponseDto cancelPayment(PaymentCancelRequestDto paymentCancelRequestDto, String idempotencyKey) {
+        String redisKey = IDEMPOTENCY_KEY_PREFIX + idempotencyKey;
+
+        if (saveIdempotencyKey(redisKey, CANCEL_VALUE)) {
+            throw new IllegalStateException("이미 동일한 결제 취소 요청이 처리 중입니다.");
+        }
+
+        try {
+            Payment payment = paymentRepository.findByPaymentKey(paymentCancelRequestDto.getPaymentKey())
+                    .orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
+
+            String paymentCancelUrl = "https://api.tosspayments.com/v1/payments/" + paymentCancelRequestDto.getPaymentKey() + "/cancel";
+            PaymentCancelResponseDto paymentCancelResponseDto = sendCancelRequestToToss(paymentCancelRequestDto, paymentCancelUrl, idempotencyKey);
+
+            payment.updatePaymentStatus(PaymentStatus.CANCELED);
+
+            return PaymentCancelResponseDto.builder()
+                    .paymentKey(paymentCancelResponseDto.getPaymentKey())
+                    .orderId(paymentCancelResponseDto.getOrderId())
+                    .status(paymentCancelResponseDto.getStatus())
+                    .build();
+        } finally {
+            deleteIdempotencyKey(redisKey);
+        }
+    }
 
     private PaymentApproveResponseDto sendApprovalRequestToToss(PaymentApproveRequestDto paymentApproveRequestDto, String url, String idempotencyKey) {
         String authorizationHeader = "Basic " + Base64.getEncoder().encodeToString((tossApiKey + ":").getBytes());
@@ -105,33 +132,6 @@ public class PaymentService {
         }
     }
 
-    @Transactional
-    public PaymentCancelResponseDto cancelPayment(PaymentCancelRequestDto paymentCancelRequestDto, String idempotencyKey) {
-        String redisKey = IDEMPOTENCY_KEY_PREFIX + idempotencyKey;
-
-        if (saveIdempotencyKey(redisKey)) {
-            throw new IllegalStateException("이미 동일한 결제 취소 요청이 처리 중입니다.");
-        }
-
-        try {
-            Payment payment = paymentRepository.findByPaymentKey(paymentCancelRequestDto.getPaymentKey())
-                    .orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
-
-            String paymentCancelUrl = "https://api.tosspayments.com/v1/payments/" + paymentCancelRequestDto.getPaymentKey() + "/cancel";
-            PaymentCancelResponseDto paymentCancelResponseDto = sendCancelRequestToToss(paymentCancelRequestDto, paymentCancelUrl, idempotencyKey);
-
-            payment.updatePaymentStatus(PaymentStatus.CANCELED);
-
-            return PaymentCancelResponseDto.builder()
-                    .paymentKey(paymentCancelResponseDto.getPaymentKey())
-                    .orderId(paymentCancelResponseDto.getOrderId())
-                    .status(paymentCancelResponseDto.getStatus())
-                    .build();
-        } finally {
-            deleteIdempotencyKey(redisKey);
-        }
-    }
-
     private PaymentCancelResponseDto sendCancelRequestToToss(PaymentCancelRequestDto paymentCancelRequestDto, String url, String idempotencyKey) {
         String authorizationHeader = "Basic " + Base64.getEncoder().encodeToString((tossApiKey + ":").getBytes());
 
@@ -153,15 +153,14 @@ public class PaymentService {
         }
     }
 
-
     private void validatePaymentAmount(long amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("결제 금액은 0보다 커야 합니다");
         }
     }
 
-    private boolean saveIdempotencyKey(String key) {
-        Boolean isSaved = redisTemplate.opsForValue().setIfAbsent(key, IDEMPOTENCY_KEY_VALUE, Duration.ofMillis(IDEMPOTENCY_KEY_TTL));
+    private boolean saveIdempotencyKey(String key, String value) {
+        Boolean isSaved = redisTemplate.opsForValue().setIfAbsent(key, value, Duration.ofMillis(IDEMPOTENCY_KEY_TTL));
         return !Boolean.TRUE.equals(isSaved);
     }
 

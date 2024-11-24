@@ -61,7 +61,7 @@ public class PaymentService {
             }
 
             String paymentApprovalUrl = "https://api.tosspayments.com/v1/payments/confirm";
-            PaymentApproveResponseDto paymentResponse = sendApprovalRequestToToss(paymentApproveRequestDto, paymentApprovalUrl);
+            PaymentApproveResponseDto paymentResponse = sendApprovalRequestToToss(paymentApproveRequestDto, paymentApprovalUrl, idempotencyKey);
 
             Payment payment = Payment.builder()
                     .paymentKey(paymentResponse.getPaymentKey())
@@ -82,7 +82,7 @@ public class PaymentService {
     }
 
 
-    private PaymentApproveResponseDto sendApprovalRequestToToss(PaymentApproveRequestDto paymentApproveRequestDto, String url) {
+    private PaymentApproveResponseDto sendApprovalRequestToToss(PaymentApproveRequestDto paymentApproveRequestDto, String url, String idempotencyKey) {
         String authorizationHeader = "Basic " + Base64.getEncoder().encodeToString((tossApiKey + ":").getBytes());
 
         try {
@@ -90,6 +90,7 @@ public class PaymentService {
                     .uri(url)
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+                    .header("Idempotency-Key", idempotencyKey)
                     .bodyValue(Map.of(
                             "paymentKey", paymentApproveRequestDto.getPaymentKey(),
                             "orderId", paymentApproveRequestDto.getOrderId(),
@@ -117,7 +118,7 @@ public class PaymentService {
                     .orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
 
             String paymentCancelUrl = "https://api.tosspayments.com/v1/payments/" + paymentCancelRequestDto.getPaymentKey() + "/cancel";
-            PaymentCancelResponseDto paymentCancelResponseDto = sendCancelRequestToToss(paymentCancelRequestDto, paymentCancelUrl);
+            PaymentCancelResponseDto paymentCancelResponseDto = sendCancelRequestToToss(paymentCancelRequestDto, paymentCancelUrl, idempotencyKey);
 
             payment.updatePaymentStatus(PaymentStatus.CANCELED);
 
@@ -131,7 +132,7 @@ public class PaymentService {
         }
     }
 
-    private PaymentCancelResponseDto sendCancelRequestToToss(PaymentCancelRequestDto paymentCancelRequestDto, String url) {
+    private PaymentCancelResponseDto sendCancelRequestToToss(PaymentCancelRequestDto paymentCancelRequestDto, String url, String idempotencyKey) {
         String authorizationHeader = "Basic " + Base64.getEncoder().encodeToString((tossApiKey + ":").getBytes());
 
         try {
@@ -139,6 +140,7 @@ public class PaymentService {
                     .uri(url)
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+                    .header("Idempotency-Key", idempotencyKey)
                     .bodyValue(Map.of(
                             "cancelReason", paymentCancelRequestDto.getCancelReason()
                     ))

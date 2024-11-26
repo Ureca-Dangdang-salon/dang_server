@@ -57,6 +57,7 @@ public class PaymentApiTest {
 
     @Test
     @DisplayName("결제 승인 테스트")
+    @WithMockUser(username = "testUser", roles = {"USER"})
     void approvePayment() {
         PaymentApproveRequestDto requestDto = PaymentApproveRequestDto.builder()
                 .paymentKey("paykey123")
@@ -91,6 +92,7 @@ public class PaymentApiTest {
 
     @Test
     @DisplayName("결제 취소 테스트")
+    @WithMockUser(username = "testUser", roles = {"USER"})
     void cancelPayment() {
         PaymentCancelRequestDto requestDto = PaymentCancelRequestDto.builder()
                 .paymentKey("paykey123")

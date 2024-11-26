@@ -18,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -43,6 +44,7 @@ public class OrdersApiTest {
 
     @Test
     @DisplayName("주문 등록 테스트")
+    @WithMockUser(username = "testUser", roles = {"USER"})
     void insertOrders() {
         OrdersRequestDto requestDto = OrdersRequestDto.builder()
                 .amount(50000)

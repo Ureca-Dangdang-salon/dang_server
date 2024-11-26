@@ -15,6 +15,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +68,6 @@ public class ContestService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "winnerRank", key = "'getWinnerAndRankPost'")
     public WinnerRankDto getWinnerAndRankPost() {
         Contest previousContest = contestRepository.findPreviousContest()
                 .orElseThrow(() -> new IllegalArgumentException("지난 콘테스트가 없습니다."));
@@ -80,12 +82,19 @@ public class ContestService {
         PostRankDto winnerDto = PostRankDto.builder()
                 .postId(winnerPost.getId())
                 .userId(winnerPost.getUser().getId())
-                .dogName(winnerPost.getGroomerProfile().getName())
+                .dogName(winnerPost.getDogName())
                 .imageUrl(winnerPost.getImageKey())
                 .likeCount(winnerLikeCount)
                 .build();
 
-        List<PostRankDto> rankPosts = contestPostRepository.findTopRankPostsByContestId(previousContest.getId());
+        Pageable pageable = PageRequest.of(0, 6);
+        Page<PostRankDto> rankPostPage = contestPostRepository.findTopRankPostsByContestId(previousContest.getId(),
+                pageable);
+
+        List<PostRankDto> rankPosts = rankPostPage.getContent().stream()
+                .filter(post -> !post.getPostId().equals(winnerPost.getId()))
+                .limit(5)
+                .toList();
 
         return WinnerRankDto.create(previousContest.getId(), winnerDto, rankPosts);
     }
@@ -95,8 +104,7 @@ public class ContestService {
         Contest previousContest = contestRepository.findPreviousContest()
                 .orElseThrow(() -> new IllegalArgumentException("지난 달에 진행된 콘테스트가 없습니다."));
 
-        ContestPost winnerPost = contestPostRepository.findTopLikedPostByContestId(previousContest.getId())
-                .orElseThrow(() -> new IllegalArgumentException("지난 달 콘테스트에 포스트가 없습니다."));
+        ContestPost winnerPost = contestPostRepository.findTopLikedPostByContestId(previousContest.getId()).get(0);
 
         previousContest.updateWinner(winnerPost);
     }

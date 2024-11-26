@@ -93,7 +93,7 @@ public class GroomerEstimateRequestService {
     // 저장
     private void saveGroomerEstimateRequest(EstimateRequest estimateRequest, GroomerProfile groomerProfile) {
         GroomerEstimateRequest groomerEstimateRequest = GroomerEstimateRequest.builder()
-                .groomerRequestStatus(GroomerRequestStatus.PENDING)
+                .groomerRequestStatus(GroomerRequestStatus.COMPLETED)
                 .estimateRequest(estimateRequest)
                 .groomerProfile(groomerProfile)
                 .build();

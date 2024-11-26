@@ -49,7 +49,7 @@ CREATE TABLE `district`
     CONSTRAINT `FKsgx09prp6sk2f0we38bf2dtal` FOREIGN KEY (`city_id`) REFERENCES `city` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE `user`
+CREATE TABLE `users`
 (
     `id`          bigint NOT NULL AUTO_INCREMENT,
     `created_at`  datetime(6) DEFAULT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE `dog_profile`
     `user_id`    bigint NOT NULL,
     PRIMARY KEY (`id`),
     KEY          `FK8dv8uxmiead9ibrmomyq9ntp7` (`user_id`),
-    CONSTRAINT `FK8dv8uxmiead9ibrmomyq9ntp7` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+    CONSTRAINT `FK8dv8uxmiead9ibrmomyq9ntp7` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `district_service`
@@ -116,7 +116,7 @@ CREATE TABLE `groomer_profile`
     `user_id`         bigint       DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `UKm43y06xr4jr935g6futso0tmx` (`user_id`),
-    CONSTRAINT `FKgc57p2busxulf0egn8knl2h1s` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+    CONSTRAINT `FKgc57p2busxulf0egn8knl2h1s` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `groomer_profile_service`
@@ -215,7 +215,7 @@ CREATE TABLE `estimate_request`
     PRIMARY KEY (`id`),
     KEY                   `FKn4wlayyiyu8hrwscqtls19x0e` (`district_id`),
     KEY                   `FKjmveywmjo8qkp6q0af9uvp57v` (`user_id`),
-    CONSTRAINT `FKjmveywmjo8qkp6q0af9uvp57v` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
+    CONSTRAINT `FKjmveywmjo8qkp6q0af9uvp57v` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     CONSTRAINT `FKn4wlayyiyu8hrwscqtls19x0e` FOREIGN KEY (`district_id`) REFERENCES `district` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -254,7 +254,7 @@ CREATE TABLE `chat_room`
     KEY                  `FKjqx1ixf0jep8hhi0jxhak9jor` (`user_id`),
     CONSTRAINT `FK4ruoa0svahhgljh104gntn3cy` FOREIGN KEY (`estimate_id`) REFERENCES `estimate` (`id`),
     CONSTRAINT `FKerwd4yj4h833il9cwprdul7pc` FOREIGN KEY (`groomer_profile_id`) REFERENCES `groomer_profile` (`id`),
-    CONSTRAINT `FKjqx1ixf0jep8hhi0jxhak9jor` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+    CONSTRAINT `FKjqx1ixf0jep8hhi0jxhak9jor` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `chat_message`
@@ -286,7 +286,7 @@ CREATE TABLE `orders`
     PRIMARY KEY (`id`),
     UNIQUE KEY `UKe3fced7bnhi5eenfipqv4a4pf` (`estimate_id`),
     KEY            `FKel9kyl84ego2otj2accfd8mr7` (`user_id`),
-    CONSTRAINT `FKel9kyl84ego2otj2accfd8mr7` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
+    CONSTRAINT `FKel9kyl84ego2otj2accfd8mr7` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     CONSTRAINT `FKl067d7tt15175oe1ft9fffrsa` FOREIGN KEY (`estimate_id`) REFERENCES `estimate` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -319,7 +319,7 @@ CREATE TABLE `coupon`
     `user_id`         bigint NOT NULL,
     PRIMARY KEY (`id`),
     KEY               `FKmfuic7ht7p0xvyoxhq9oydhal` (`user_id`),
-    CONSTRAINT `FKmfuic7ht7p0xvyoxhq9oydhal` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+    CONSTRAINT `FKmfuic7ht7p0xvyoxhq9oydhal` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `coupon_event`
@@ -365,7 +365,7 @@ CREATE TABLE `notification`
     `user_id`         bigint       DEFAULT NULL,
     PRIMARY KEY (`notification_id`),
     KEY               `FKb0yvoep4h4k92ipon31wmdf7e` (`user_id`),
-    CONSTRAINT `FKb0yvoep4h4k92ipon31wmdf7e` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+    CONSTRAINT `FKb0yvoep4h4k92ipon31wmdf7e` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `estimate_request_profiles`
@@ -425,5 +425,5 @@ CREATE TABLE `review`
     KEY                  `FK6f7aypfjoib9dvoni6cy6wc32` (`groomer_profile_id`),
     KEY                  `FKiyf57dy48lyiftdrf7y87rnxi` (`user_id`),
     CONSTRAINT `FK6f7aypfjoib9dvoni6cy6wc32` FOREIGN KEY (`groomer_profile_id`) REFERENCES `groomer_profile` (`id`),
-    CONSTRAINT `FKiyf57dy48lyiftdrf7y87rnxi` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+    CONSTRAINT `FKiyf57dy48lyiftdrf7y87rnxi` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

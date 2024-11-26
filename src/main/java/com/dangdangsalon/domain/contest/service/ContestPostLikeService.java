@@ -5,6 +5,7 @@ import com.dangdangsalon.domain.contest.entity.ContestPostLike;
 import com.dangdangsalon.domain.contest.repository.ContestPostLikeRepository;
 import com.dangdangsalon.domain.contest.repository.ContestPostRepository;
 import com.dangdangsalon.domain.user.entity.User;
+import com.dangdangsalon.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -17,6 +18,7 @@ public class ContestPostLikeService {
 
     private final ContestPostRepository contestPostRepository;
     private final ContestPostLikeRepository contestPostLikeRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     @CacheEvict(value = "likeStatus", key = "'like_status:' + #userId + ':' + #postId")
@@ -28,8 +30,11 @@ public class ContestPostLikeService {
         ContestPost post = contestPostRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 포스트가 존재하지 않습니다. postId: " + postId));
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. userId: " + userId));
+
         ContestPostLike like = ContestPostLike.builder()
-                .user(User.builder().id(userId).build())
+                .user(user)
                 .contestPost(post)
                 .build();
 

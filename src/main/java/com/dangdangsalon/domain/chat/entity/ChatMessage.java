@@ -35,6 +35,9 @@ public class ChatMessage extends BaseEntity {
     @Column(name = "sender_role")
     private SenderRole senderRole;
 
+    @Column(name = "is_read")
+    private boolean isRead;
+
     @ManyToOne
     @JoinColumn(name = "room_id", nullable = false)
     private ChatRoom chatRoom;

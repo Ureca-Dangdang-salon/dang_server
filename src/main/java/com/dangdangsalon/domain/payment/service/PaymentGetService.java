@@ -1,6 +1,5 @@
 package com.dangdangsalon.domain.payment.service;
 
-import com.dangdangsalon.domain.dogprofile.dto.DogProfileResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.ServicePriceResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestServiceRepository;
@@ -27,7 +26,6 @@ public class PaymentGetService {
 
     @Transactional(readOnly = true)
     public List<PaymentResponseDto> getPayments(Long userId) {
-
         // 1. ACCEPTED 상태의 모든 주문 조회
         List<Orders> acceptedOrders = ordersRepository.findAllByUserIdAndStatus(userId, OrderStatus.ACCEPTED)
                 .orElseThrow(() -> new IllegalArgumentException("결제 완료된 주문이 없습니다."));
@@ -36,40 +34,47 @@ public class PaymentGetService {
         return acceptedOrders.stream().map(order -> {
             // 결제 정보 가져오기
             Payment payment = paymentRepository.findByOrders(order)
-                    .orElseThrow(() -> new IllegalArgumentException("주문 ID " + order.getId() + "에 대한 결제 정보가 없습니다."));
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "주문 ID " + order.getId() + "에 대한 결제 정보가 없습니다."
+                    ));
 
-            // 견적 요청과 관련된 모든 반려견 프로필 조회
-            List<EstimateRequestProfiles> profiles = order.getEstimate()
-                    .getEstimateRequest()
-                    .getEstimateRequestProfiles();
-
-            // 각 프로필에 대한 서비스 정보 생성
-            List<PaymentDogProfileResponseDto> dogProfiles = profiles.stream().map(profile -> {
-                // 해당 프로필의 서비스 리스트 조회
-                List<ServicePriceResponseDto> services = estimateRequestServiceRepository
-                        .findByEstimateRequestProfilesId(profile.getId())
-                        .stream()
-                        .map(service -> new ServicePriceResponseDto(
-                                service.getGroomerService().getId(),
-                                service.getGroomerService().getDescription(),
-                                service.getPrice()
-                        ))
-                        .toList();
-
-                return PaymentDogProfileResponseDto.builder()
-                        .profileId(profile.getId())
-                        .dogName(profile.getDogProfile().getName())
-                        .servicePriceList(services)
-                        .aggressionCharge(profile.getAggressionCharge())
-                        .healthIssueCharge(profile.getHealthIssueCharge())
-                        .build();
-            }).toList();
+            List<PaymentDogProfileResponseDto> dogProfileList = getDogProfileServices(order);
 
             return PaymentResponseDto.builder()
                     .paymentDate(payment.getRequestedAt())
-                    .dogProfileList(dogProfiles)
+                    .dogProfileList(dogProfileList)
                     .totalAmount(payment.getTotalAmount())
                     .status(payment.getPaymentStatus().toString())
+                    .build();
+        }).toList();
+    }
+
+
+    private List<PaymentDogProfileResponseDto> getDogProfileServices(Orders order) {
+        // 1. 주문과 관련된 모든 반려견 프로필 조회
+        List<EstimateRequestProfiles> profiles = order.getEstimate()
+                .getEstimateRequest()
+                .getEstimateRequestProfiles();
+
+        // 2. 각 프로필에 대한 서비스 정보 생성
+        return profiles.stream().map(profile -> {
+            // 3. 해당 프로필의 서비스 리스트 조회
+            List<ServicePriceResponseDto> services = estimateRequestServiceRepository
+                    .findByEstimateRequestProfilesId(profile.getId())
+                    .stream()
+                    .map(service -> new ServicePriceResponseDto(
+                            service.getGroomerService().getId(),
+                            service.getGroomerService().getDescription(),
+                            service.getPrice()
+                    ))
+                    .toList();
+
+            return PaymentDogProfileResponseDto.builder()
+                    .profileId(profile.getId())
+                    .dogName(profile.getDogProfile().getName())
+                    .servicePriceList(services)
+                    .aggressionCharge(profile.getAggressionCharge())
+                    .healthIssueCharge(profile.getHealthIssueCharge())
                     .build();
         }).toList();
     }

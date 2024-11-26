@@ -51,6 +51,7 @@ public class PaymentService {
     private static final String APPROVE_VALUE = "APPROVE_REQUEST_IN_PROGRESS";
     private static final String CANCEL_VALUE = "CANCEL_REQUEST_IN_PROGRESS";
 
+    // 결제 승인(tossAPI)
     @Transactional
     public PaymentApproveResponseDto approvePayment(PaymentApproveRequestDto paymentApproveRequestDto, String idempotencyKey) {
         String redisKey = PAYMENT_IDEMPOTENCY_KEY_PREFIX + idempotencyKey;
@@ -88,6 +89,7 @@ public class PaymentService {
         }
     }
 
+    // 결제 취소(tossAPI)
     @Transactional
     public PaymentCancelResponseDto cancelPayment(PaymentCancelRequestDto paymentCancelRequestDto, String idempotencyKey) {
         String redisKey = IDEMPOTENCY_KEY_PREFIX + idempotencyKey;

@@ -28,17 +28,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -249,11 +246,12 @@ class EstimateControllerTest {
                 .imageKey("testImageKey123")
                 .totalAmount(150000)
                 .date(LocalDateTime.of(2024, 11, 25, 10, 0, 0))
-                .serviceList(List.of(service1, service2))
                 .dogPriceList(List.of(dogPriceRequest))
                 .build();
 
-        doNothing().when(estimateService).insertEstimate(requestDto);
+        EstimateIdResponseDto responseDto = new EstimateIdResponseDto(4L);
+        when(estimateService.insertEstimate(any(EstimateWriteRequestDto.class)))
+                .thenReturn(responseDto);
 
         // When & Then
         mockMvc.perform(MockMvcRequestBuilders.post("/api/estimate")
@@ -263,8 +261,9 @@ class EstimateControllerTest {
                         .with(SecurityMockMvcRequestPostProcessors.authentication(
                                 SecurityContextHolder.getContext().getAuthentication())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.response", is("견적서가 성공적으로 등록되었습니다.")));
+                .andExpect(jsonPath("$.response.estimateId", is(4)));
     }
+
 
     @Test
     @DisplayName("견적서 수정 조회 - 성공")

@@ -43,12 +43,13 @@ public class EstimateRequest extends BaseEntity {
 
     @Builder
     public EstimateRequest(LocalDateTime requestDate, RequestStatus requestStatus, ServiceType serviceType,
-                           User user, District district) {
+                           User user, District district, List<EstimateRequestProfiles> estimateRequestProfiles) {
         this.requestDate = requestDate;
         this.requestStatus = requestStatus;
         this.serviceType = serviceType;
         this.user = user;
         this.district = district;
+        this.estimateRequestProfiles = estimateRequestProfiles;
     }
 
     public void updateRequestStatus(RequestStatus requestStatus) {

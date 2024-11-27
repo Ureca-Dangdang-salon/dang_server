@@ -29,7 +29,9 @@ public class ChatSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        Long roomId = Long.parseLong(Objects.requireNonNull(session.getUri().getQuery()));
+        String query = Objects.requireNonNull(session.getUri()).getQuery();
+        String roomIdParam = query.split("=")[1];
+        Long roomId = Long.parseLong(roomIdParam);
         String sessionId = session.getId();
 
         chatRoomSessions.putIfAbsent(roomId, ConcurrentHashMap.newKeySet());

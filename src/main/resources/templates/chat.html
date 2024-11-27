@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Chat Room</title>
+    <script>
+        let socket;
+        let roomId = 11; // 기본 테스트용 Room ID
+        let senderId = 1; // 테스트용 Sender ID
+        let senderRole = "CUSTOMER"; // 테스트용 Sender Role
+
+        // WebSocket 연결
+        function connect() {
+            socket = new WebSocket(`ws://localhost:8080/ws/chat?roomId=${roomId}`);
+
+            socket.onopen = () => {
+                console.log('WebSocket 연결 성공');
+                fetchChatRoomDetails();
+            };
+
+            socket.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                displayMessage(message);
+            };
+
+            socket.onclose = () => {
+                console.log('WebSocket 연결 종료');
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket 에러:', error);
+            };
+        }
+
+        // 채팅방 정보 가져오기 API 호출
+        function fetchChatRoomDetails() {
+            fetch(`/api/chatrooms/${roomId}/enter`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoibmF2ZXIgcWMweUZjX3p6RTJNNWhVVVcyc2F4R051WUh4bkN3VGMtc016MVhFYmVjZyIsInJvbGUiOiJST0xFX1VTRVIiLCJpYXQiOjE3MzI2OTMzNTYsImV4cCI6MTczMjY5Njk1Nn0.s5yEIwCc7wZ81cSUaQPLJzXhZd44jhgAevBCR_eHixE`,
+                    "Content-Type": "application/json"
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const messagesList = document.getElementById("messages");
+                    const chatDetails = data.response;
+
+                    // 채팅방 기본 정보 표시
+                    document.getElementById("chat-room-title").textContent = `Room ID: ${chatDetails.roomId}`;
+                    document.getElementById("groomer-profile").textContent = `Groomer: ${chatDetails.groomerProfile.profileName}`;
+                    document.getElementById("customer-profile").textContent = `Customer: ${chatDetails.customer.customerName}`;
+
+                    // 이전 메시지 로드
+                    chatDetails.recentMessages.forEach(displayMessage);
+                })
+                .catch(error => console.error("Error fetching chat room details:", error));
+        }
+
+        // 메시지 전송
+        function sendMessage() {
+            const messageText = document.getElementById("message-input").value;
+
+            const message = {
+                roomId: roomId,
+                senderId: senderId,
+                senderRole: senderRole,
+                messageText: messageText,
+                sendAt: new Date().toISOString()
+            };
+
+            socket.send(JSON.stringify(message));
+            document.getElementById("message-input").value = ""; // 입력창 초기화
+        }
+
+        // 메시지 표시
+        function displayMessage(message) {
+            const messagesList = document.getElementById("messages");
+            const newMessage = document.createElement("li");
+            newMessage.textContent = `[${message.senderRole}] ${message.senderId}: ${message.messageText}`;
+            messagesList.appendChild(newMessage);
+        }
+
+        // 페이지 로드 시 WebSocket 연결
+        window.onload = connect;
+    </script>
+</head>
+<body>
+<h1 id="chat-room-title">Chat Room</h1>
+<div>
+    <p id="groomer-profile"></p>
+    <p id="customer-profile"></p>
+</div>
+
+<div>
+    <h3>Messages</h3>
+    <ul id="messages"></ul>
+</div>
+
+<div>
+    <label for="message-input">Message:</label>
+    <input type="text" id="message-input" placeholder="Type your message here..." />
+    <button onclick="sendMessage()">Send</button>
+</div>
+</body>
+</html>

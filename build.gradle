@@ -52,6 +52,7 @@ dependencies {
 	testImplementation 'io.rest-assured:spring-mock-mvc:5.4.0'
 	testImplementation 'org.springframework.security:spring-security-test'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2'
 }
 
 tasks.named('test') {

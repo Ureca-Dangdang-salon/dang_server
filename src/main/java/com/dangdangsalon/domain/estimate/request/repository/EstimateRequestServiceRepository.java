@@ -18,4 +18,7 @@ public interface EstimateRequestServiceRepository extends JpaRepository<Estimate
     Optional<List<EstimateRequestService>> findByEstimateRequestProfiles(@Param("estimateRequestProfiles") EstimateRequestProfiles estimateRequestProfiles);
 
     Optional<EstimateRequestService> findByEstimateRequestProfilesAndGroomerService(EstimateRequestProfiles estimateRequestProfiles, GroomerService groomerService);
+
+    List<EstimateRequestService> findByEstimateRequestProfilesId(Long estimateRequestId);
+
 }

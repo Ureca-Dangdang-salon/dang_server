@@ -9,8 +9,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "orders")
 @Getter
@@ -23,6 +21,8 @@ public class Orders extends BaseEntity {
 
     @Column(name = "order_name")
     private String orderName;
+
+    private String tossOrderId;
 
     @Column(name = "amount_value")
     private int amountValue;
@@ -39,11 +39,16 @@ public class Orders extends BaseEntity {
     private User user;
 
     @Builder
-    public Orders(String orderName, int amountValue, OrderStatus status, Estimate estimate, User user) {
+    public Orders(String orderName, int amountValue, OrderStatus status, Estimate estimate, User user, String tossOrderId) {
         this.orderName = orderName;
         this.amountValue = amountValue;
         this.status = status;
         this.estimate = estimate;
         this.user = user;
+        this.tossOrderId = tossOrderId;
+    }
+
+    public void updateOrderStatus(OrderStatus status) {
+        this.status = status;
     }
 }

@@ -49,4 +49,8 @@ public class Payment extends BaseEntity {
         this.paymentMethod = paymentMethod;
         this.orders = orders;
     }
+
+    public void updatePaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
 }

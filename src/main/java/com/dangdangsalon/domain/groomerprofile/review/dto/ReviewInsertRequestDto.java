@@ -1,13 +1,11 @@
 package com.dangdangsalon.domain.groomerprofile.review.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ReviewInsertRequestDto {

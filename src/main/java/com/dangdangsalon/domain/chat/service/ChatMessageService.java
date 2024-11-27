@@ -12,9 +12,22 @@ public class ChatMessageService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
+    private static final String SAVE_MESSAGE_ROOM_ID_KEY = "chat:messages:";
+
     public void saveMessageRedis(ChatMessageDto message) {
-        String key = "chat:messages:" + message.getRoomId();
+        String key = SAVE_MESSAGE_ROOM_ID_KEY + message.getRoomId();
         redisTemplate.opsForList().rightPush(key, message);
         redisTemplate.expire(key, Duration.ofDays(1));
+    }
+
+    public String getLastMessage(Long roomId) {
+        String key = SAVE_MESSAGE_ROOM_ID_KEY + roomId;
+        Object lastMessage = redisTemplate.opsForList().index(key, -1);
+
+        return (String) lastMessage;
+    }
+
+    public int getUnreadCount(Long roomId) {
+        return 3;
     }
 }

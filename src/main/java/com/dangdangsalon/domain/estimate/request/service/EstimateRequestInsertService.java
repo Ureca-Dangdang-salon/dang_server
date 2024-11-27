@@ -35,7 +35,7 @@ public class EstimateRequestInsertService {
     public EstimateRequest insertEstimateRequest(EstimateRequestDto estimateRequestDto, User user, District district) {
         EstimateRequest estimateRequest = EstimateRequest.builder()
                 .requestDate(estimateRequestDto.getDate())
-                .requestStatus(RequestStatus.PENDING)
+                .requestStatus(RequestStatus.COMPLETED)
                 .serviceType(ServiceType.valueOf(estimateRequestDto.getServiceType()))
                 .user(user)
                 .district(district)

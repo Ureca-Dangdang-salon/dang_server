@@ -9,6 +9,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "estimate_request")
 @Getter
@@ -35,13 +38,21 @@ public class EstimateRequest extends BaseEntity {
     @JoinColumn(name = "district_id")
     private District district;
 
+    @OneToMany(mappedBy = "estimateRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EstimateRequestProfiles> estimateRequestProfiles = new ArrayList<>();
+
     @Builder
     public EstimateRequest(LocalDateTime requestDate, RequestStatus requestStatus, ServiceType serviceType,
-                           User user, District district) {
+                           User user, District district, List<EstimateRequestProfiles> estimateRequestProfiles) {
         this.requestDate = requestDate;
         this.requestStatus = requestStatus;
         this.serviceType = serviceType;
         this.user = user;
         this.district = district;
+        this.estimateRequestProfiles = estimateRequestProfiles;
+    }
+
+    public void updateRequestStatus(RequestStatus requestStatus) {
+        this.requestStatus = requestStatus;
     }
 }

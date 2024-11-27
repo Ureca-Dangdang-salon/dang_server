@@ -6,9 +6,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class ServiceResponseDto {
+    private Long serviceId;
     private String description;
 
-    public ServiceResponseDto(String description) {
+    public ServiceResponseDto(Long serviceId, String description) {
+        this.serviceId = serviceId;
         this.description = description;
     }
 }

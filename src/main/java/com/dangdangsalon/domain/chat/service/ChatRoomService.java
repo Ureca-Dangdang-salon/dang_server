@@ -35,6 +35,13 @@ public class ChatRoomService {
 
     @Transactional
     public CreateChatRoomResponseDto createChatRoom(CreateChatRoomRequestDto createChatRoomRequestDto) {
+        chatRoomRepository.findByEstimateId(createChatRoomRequestDto.getEstimateId())
+                .ifPresent(chatRoom -> {
+                    throw new IllegalStateException("이미 해당 견적서에 대한 채팅방이 존재합니다. Id: "
+                            + createChatRoomRequestDto.getEstimateId());
+                });
+
+
         Estimate estimate = estimateRepository.findWithGroomerProfileAndCustomerById(createChatRoomRequestDto.getEstimateId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "해당하는 견적서가 존재하지 않습니다. Id: " + createChatRoomRequestDto.getEstimateId()));

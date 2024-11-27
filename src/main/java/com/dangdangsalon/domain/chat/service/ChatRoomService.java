@@ -5,6 +5,7 @@ import com.dangdangsalon.domain.chat.dto.ChatEstimateDogProfileDto;
 import com.dangdangsalon.domain.chat.dto.ChatEstimateInfo;
 import com.dangdangsalon.domain.chat.dto.ChatGroomerProfileDto;
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
+import com.dangdangsalon.domain.chat.dto.ChatRoomDetailDto;
 import com.dangdangsalon.domain.chat.dto.ChatRoomListDto;
 import com.dangdangsalon.domain.chat.dto.CreateChatRoomRequestDto;
 import com.dangdangsalon.domain.chat.dto.CreateChatRoomResponseDto;
@@ -92,6 +93,16 @@ public class ChatRoomService {
         return chatRooms.stream()
                 .map(this::convertToChatRoomListDto)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ChatRoomDetailDto getChatRoomDetail(Long roomId, Long userId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 채팅방이 존재하지 않습니다. Id: " + roomId));
+
+        List<ChatMessageDto> recentMessages = chatMessageService.getRecentMessages(roomId);
+
+        return ChatRoomDetailDto.create(chatRoom, recentMessages);
     }
 
     private ChatRoomListDto convertToChatRoomListDto(ChatRoom chatRoom) {

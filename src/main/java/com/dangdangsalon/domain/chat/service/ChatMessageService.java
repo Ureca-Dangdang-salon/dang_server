@@ -4,6 +4,7 @@ import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -41,5 +42,20 @@ public class ChatMessageService {
 
     public int getUnreadCount(Long roomId) {
         return 3;
+    }
+
+    public List<ChatMessageDto> getRecentMessages(Long roomId) {
+        String key = SAVE_MESSAGE_ROOM_ID_KEY + roomId;
+
+        //일단 최신 10개의 메시지만 가져온다.
+        List<Object> rawMessages = redisTemplate.opsForList().range(key, -10, -1);
+
+        if (rawMessages.isEmpty()) {
+            return List.of();
+        }
+
+        return rawMessages.stream()
+                .map(rawMessage -> objectMapper.convertValue(rawMessage, ChatMessageDto.class))
+                .toList();
     }
 }

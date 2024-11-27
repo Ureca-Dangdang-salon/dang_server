@@ -1,6 +1,8 @@
 package com.dangdangsalon.domain.chat.service;
 
 import com.dangdangsalon.domain.chat.dto.ChatCustomerDto;
+import com.dangdangsalon.domain.chat.dto.ChatEstimateDogProfileDto;
+import com.dangdangsalon.domain.chat.dto.ChatEstimateInfo;
 import com.dangdangsalon.domain.chat.dto.ChatGroomerProfileDto;
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
 import com.dangdangsalon.domain.chat.dto.ChatRoomListDto;
@@ -11,8 +13,13 @@ import com.dangdangsalon.domain.chat.entity.SenderRole;
 import com.dangdangsalon.domain.chat.repository.ChatRoomRepository;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
+import com.dangdangsalon.domain.estimate.request.dto.ServicePriceResponseDto;
+import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
+import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestServiceRepository;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.groomerprofile.repository.GroomerProfileRepository;
+import com.dangdangsalon.domain.orders.entity.Orders;
+import com.dangdangsalon.domain.payment.dto.PaymentDogProfileResponseDto;
 import com.dangdangsalon.domain.user.entity.Role;
 import com.dangdangsalon.domain.user.entity.User;
 import com.dangdangsalon.domain.user.repository.UserRepository;
@@ -30,6 +37,7 @@ public class ChatRoomService {
     private final EstimateRepository estimateRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final GroomerProfileRepository groomerProfileRepository;
+    private final EstimateRequestServiceRepository estimateRequestServiceRepository;
 
     private final ChatMessageService chatMessageService;
 
@@ -41,8 +49,8 @@ public class ChatRoomService {
                             + createChatRoomRequestDto.getEstimateId());
                 });
 
-
-        Estimate estimate = estimateRepository.findWithGroomerProfileAndCustomerById(createChatRoomRequestDto.getEstimateId())
+        Estimate estimate = estimateRepository.findWithGroomerProfileAndCustomerById(
+                        createChatRoomRequestDto.getEstimateId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "해당하는 견적서가 존재하지 않습니다. Id: " + createChatRoomRequestDto.getEstimateId()));
 
@@ -59,7 +67,7 @@ public class ChatRoomService {
 
         ChatRoom createdChatRoom = chatRoomRepository.save(chatRoom);
 
-        saveFirstChatToRedis(createdChatRoom, groomerProfile.getId(), groomerProfile);
+        saveFirstChatToRedis(createdChatRoom, groomerProfile, estimate);
 
         return CreateChatRoomResponseDto.builder()
                 .roomId(createdChatRoom.getId())
@@ -100,15 +108,62 @@ public class ChatRoomService {
                 .build();
     }
 
-    private void saveFirstChatToRedis(ChatRoom createdChatRoom, Long groomerProfileId, GroomerProfile groomerProfile) {
-        ChatMessageDto firstMessage = ChatMessageDto.builder()
+    private void saveFirstChatToRedis(ChatRoom createdChatRoom, GroomerProfile groomerProfile, Estimate estimate) {
+        ChatMessageDto estimateMessage = ChatMessageDto.builder()
                 .roomId(createdChatRoom.getId())
-                .senderId(groomerProfileId)
+                .senderId(groomerProfile.getId())
                 .senderRole(SenderRole.GROOMER.name())
-                .messageText(groomerProfile.getDetails().getStartChat())
                 .sendAt(LocalDateTime.now())
+                .estimateInfo(createEstimateMessage(estimate))
                 .build();
 
+        ChatMessageDto wantSendImageMessage = ChatMessageDto.createImageMessage(createdChatRoom.getId(),
+                groomerProfile.getId(), SenderRole.GROOMER.name(), estimate.getImageKey());
+
+        ChatMessageDto wantSendDescriptionMessage = ChatMessageDto.createTextMessage(createdChatRoom.getId(),
+                groomerProfile.getId(), SenderRole.GROOMER.name(), estimate.getDescription());
+
+        ChatMessageDto firstMessage = ChatMessageDto.createTextMessage(createdChatRoom.getId(),
+                groomerProfile.getId(), SenderRole.GROOMER.name(), groomerProfile.getDetails().getStartChat());
+
+        chatMessageService.saveMessageRedis(estimateMessage);
+        chatMessageService.saveMessageRedis(wantSendImageMessage);
+        chatMessageService.saveMessageRedis(wantSendDescriptionMessage);
         chatMessageService.saveMessageRedis(firstMessage);
+    }
+
+    private ChatEstimateInfo createEstimateMessage(Estimate estimate) {
+        return ChatEstimateInfo.builder()
+                .dogProfileList(getDogProfileServices(estimate))
+                .totalAmount(estimate.getTotalAmount())
+                .build();
+    }
+
+    private List<ChatEstimateDogProfileDto> getDogProfileServices(Estimate estimate) {
+        List<EstimateRequestProfiles> requestDogProfiles = estimate
+                .getEstimateRequest()
+                .getEstimateRequestProfiles();
+
+        return requestDogProfiles.stream()
+                .map(this::requestProfileToDto)
+                .toList();
+    }
+
+    private ChatEstimateDogProfileDto requestProfileToDto(EstimateRequestProfiles profile) {
+        List<ServicePriceResponseDto> services = getServicePrices(profile.getId());
+
+        return ChatEstimateDogProfileDto.builder()
+                .dogName(profile.getDogProfile().getName())
+                .servicePriceList(services)
+                .aggressionCharge(profile.getAggressionCharge())
+                .healthIssueCharge(profile.getHealthIssueCharge())
+                .build();
+    }
+
+    private List<ServicePriceResponseDto> getServicePrices(Long profileId) {
+        return estimateRequestServiceRepository.findByEstimateRequestProfilesId(profileId)
+                .stream()
+                .map(ServicePriceResponseDto::create)
+                .toList();
     }
 }

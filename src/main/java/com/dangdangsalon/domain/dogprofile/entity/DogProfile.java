@@ -41,6 +41,9 @@ public class DogProfile extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @OneToMany(mappedBy = "dogProfile", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<DogProfileFeature> dogProfileFeatures = new ArrayList<>();
+
     @Builder
     public DogProfile(String imageKey, String name, String species, DogAge age, Gender gender, Neutering neutering,
                       int weight, User user) {
@@ -52,5 +55,20 @@ public class DogProfile extends BaseEntity {
         this.neutering = neutering;
         this.weight = weight;
         this.user = user;
+    }
+
+    public boolean isValidUser(Long userId) {
+        return this.getUser().getId().equals(userId);
+    }
+
+    public void updateProfile(String name, String profileImage, String species, DogAge dogAge,
+                              Gender gender, Neutering neutering, int weight) {
+        this.name = name;
+        this.imageKey = profileImage;
+        this.species = species;
+        this.age = dogAge;
+        this.gender = gender;
+        this.neutering = neutering;
+        this.weight = weight;
     }
 }

@@ -37,8 +37,8 @@ public class EstimateController {
     // 견적서 등록
     @PostMapping
     public ApiSuccess<?> insertEstimate(@RequestBody EstimateWriteRequestDto requestDto) {
-        estimateService.insertEstimate(requestDto);
-        return ApiUtil.success("견적서가 성공적으로 등록되었습니다.");
+        EstimateIdResponseDto estimateIdResponseDto = estimateService.insertEstimate(requestDto);
+        return ApiUtil.success(estimateIdResponseDto);
     }
 
     // 견적서 수정 조회

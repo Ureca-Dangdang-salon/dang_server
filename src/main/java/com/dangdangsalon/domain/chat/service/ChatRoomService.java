@@ -46,6 +46,8 @@ public class ChatRoomService {
                 .estimate(estimate)
                 .groomerProfile(groomerProfile)
                 .user(customer)
+                .customerLeft(false)
+                .groomerLeft(false)
                 .build();
 
         ChatRoom createdChatRoom = chatRoomRepository.save(chatRoom);

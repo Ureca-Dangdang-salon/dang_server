@@ -216,7 +216,7 @@ public class ReviewServiceTest {
     }
 
     @Test
-    @DisplayName("리뷰 수정 실패 테스트 - 리뷰가 없음")
+    @DisplayName("리뷰 수정 실패 테스트 - Review 없음")
     void testUpdateReviewFail_ReviewNotFound() {
         Long userId = 1L;
         Long reviewId = 999L;

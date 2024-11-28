@@ -33,20 +33,19 @@ public class ChatRoom extends BaseEntity {
     private Estimate estimate;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "customer_id")
+    private User customer;
 
     @ManyToOne
-    @JoinColumn(name = "groomer_profile_id")
-    private GroomerProfile groomerProfile;
+    @JoinColumn(name = "groomer_id")
+    private User groomer;
 
     @Builder
-    public ChatRoom(Boolean customerLeft, Boolean groomerLeft,
-                    Estimate estimate, User user, GroomerProfile groomerProfile) {
+    public ChatRoom(Boolean customerLeft, Boolean groomerLeft, Estimate estimate, User customer, User groomer) {
         this.customerLeft = customerLeft;
         this.groomerLeft = groomerLeft;
         this.estimate = estimate;
-        this.user = user;
-        this.groomerProfile = groomerProfile;
+        this.customer = customer;
+        this.groomer = groomer;
     }
 }

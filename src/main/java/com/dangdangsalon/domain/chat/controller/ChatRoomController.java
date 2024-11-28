@@ -46,9 +46,9 @@ public class ChatRoomController {
 
     @GetMapping("/{roomId}/enter")
     public ApiSuccess<?> enterChatRoom(@PathVariable Long roomId, @AuthenticationPrincipal CustomOAuth2User user) {
-        Long userId = user.getUserId();
+        String role = user.getRole();
 
-        ChatRoomDetailDto chatRoomDetail = chatRoomService.getChatRoomDetail(roomId, userId);
+        ChatRoomDetailDto chatRoomDetail = chatRoomService.getChatRoomDetail(roomId, role);
 
         return ApiUtil.success(chatRoomDetail);
     }

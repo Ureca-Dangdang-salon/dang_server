@@ -2,12 +2,16 @@ package com.dangdangsalon.domain.chat;
 
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
 import com.dangdangsalon.domain.chat.service.ChatMessageService;
+import com.dangdangsalon.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.SecondaryTable;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +29,25 @@ public class ChatSocketHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper; // JSON 파싱 용도
     private final ChatMessageService chatMessageService;
+    private final JwtUtil jwtUtil;
     private final Map<Long, Set<WebSocketSession>> chatRoomSessions = new ConcurrentHashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        String cookieHeader = session.getHandshakeHeaders().getFirst("Cookie");
+
+        if (cookieHeader != null) {
+            String token = extractTokenFromCookie(cookieHeader);
+
+            if (token != null) {
+                Long senderId = jwtUtil.getUserId(token);
+                String senderRole = jwtUtil.getRole(token);
+
+                session.getAttributes().put("senderId", senderId);
+                session.getAttributes().put("senderRole", senderRole);
+            }
+        }
+
         String query = Objects.requireNonNull(session.getUri()).getQuery();
         String roomIdParam = query.split("=")[1];
         Long roomId = Long.parseLong(roomIdParam);
@@ -45,7 +64,21 @@ public class ChatSocketHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         ChatMessageDto chatMessageDto = objectMapper.readValue(payload, ChatMessageDto.class);
 
+        Long senderId = (Long) session.getAttributes().get("senderId");
+        String senderRole = (String) session.getAttributes().get("senderRole");
+
+        chatMessageDto = ChatMessageDto.builder()
+                .messageId(UUID.randomUUID().toString())
+                .roomId(chatMessageDto.getRoomId())
+                .senderId(senderId)
+                .senderRole(senderRole)
+                .messageText(chatMessageDto.getMessageText())
+                .imageUrl(chatMessageDto.getImageUrl())
+                .sendAt(LocalDateTime.now())
+                .build();
+
         chatMessageService.saveMessageRedis(chatMessageDto);
+        chatMessageService.updateLastReadKey(chatMessageDto);
 
         broadcastToRoom(chatMessageDto.getRoomId(), chatMessageDto);
     }
@@ -77,5 +110,14 @@ public class ChatSocketHandler extends TextWebSocketHandler {
                 session.sendMessage(new TextMessage(objectMapper.writeValueAsString(message)));
             }
         }
+    }
+
+    private String extractTokenFromCookie(String cookieHeader) {
+        return Arrays.stream(cookieHeader.split(";"))
+                .map(String::trim)
+                .filter(cookie -> cookie.startsWith("Authorization="))
+                .map(cookie -> cookie.substring("Authorization=".length()))
+                .findFirst()
+                .orElse(null);
     }
 }

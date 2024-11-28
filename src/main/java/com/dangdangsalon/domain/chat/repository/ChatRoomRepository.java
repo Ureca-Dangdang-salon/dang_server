@@ -10,8 +10,8 @@ import org.w3c.dom.stylesheets.LinkStyle;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
-    @Query("SELECT cr FROM ChatRoom cr JOIN FETCH cr.groomerProfile gp JOIN FETCH cr.user cu WHERE gp.id = :groomerProfileId OR cu.id = :customerId")
-    List<ChatRoom> findByGroomerProfileIdOrCustomerId(Long groomerProfileId, Long customerId);
+    @Query("SELECT cr FROM ChatRoom cr JOIN FETCH cr.groomer gr JOIN FETCH cr.customer cu WHERE gr.id = :groomerId OR cu.id = :customerId")
+    List<ChatRoom> findByGroomerIdOrCustomerId(Long groomerId, Long customerId);
 
     @Query("SELECT cr FROM ChatRoom cr WHERE cr.estimate.id = :estimateId")
     Optional<ChatRoom> findByEstimateId(Long estimateId);

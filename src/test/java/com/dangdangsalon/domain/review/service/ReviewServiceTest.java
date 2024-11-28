@@ -178,6 +178,23 @@ public class ReviewServiceTest {
     }
 
     @Test
+    @DisplayName("리뷰 등록 실패 테스트 - 프로필이 없음")
+    void testInsertReviewFail_ProfileNotFound() {
+        Long userId = 1L;
+        Long profileId = 999L;
+        ReviewInsertRequestDto reviewInsertRequestDto =
+                new ReviewInsertRequestDto("Great service", 5, List.of("imageKey1"));
+
+        User user = mock(User.class);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(groomerProfileRepository.findById(profileId)).willReturn(Optional.empty());
+
+        // When && Then
+        assertThrows(IllegalArgumentException.class, () ->
+                reviewService.insertReview(userId, profileId, reviewInsertRequestDto));
+    }
+
+    @Test
     @DisplayName("리뷰 수정 성공 테스트")
     void testUpdateReviewSuccess() {
         Long userId = 1L;
@@ -196,6 +213,22 @@ public class ReviewServiceTest {
         verify(review, times(1)).updateReview(anyString()); // Review 에 있는 메서드
         verify(reviewImageRepository, times(1)).deleteByReviewId(reviewId);
         verify(reviewImageRepository, times(1)).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("리뷰 수정 실패 테스트 - 리뷰가 없음")
+    void testUpdateReviewFail_ReviewNotFound() {
+        Long userId = 1L;
+        Long reviewId = 999L;
+        ReviewUpdateRequestDto reviewUpdateRequestDto =
+                new ReviewUpdateRequestDto("Updated review", List.of("newImageKey"));
+        // Mock 데이터 설정
+        Review review = mock(Review.class);
+        given(reviewRepository.findByIdWithImages(reviewId)).willReturn(Optional.empty());
+
+        // When 및 Then
+        assertThrows(IllegalArgumentException.class, () ->
+                reviewService.updateReview(userId, reviewId, reviewUpdateRequestDto));
     }
 
     @Test
@@ -238,6 +271,18 @@ public class ReviewServiceTest {
     }
 
     @Test
+    @DisplayName("리뷰 삭제 실패 테스트 - 리뷰가 없음")
+    void testDeleteReviewFail_ReviewNotFound() {
+        Long userId = 1L;
+        Long reviewId = 999L;
+
+        given(reviewRepository.findByIdWithImages(reviewId)).willReturn(Optional.empty());
+
+        // 실제 호출 및 예외 검증
+        assertThrows(IllegalArgumentException.class, () -> reviewService.deleteReview(userId, reviewId));
+    }
+
+    @Test
     @DisplayName("리뷰 삭제 실패 테스트 - 유저 권한 없음")
     void testDeleteReviewFail_InvalidUser() {
         Long userId = 999L;  // 다른 유저 ID
@@ -252,5 +297,88 @@ public class ReviewServiceTest {
 
         // 실제 호출 및 예외 검증
         assertThrows(IllegalArgumentException.class, () -> reviewService.deleteReview(userId, reviewId));
+    }
+
+    @Test
+    @DisplayName("리뷰 내용 업데이트 테스트")
+    void testUpdateReview() {
+        // Mock 객체 생성
+        User user = mock(User.class);
+        GroomerProfile groomerProfile = mock(GroomerProfile.class);
+
+        // 테스트 대상 Review 객체 생성
+        Review review = Review.builder()
+                .starScore(4.5)
+                .text("Initial review text")
+                .reviewImages(List.of())
+                .user(user)
+                .groomerProfile(groomerProfile)
+                .build();
+        // Given
+        String newText = "Updated review text";
+
+        // When
+        review.updateReview(newText);
+
+        // Then
+        assertEquals(newText, review.getText(), "리뷰 내용이 수정되어야 함");
+    }
+
+    @Test
+    @DisplayName("유효한 사용자 검증 테스트 - 성공")
+    void testIsValidUserSuccess() {
+        // Mock 객체 생성
+        User user = mock(User.class);
+        GroomerProfile groomerProfile = mock(GroomerProfile.class);
+
+        // 사용자 ID Mock
+        when(user.getId()).thenReturn(1L);
+
+        // 테스트 대상 Review 객체 생성
+        Review review = Review.builder()
+                .starScore(4.5)
+                .text("Initial review text")
+                .reviewImages(List.of())
+                .user(user)
+                .groomerProfile(groomerProfile)
+                .build();
+
+        // Given
+        Long validUserId = 1L;
+
+        // When
+        boolean result = review.isValidUser(validUserId);
+
+        // Then
+        assertTrue(result, "유효한 사용자의 경우 true를 반환");
+    }
+
+    @Test
+    @DisplayName("유효한 사용자 검증 테스트 - 실패")
+    void testIsValidUserFailure() {
+        // Mock 객체 생성
+        User user = mock(User.class);
+        GroomerProfile groomerProfile = mock(GroomerProfile.class);
+
+        // 사용자 ID Mock
+        when(user.getId()).thenReturn(1L);
+
+        // 테스트 대상 Review 객체 생성
+        Review review = Review.builder()
+                .starScore(4.5)
+                .text("Initial review text")
+                .reviewImages(List.of())
+                .user(user)
+                .groomerProfile(groomerProfile)
+                .build();
+
+        // Given
+        Long invalidUserId = 2L;
+
+        // When
+        boolean result = review.isValidUser(invalidUserId);
+
+        // Then
+        assertFalse(result, "유효하지 않은 사용자의 경우 false를 반환");
     }
 }

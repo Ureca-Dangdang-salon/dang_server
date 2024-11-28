@@ -1,6 +1,7 @@
 // MyDogProfileResponseDto.java
 package com.dangdangsalon.domain.mypage.dto.res;
 
+import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
 import com.dangdangsalon.domain.dogprofile.entity.Gender;
 import com.dangdangsalon.domain.dogprofile.entity.Neutering;
 import com.dangdangsalon.domain.estimate.request.dto.FeatureResponseDto;
@@ -22,4 +23,19 @@ public class MyDogProfileResponseDto {
     private Neutering neutering;
     private int weight;
     private List<FeatureResponseDto> features;
+
+    public static MyDogProfileResponseDto createMyDogProfileResponseDto(DogProfile dogProfile,
+                                                                        List<FeatureResponseDto> featureDtos) {
+        return MyDogProfileResponseDto.builder()
+                .name(dogProfile.getName())
+                .profileImage(dogProfile.getImageKey())
+                .species(dogProfile.getSpecies())
+                .ageYear(dogProfile.getAge().getYear())
+                .ageMonth(dogProfile.getAge().getMonth())
+                .gender(dogProfile.getGender())
+                .neutering(dogProfile.getNeutering())
+                .weight(dogProfile.getWeight())
+                .features(featureDtos)
+                .build();
+    }
 }

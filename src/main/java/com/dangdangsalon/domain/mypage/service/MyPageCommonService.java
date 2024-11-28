@@ -22,12 +22,7 @@ public class MyPageCommonService {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new IllegalArgumentException("유저 아이디를 찾을 수 없습니다. userId : " + userId));
 
-        return CommonProfileResponseDto.builder()
-                .imageKey(user.getImageKey())
-                .email(user.getEmail())
-                .city(user.getDistrict().getCity().getName())
-                .district(user.getDistrict().getName())
-                .build();
+        return CommonProfileResponseDto.createCommonProfileResponseDto(user);
     }
 
     @Transactional

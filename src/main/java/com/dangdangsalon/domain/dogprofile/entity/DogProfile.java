@@ -1,5 +1,7 @@
 package com.dangdangsalon.domain.dogprofile.entity;
 import com.dangdangsalon.config.base.BaseEntity;
+import com.dangdangsalon.domain.mypage.dto.req.DogProfileRequestDto;
+import com.dangdangsalon.domain.mypage.dto.res.CommonProfileResponseDto;
 import com.dangdangsalon.domain.user.entity.User;
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -70,5 +72,21 @@ public class DogProfile extends BaseEntity {
         this.gender = gender;
         this.neutering = neutering;
         this.weight = weight;
+    }
+
+    public static DogProfile createDogProfile(DogProfileRequestDto request, User user) {
+        return DogProfile.builder()
+                .name(request.getName())
+                .imageKey(request.getProfileImage() == null ? "default.jpg" : request.getProfileImage())
+                .species(request.getSpecies())
+                .age(DogAge.builder()
+                        .month(request.getAgeMonth())
+                        .year(request.getAgeYear())
+                        .build())
+                .gender(request.getGender())
+                .neutering(request.getNeutering())
+                .weight(request.getWeight())
+                .user(user)
+                .build();
     }
 }

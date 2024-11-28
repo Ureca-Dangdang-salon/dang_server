@@ -1,10 +1,14 @@
 package com.dangdangsalon.domain.groomerprofile.entity;
 
 import com.dangdangsalon.config.base.BaseEntity;
+import com.dangdangsalon.domain.dogprofile.entity.DogAge;
+import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.groomerprofile.repository.GroomerServiceAreaRepository;
 import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerEstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.review.entity.Review;
+import com.dangdangsalon.domain.mypage.dto.req.DogProfileRequestDto;
+import com.dangdangsalon.domain.mypage.dto.req.GroomerProfileRequestDto;
 import com.dangdangsalon.domain.orders.entity.Orders;
 import com.dangdangsalon.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -104,5 +108,14 @@ public class GroomerProfile extends BaseEntity {
         return this.getUser().getId().equals(userId);
     }
 
+    public static GroomerProfile createGroomerProfile(GroomerProfileRequestDto requestDto, User user) {
+        return GroomerProfile.builder()
+                .name(requestDto.getServiceName())
+                .phone(requestDto.getContact())
+                .contactHours(requestDto.getContactHours())
+                .details(null)
+                .user(user)
+                .build();
+    }
 }
 

@@ -28,10 +28,8 @@ public class MyPageGroomerController {
     }
 
     @GetMapping("/{groomerProfileId}")
-    public ApiSuccess<?> getGroomerProfile(@AuthenticationPrincipal CustomOAuth2User user,
-                                           @PathVariable Long groomerProfileId) {
-        Long userId = user.getUserId();
-        GroomerProfileDetailsResponseDto groomerProfile = myPageGroomerService.getGroomerProfile(userId, groomerProfileId);
+    public ApiSuccess<?> getGroomerProfile(@PathVariable Long groomerProfileId) {
+        GroomerProfileDetailsResponseDto groomerProfile = myPageGroomerService.getGroomerProfile(groomerProfileId);
         return ApiUtil.success(groomerProfile);
     }
 

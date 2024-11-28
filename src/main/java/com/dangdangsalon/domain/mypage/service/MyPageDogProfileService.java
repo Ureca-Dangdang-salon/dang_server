@@ -1,7 +1,6 @@
 package com.dangdangsalon.domain.mypage.service;
 
 import com.dangdangsalon.domain.coupon.entity.CouponStatus;
-import com.dangdangsalon.domain.dogprofile.dto.DogProfileResponseDto;
 import com.dangdangsalon.domain.dogprofile.entity.DogAge;
 import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
 import com.dangdangsalon.domain.dogprofile.entity.DogProfileFeature;
@@ -43,22 +42,7 @@ public class MyPageDogProfileService {
                 .filter(order -> order.getStatus() != null && order.getStatus().equals(OrderStatus.ACCEPTED))
                 .count();
 
-        return UserProfileResponseDto.builder()
-                .role("USER")
-                .name(user.getName())
-                .email(user.getEmail())
-                .profileImage(user.getImageKey())
-                .city(user.getDistrict().getCity().getName())
-                .district(user.getDistrict().getName())
-                .dogProfiles(
-                        user.getDogProfiles().stream()
-                                .map(dog -> new DogProfileResponseDto(dog.getId(), dog.getImageKey(), dog.getName()))
-                                .toList()
-                )
-                .couponCount(notUsedCouponCount)
-                .reviewCount(user.getReviews().size())
-                .paymentCount(paymentCount)
-                .build();
+        return UserProfileResponseDto.createUserProfileResponseDto(user, notUsedCouponCount, paymentCount);
     }
 
     @Transactional(readOnly = true)
@@ -75,17 +59,7 @@ public class MyPageDogProfileService {
                         .build())
                 .toList();
 
-        return MyDogProfileResponseDto.builder()
-                .name(dogProfile.getName())
-                .profileImage(dogProfile.getImageKey())
-                .species(dogProfile.getSpecies())
-                .ageYear(dogProfile.getAge().getYear())
-                .ageMonth(dogProfile.getAge().getMonth())
-                .gender(dogProfile.getGender())
-                .neutering(dogProfile.getNeutering())
-                .weight(dogProfile.getWeight())
-                .features(featureDtos)
-                .build();
+        return MyDogProfileResponseDto.createMyDogProfileResponseDto(dogProfile, featureDtos);
     }
 
     @Transactional
@@ -94,16 +68,7 @@ public class MyPageDogProfileService {
                 new IllegalArgumentException("유저 아이디를 찾을 수 없습니다. userId : " + userId));
 
         // 사용자 ID를 기반으로 반려견 프로필 생성
-        DogProfile dogProfile = DogProfile.builder()
-                .name(request.getName())
-                .imageKey(request.getProfileImage() == null ? "default.jpg" : request.getProfileImage())
-                .species(request.getSpecies())
-                .age(new DogAge(request.getAgeYear(), request.getAgeMonth()))
-                .gender(request.getGender())
-                .neutering(request.getNeutering())
-                .weight(request.getWeight())
-                .user(user)
-                .build();
+        DogProfile dogProfile = DogProfile.createDogProfile(request, user);
 
         dogProfileRepository.save(dogProfile);
 
@@ -113,29 +78,11 @@ public class MyPageDogProfileService {
             throw new IllegalArgumentException("유효하지 않은 Feature ID가 포함되어 있습니다.");
         }
 
-        // DogProfileFeature 리스트를 가변 리스트로 생성
-        List<DogProfileFeature> dogProfileFeatures = new ArrayList<>();
-
-        // Feature 추가
-        for (Feature feature : features) {
-            dogProfileFeatures.add(DogProfileFeature.builder()
-                    .dogProfile(dogProfile)
-                    .feature(feature)
-                    .build());
-        }
+        List<DogProfileFeature> dogProfileFeatures = addFeature(features, dogProfile);
 
         // Additional Feature 저장
         if (request.getAdditionalFeature() != null && !request.getAdditionalFeature().isEmpty()) {
-            Feature additionalFeature = featureRepository.save(
-                    Feature.builder()
-                            .description(request.getAdditionalFeature())
-                            .isCustom(true)
-                            .build()
-            );
-            dogProfileFeatures.add(DogProfileFeature.builder()
-                    .feature(additionalFeature)
-                    .dogProfile(dogProfile)
-                    .build());
+            addAdditionFeature(dogProfileFeatures, dogProfile, request.getAdditionalFeature());
         }
         dogProfile.getDogProfileFeatures().addAll(dogProfileFeatures);
     }
@@ -155,7 +102,10 @@ public class MyPageDogProfileService {
                 request.getName(),
                 request.getProfileImage() == null ? "default.jpg" : request.getProfileImage(),
                 request.getSpecies(),
-                new DogAge(request.getAgeYear(), request.getAgeMonth()),
+                DogAge.builder()
+                        .year(request.getAgeYear())
+                        .month(request.getAgeMonth())
+                        .build(),
                 request.getGender(),
                 request.getNeutering(),
                 request.getWeight()
@@ -170,30 +120,11 @@ public class MyPageDogProfileService {
             throw new IllegalArgumentException("유효하지 않은 Feature ID가 포함되어 있습니다.");
         }
 
-        // DogProfileFeature 리스트를 가변 리스트로 생성
-        List<DogProfileFeature> dogProfileFeatures = new ArrayList<>();
-
-        // Feature 추가
-        for (Feature feature : features) {
-            dogProfileFeatures.add(DogProfileFeature.builder()
-                    .dogProfile(dogProfile)
-                    .feature(feature)
-                    .build());
-        }
+        List<DogProfileFeature> dogProfileFeatures = addFeature(features, dogProfile);
 
         // Additional Feature 저장
         if (request.getAdditionalFeature() != null && !request.getAdditionalFeature().isEmpty()) {
-            Feature additionalFeature = featureRepository.save(
-                    Feature.builder()
-                            .description(request.getAdditionalFeature())
-                            .isCustom(true)
-                            .build()
-            );
-            dogProfileFeatures.add(DogProfileFeature.builder()
-                    .feature(additionalFeature)
-                    .dogProfile(dogProfile)
-                    .build());
-
+            addAdditionFeature(dogProfileFeatures, dogProfile, request.getAdditionalFeature());
         }
 
         // DogProfileFeature 저장
@@ -212,5 +143,34 @@ public class MyPageDogProfileService {
         }
 
         dogProfileRepository.delete(dogProfile);
+    }
+
+    private List<DogProfileFeature> addFeature(List<Feature> features, DogProfile dogProfile) {
+        List<DogProfileFeature> dogProfileFeatures = new ArrayList<>();
+
+        // Feature 추가
+        for (Feature feature : features) {
+            dogProfileFeatures.add(DogProfileFeature.builder()
+                    .dogProfile(dogProfile)
+                    .feature(feature)
+                    .build());
+        }
+        return dogProfileFeatures;
+    }
+
+    private void addAdditionFeature(List<DogProfileFeature> dogProfileFeatures,
+                                    DogProfile dogProfile,
+                                    String requestFeature) {
+
+        Feature additionalFeature = featureRepository.save(
+                Feature.builder()
+                        .description(requestFeature)
+                        .isCustom(true)
+                        .build()
+        );
+        dogProfileFeatures.add(DogProfileFeature.builder()
+                .feature(additionalFeature)
+                .dogProfile(dogProfile)
+                .build());
     }
 }

@@ -14,9 +14,7 @@ public class ChatGroomerProfileDto {
     private String serviceName;
     private String profileImageUrl;
 
-    public static ChatGroomerProfileDto create(ChatRoom chatRoom) {
-        GroomerProfile groomerProfile = chatRoom.getGroomerProfile();
-
+    public static ChatGroomerProfileDto create(GroomerProfile groomerProfile) {
         return ChatGroomerProfileDto.builder()
                 .groomerProfileId(groomerProfile.getId())
                 .address(groomerProfile.getDetails().getAddress())

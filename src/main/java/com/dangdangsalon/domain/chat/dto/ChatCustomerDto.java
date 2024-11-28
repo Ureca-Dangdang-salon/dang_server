@@ -14,7 +14,7 @@ public class ChatCustomerDto {
     private String profileImageUrl;
 
     public static ChatCustomerDto create(ChatRoom chatRoom) {
-        User customer = chatRoom.getUser();
+        User customer = chatRoom.getCustomer();
 
         return ChatCustomerDto.builder()
                 .customerId(customer.getId())

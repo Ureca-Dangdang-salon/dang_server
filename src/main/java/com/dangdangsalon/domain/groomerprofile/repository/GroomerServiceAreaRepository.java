@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.groomerprofile.repository;
 
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerServiceArea;
 import com.dangdangsalon.domain.region.entity.District;
 import org.springframework.data.jpa.repository.JpaRepository;

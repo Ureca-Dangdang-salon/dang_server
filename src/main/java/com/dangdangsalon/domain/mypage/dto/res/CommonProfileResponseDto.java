@@ -1,10 +1,10 @@
 package com.dangdangsalon.domain.mypage.dto.res;
 
 
+import com.dangdangsalon.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
@@ -14,4 +14,13 @@ public class CommonProfileResponseDto {
     private String email;
     private String district;
     private String city;
+
+    public static CommonProfileResponseDto createCommonProfileResponseDto(User user) {
+        return CommonProfileResponseDto.builder()
+                .imageKey(user.getImageKey())
+                .email(user.getEmail())
+                .city(user.getDistrict().getCity().getName())
+                .district(user.getDistrict().getName())
+                .build();
+    }
 }

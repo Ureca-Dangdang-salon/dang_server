@@ -67,43 +67,21 @@ public class MyPageGroomerService {
 
         GroomerProfileDetailsResponseDto groomerProfileDetailsResponseDto =
                 groomerProfile.getDetails() != null ?
-                        GroomerProfileDetailsResponseDto.builder()
-                                .profileId(groomerProfile.getId())
-                                .serviceName(groomerProfile.getName())
-                                .imageKey(groomerProfile.getImageKey())
-                                .businessNumber(groomerProfile.getDetails().getBusinessNumber())
-                                .contact(groomerProfile.getPhone())
-                                .contactHours(groomerProfile.getContactHours())
-                                .serviceType(groomerProfile.getServiceType())
-                                .servicesDistricts(serviceDistricts) // 서비스 지역
-                                .starScore(totalScore)
-                                .estimateRequestCount(estimateRequestCount)
-                                .reviewCount(reviewCount)
-                                .address(groomerProfile.getDetails().getAddress())
-                                .experience(groomerProfile.getDetails().getExperience())
-                                .certifications(certifications) // 자격증
-                                .servicesOffered(servicesOffered) // 서비스 제공
-                                .description(groomerProfile.getDetails().getDescription())
-                                .startMessage(groomerProfile.getDetails().getStartChat())
-                                .badges(badges) // 뱃지
-                                .faq(groomerProfile.getDetails().getFaq())
-                                .build()
+                        GroomerProfileDetailsResponseDto.createGroomerProfileDetailsResponseDto(
+                                groomerProfile, totalScore, reviewCount, estimateRequestCount, badges,
+                                servicesOffered, serviceDistricts, certifications
+                        )
                         : null;
         // 응답 DTO 생성
-        return GroomerProfileResponseDto.builder()
-                .role("SALON")
-                .name(groomerProfile.getUser().getName())
-                .email(groomerProfile.getUser().getEmail())
-                .profileImage(groomerProfile.getUser().getImageKey())
-                .city(groomerProfile.getUser().getDistrict().getCity().getName())
-                .district(groomerProfile.getUser().getDistrict().getName())
-                .groomerProfile(groomerProfileDetailsResponseDto)
-                .build();
+        return GroomerProfileResponseDto.createGroomerProfileResponseDto(
+                groomerProfile,
+                groomerProfileDetailsResponseDto
+        );
     }
 
     // 미용사 프로필 상세 조회
     @Transactional(readOnly = true)
-    public GroomerProfileDetailsResponseDto getGroomerProfile(Long userId, Long profileId) {
+    public GroomerProfileDetailsResponseDto getGroomerProfile(Long profileId) {
 
         GroomerProfile groomerProfile = groomerProfileRepository.findById(profileId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 미용사를 찾을 수 없습니다. profileId : " + profileId));
@@ -139,30 +117,11 @@ public class MyPageGroomerService {
                 .mapToDouble(Review::getStarScore)
                 .sum() / reviewCount;
 
-        // GroomerDetails가 null일 경우 null로 설정
-
         // 응답 DTO 생성
-        return GroomerProfileDetailsResponseDto.builder()
-                .profileId(groomerProfile.getId())
-                .serviceName(groomerProfile.getName())
-                .imageKey(groomerProfile.getImageKey())
-                .businessNumber(groomerProfile.getDetails().getBusinessNumber())
-                .contact(groomerProfile.getPhone())
-                .contactHours(groomerProfile.getContactHours())
-                .serviceType(groomerProfile.getServiceType())
-                .servicesDistricts(serviceDistricts) // 서비스 지역
-                .starScore(totalScore)
-                .estimateRequestCount(estimateRequestCount)
-                .reviewCount(reviewCount)
-                .address(groomerProfile.getDetails().getAddress())
-                .experience(groomerProfile.getDetails().getExperience())
-                .certifications(certifications) // 자격증
-                .servicesOffered(servicesOffered) // 서비스 제공
-                .description(groomerProfile.getDetails().getDescription())
-                .startMessage(groomerProfile.getDetails().getStartChat())
-                .badges(badges) // 뱃지
-                .faq(groomerProfile.getDetails().getFaq())
-                .build();
+        return GroomerProfileDetailsResponseDto.createGroomerProfileDetailsResponseDto(
+                groomerProfile, totalScore, reviewCount, estimateRequestCount, badges,
+                servicesOffered, serviceDistricts, certifications
+        );
     }
 
     @Transactional
@@ -171,33 +130,20 @@ public class MyPageGroomerService {
                 new IllegalArgumentException("유저 아이디를 찾을 수 없습니다. userId : " + userId));
 
 
-        GroomerProfile groomerProfile = GroomerProfile.builder()
-                .name(requestDto.getServiceName())
-                .phone(requestDto.getContact())
-                .contactHours(requestDto.getContactHours())
-                .details(null)
-                .user(user)
-                .build();
+        GroomerProfile groomerProfile = GroomerProfile.createGroomerProfile(requestDto, user);
         groomerProfileRepository.save(groomerProfile);
 
         user.updateRole(Role.ROLE_SALON);
 
         // 요청에 포함된 서비스 ID로 GroomerService 리스트 조회
-        if (requestDto.getServicesOfferedId() != null && !requestDto.getServiceName().isEmpty()) {
+        if (requestDto.getServicesOfferedId() != null && !requestDto.getServicesOfferedId().isEmpty()) {
             List<GroomerService> services = groomerServiceRepository.findAllById(requestDto.getServicesOfferedId());
 
             // 유효하지 않은 서비스 ID 확인
             if (services.size() != requestDto.getServicesOfferedId().size()) {
                 throw new IllegalArgumentException("유효하지 않은 서비스 ID가 포함되어 있습니다.");
             }
-
-            for (GroomerService service : services) {
-                GroomerCanService groomerCanService = GroomerCanService.builder()
-                        .groomerProfile(groomerProfile)
-                        .groomerService(service)
-                        .build();
-                groomerProfile.getGroomerCanServices().add(groomerCanService);
-            }
+            addCanService(services, groomerProfile);
         }
     }
 
@@ -210,24 +156,11 @@ public class MyPageGroomerService {
         groomerProfile.updateProfileDetail(
                 requestDto.getServiceType(),
                 requestDto.getImageKey(),
-                GroomerDetails.builder()
-                        .address(requestDto.getAddress())
-                        .description(requestDto.getDescription())
-                        .faq(requestDto.getFaq())
-                        .businessNumber(requestDto.getBusinessNumber())
-                        .experience(requestDto.getExperience())
-                        .startChat(requestDto.getStartMessage())
-                        .build()
+                GroomerDetails.createGroomerDetails(requestDto)
         );
 
         if (requestDto.getCertifications() != null && !requestDto.getCertifications().isEmpty()) {
-            for (String certification : requestDto.getCertifications()) {
-                GroomerCertification groomerCertification = GroomerCertification.builder()
-                        .groomerProfile(groomerProfile)
-                        .certification(certification)
-                        .build();
-                groomerProfile.getGroomerCertifications().add(groomerCertification);
-            }
+            addCertification(requestDto.getCertifications(), groomerProfile);
         }
         // 요청에 포함된 서비스 ID로 GroomerService 리스트 조회
         if (requestDto.getServicesDistrictIds() != null && !requestDto.getServicesDistrictIds().isEmpty()) {
@@ -237,15 +170,7 @@ public class MyPageGroomerService {
             if (districts.size() != requestDto.getServicesDistrictIds().size()) {
                 throw new IllegalArgumentException("유효하지 않은 서비스 ID가 포함되어 있습니다.");
             }
-
-            for (District district : districts) {
-                GroomerServiceArea groomerServiceArea = GroomerServiceArea.builder()
-                        .groomerProfile(groomerProfile)
-                        .district(district)
-                        .build();
-                groomerProfile.getGroomerServiceAreas().add(groomerServiceArea);
-
-            }
+            addDistrict(districts, groomerProfile);
         }
     }
 
@@ -264,14 +189,7 @@ public class MyPageGroomerService {
                 requestDto.getServiceType(),
                 requestDto.getContact(),
                 requestDto.getImageKey(),
-                GroomerDetails.builder()
-                        .address(requestDto.getAddress())
-                        .description(requestDto.getDescription())
-                        .faq(requestDto.getFaq())
-                        .businessNumber(requestDto.getBusinessNumber())
-                        .experience(requestDto.getExperience())
-                        .startChat(requestDto.getStartMessage())
-                        .build()
+                GroomerDetails.updateGroomerDetails(requestDto)
         );
 
         groomerProfile.getGroomerCertifications().clear();
@@ -279,13 +197,7 @@ public class MyPageGroomerService {
         groomerProfile.getGroomerCanServices().clear();
 
         if (requestDto.getCertifications() != null && !requestDto.getCertifications().isEmpty()) {
-            for (String certification : requestDto.getCertifications()) {
-                GroomerCertification groomerCertification = GroomerCertification.builder()
-                        .groomerProfile(groomerProfile)
-                        .certification(certification)
-                        .build();
-                groomerProfile.getGroomerCertifications().add(groomerCertification);
-            }
+            addCertification(requestDto.getCertifications(), groomerProfile);
         }
         // 요청에 포함된 서비스 ID로 GroomerService 리스트 조회
         if (requestDto.getServicesDistrictIds() != null && !requestDto.getServicesDistrictIds().isEmpty()) {
@@ -295,15 +207,7 @@ public class MyPageGroomerService {
             if (districts.size() != requestDto.getServicesDistrictIds().size()) {
                 throw new IllegalArgumentException("유효하지 않은 서비스 ID가 포함되어 있습니다.");
             }
-
-            for (District district : districts) {
-                GroomerServiceArea groomerServiceArea = GroomerServiceArea.builder()
-                        .groomerProfile(groomerProfile)
-                        .district(district)
-                        .build();
-                groomerProfile.getGroomerServiceAreas().add(groomerServiceArea);
-
-            }
+            addDistrict(districts, groomerProfile);
         }
 
         // 요청에 포함된 서비스 ID로 GroomerService 리스트 조회
@@ -314,15 +218,7 @@ public class MyPageGroomerService {
             if (services.size() != requestDto.getServicesOfferedId().size()) {
                 throw new IllegalArgumentException("유효하지 않은 서비스 ID가 포함되어 있습니다.");
             }
-
-            for (GroomerService service : services) {
-                GroomerCanService groomerCanService = GroomerCanService.builder()
-                        .groomerProfile(groomerProfile)
-                        .groomerService(service)
-                        .build();
-                groomerProfile.getGroomerCanServices().add(groomerCanService);
-
-            }
+            addCanService(services, groomerProfile);
         }
     }
 
@@ -336,5 +232,38 @@ public class MyPageGroomerService {
         }
 
         groomerProfileRepository.delete(groomerProfile);
+    }
+
+    private void addCertification(List<String> certifications,
+                                    GroomerProfile groomerProfile) {
+        for (String certification : certifications) {
+            GroomerCertification groomerCertification = GroomerCertification.builder()
+                    .groomerProfile(groomerProfile)
+                    .certification(certification)
+                    .build();
+            groomerProfile.getGroomerCertifications().add(groomerCertification);
+        }
+    }
+
+    private void addDistrict(List<District> districts,
+                                  GroomerProfile groomerProfile) {
+        for (District district : districts) {
+            GroomerServiceArea groomerServiceArea = GroomerServiceArea.builder()
+                    .groomerProfile(groomerProfile)
+                    .district(district)
+                    .build();
+            groomerProfile.getGroomerServiceAreas().add(groomerServiceArea);
+        }
+    }
+
+    private void addCanService(List<GroomerService> services,
+                             GroomerProfile groomerProfile) {
+        for (GroomerService service : services) {
+            GroomerCanService groomerCanService = GroomerCanService.builder()
+                    .groomerProfile(groomerProfile)
+                    .groomerService(service)
+                    .build();
+            groomerProfile.getGroomerCanServices().add(groomerCanService);
+        }
     }
 }

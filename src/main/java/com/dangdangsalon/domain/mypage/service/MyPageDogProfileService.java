@@ -1,7 +1,6 @@
 package com.dangdangsalon.domain.mypage.service;
 
 import com.dangdangsalon.domain.coupon.entity.CouponStatus;
-import com.dangdangsalon.domain.dogprofile.dto.DogProfileResponseDto;
 import com.dangdangsalon.domain.dogprofile.entity.DogAge;
 import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
 import com.dangdangsalon.domain.dogprofile.entity.DogProfileFeature;
@@ -43,22 +42,7 @@ public class MyPageDogProfileService {
                 .filter(order -> order.getStatus() != null && order.getStatus().equals(OrderStatus.ACCEPTED))
                 .count();
 
-        return UserProfileResponseDto.builder()
-                .role("USER")
-                .name(user.getName())
-                .email(user.getEmail())
-                .profileImage(user.getImageKey())
-                .city(user.getDistrict().getCity().getName())
-                .district(user.getDistrict().getName())
-                .dogProfiles(
-                        user.getDogProfiles().stream()
-                                .map(dog -> new DogProfileResponseDto(dog.getId(), dog.getImageKey(), dog.getName()))
-                                .toList()
-                )
-                .couponCount(notUsedCouponCount)
-                .reviewCount(user.getReviews().size())
-                .paymentCount(paymentCount)
-                .build();
+        return UserProfileResponseDto.createUserProfileResponseDto(user, notUsedCouponCount, paymentCount);
     }
 
     @Transactional(readOnly = true)
@@ -75,17 +59,7 @@ public class MyPageDogProfileService {
                         .build())
                 .toList();
 
-        return MyDogProfileResponseDto.builder()
-                .name(dogProfile.getName())
-                .profileImage(dogProfile.getImageKey())
-                .species(dogProfile.getSpecies())
-                .ageYear(dogProfile.getAge().getYear())
-                .ageMonth(dogProfile.getAge().getMonth())
-                .gender(dogProfile.getGender())
-                .neutering(dogProfile.getNeutering())
-                .weight(dogProfile.getWeight())
-                .features(featureDtos)
-                .build();
+        return MyDogProfileResponseDto.createMyDogProfileResponseDto(dogProfile, featureDtos);
     }
 
     @Transactional
@@ -94,19 +68,7 @@ public class MyPageDogProfileService {
                 new IllegalArgumentException("유저 아이디를 찾을 수 없습니다. userId : " + userId));
 
         // 사용자 ID를 기반으로 반려견 프로필 생성
-        DogProfile dogProfile = DogProfile.builder()
-                .name(request.getName())
-                .imageKey(request.getProfileImage() == null ? "default.jpg" : request.getProfileImage())
-                .species(request.getSpecies())
-                .age(DogAge.builder()
-                        .month(request.getAgeMonth())
-                        .year(request.getAgeYear())
-                        .build())
-                .gender(request.getGender())
-                .neutering(request.getNeutering())
-                .weight(request.getWeight())
-                .user(user)
-                .build();
+        DogProfile dogProfile = DogProfile.createDogProfile(request, user);
 
         dogProfileRepository.save(dogProfile);
 
@@ -140,7 +102,10 @@ public class MyPageDogProfileService {
                 request.getName(),
                 request.getProfileImage() == null ? "default.jpg" : request.getProfileImage(),
                 request.getSpecies(),
-                new DogAge(request.getAgeYear(), request.getAgeMonth()),
+                DogAge.builder()
+                        .year(request.getAgeYear())
+                        .month(request.getAgeMonth())
+                        .build(),
                 request.getGender(),
                 request.getNeutering(),
                 request.getWeight()

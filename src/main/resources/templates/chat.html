@@ -4,9 +4,11 @@
     <title>Chat Room</title>
     <script>
         let socket;
-        let roomId = 11; // 기본 테스트용 Room ID
+        let roomId = 2; // 기본 테스트용 Room ID
         let senderId = 1; // 테스트용 Sender ID
         let senderRole = "CUSTOMER"; // 테스트용 Sender Role
+        let isLoadingPreviousMessages = false; // 중복 요청 방지 플래그
+        let messagesContainer;
 
         // WebSocket 연결
         function connect() {
@@ -32,28 +34,74 @@
         }
 
         // 채팅방 정보 가져오기 API 호출
-        function fetchChatRoomDetails() {
-            fetch(`/api/chatrooms/${roomId}/enter`, {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoibmF2ZXIgcWMweUZjX3p6RTJNNWhVVVcyc2F4R051WUh4bkN3VGMtc016MVhFYmVjZyIsInJvbGUiOiJST0xFX1VTRVIiLCJpYXQiOjE3MzI2OTMzNTYsImV4cCI6MTczMjY5Njk1Nn0.s5yEIwCc7wZ81cSUaQPLJzXhZd44jhgAevBCR_eHixE`,
-                    "Content-Type": "application/json"
+        async function fetchChatRoomDetails() {
+            try {
+                const response = await fetch(`/api/chatrooms/${roomId}/enter`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoibmF2ZXIgcWMweUZjX3p6RTJNNWhVVVcyc2F4R051WUh4bkN3VGMtc016MVhFYmVjZyIsInJvbGUiOiJST0xFX1VTRVIiLCJpYXQiOjE3MzI3OTA1NjQsImV4cCI6MTczMjc5NDE2NH0.xf8uudT6zmwKmKhKGkZzO-GlW_3F306Qh2V3uxUKHFc`,
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch chat room details");
                 }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    const messagesList = document.getElementById("messages");
-                    const chatDetails = data.response;
 
-                    // 채팅방 기본 정보 표시
-                    document.getElementById("chat-room-title").textContent = `Room ID: ${chatDetails.roomId}`;
-                    document.getElementById("groomer-profile").textContent = `Groomer: ${chatDetails.groomerProfile.profileName}`;
-                    document.getElementById("customer-profile").textContent = `Customer: ${chatDetails.customer.customerName}`;
+                const data = await response.json();
+                const chatDetails = data.response;
 
-                    // 이전 메시지 로드
-                    chatDetails.recentMessages.forEach(displayMessage);
-                })
-                .catch(error => console.error("Error fetching chat room details:", error));
+                // 채팅방 기본 정보 표시
+                document.getElementById("chat-room-title").textContent = `Room ID: ${chatDetails.roomId}`;
+                document.getElementById("groomer-profile").textContent = `Groomer: ${chatDetails.groomerProfile.serviceName}`;
+                document.getElementById("customer-profile").textContent = `Customer: ${chatDetails.customer.customerName}`;
+
+                // 이전 메시지 로드
+                chatDetails.recentMessages.reverse().forEach((msg) => displayMessage(msg, true));
+            } catch (error) {
+                console.error("Error fetching chat room details:", error);
+            }
+        }
+
+        // 이전 메시지 조회 API 호출
+        async function fetchPreviousMessages() {
+            if (isLoadingPreviousMessages) return;
+
+            isLoadingPreviousMessages = true;
+
+            try {
+                const response = await fetch(`/api/chatrooms/${roomId}/messages/privious`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoibmF2ZXIgcWMweUZjX3p6RTJNNWhVVVcyc2F4R051WUh4bkN3VGMtc016MVhFYmVjZyIsInJvbGUiOiJST0xFX1VTRVIiLCJpYXQiOjE3MzI3OTA1NjQsImV4cCI6MTczMjc5NDE2NH0.xf8uudT6zmwKmKhKGkZzO-GlW_3F306Qh2V3uxUKHFc`,
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch previous messages");
+                }
+
+                const data = await response.json();
+                const messages = data.response;
+
+                if (messages.length > 0) {
+                    const firstMessageElement = messagesContainer.firstChild;
+
+                    // 이전 메시지 상단에 추가
+                    messages.reverse().forEach((msg) => displayMessage(msg, true));
+
+                    // 스크롤 위치 유지
+                    if (firstMessageElement) {
+                        firstMessageElement.scrollIntoView();
+                    }
+                }
+
+                isLoadingPreviousMessages = false;
+            } catch (error) {
+                console.error("Error fetching previous messages:", error);
+                isLoadingPreviousMessages = false;
+            }
         }
 
         // 메시지 전송
@@ -73,15 +121,42 @@
         }
 
         // 메시지 표시
-        function displayMessage(message) {
-            const messagesList = document.getElementById("messages");
+        function displayMessage(message, insertAtTop = false) {
             const newMessage = document.createElement("li");
             newMessage.textContent = `[${message.senderRole}] ${message.senderId}: ${message.messageText}`;
-            messagesList.appendChild(newMessage);
+
+            if (insertAtTop) {
+                messagesContainer.insertBefore(newMessage, messagesContainer.firstChild);
+            } else {
+                messagesContainer.appendChild(newMessage);
+            }
+        }
+
+        // 스크롤 이벤트 핸들러
+        function handleScroll() {
+            if (messagesContainer.scrollTop === 0) {
+                fetchPreviousMessages();
+            }
+        }
+
+        // 쿠키에서 토큰 가져오기
+        function getTokenFromCookie(cookieName) {
+            const cookies = document.cookie.split("; ");
+            for (let i = 0; i < cookies.length; i++) {
+                const [name, value] = cookies[i].split("=");
+                if (name === cookieName) {
+                    return decodeURIComponent(value);
+                }
+            }
+            return null;
         }
 
         // 페이지 로드 시 WebSocket 연결
-        window.onload = connect;
+        window.onload = () => {
+            messagesContainer = document.getElementById("messages");
+            connect();
+            messagesContainer.addEventListener("scroll", handleScroll);
+        };
     </script>
 </head>
 <body>
@@ -93,7 +168,7 @@
 
 <div>
     <h3>Messages</h3>
-    <ul id="messages"></ul>
+    <ul id="messages" style="height: 300px; overflow-y: auto;"></ul>
 </div>
 
 <div>

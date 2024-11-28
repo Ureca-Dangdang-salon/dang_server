@@ -98,7 +98,10 @@ public class MyPageDogProfileService {
                 .name(request.getName())
                 .imageKey(request.getProfileImage() == null ? "default.jpg" : request.getProfileImage())
                 .species(request.getSpecies())
-                .age(new DogAge(request.getAgeYear(), request.getAgeMonth()))
+                .age(DogAge.builder()
+                        .month(request.getAgeMonth())
+                        .year(request.getAgeYear())
+                        .build())
                 .gender(request.getGender())
                 .neutering(request.getNeutering())
                 .weight(request.getWeight())
@@ -113,29 +116,11 @@ public class MyPageDogProfileService {
             throw new IllegalArgumentException("유효하지 않은 Feature ID가 포함되어 있습니다.");
         }
 
-        // DogProfileFeature 리스트를 가변 리스트로 생성
-        List<DogProfileFeature> dogProfileFeatures = new ArrayList<>();
-
-        // Feature 추가
-        for (Feature feature : features) {
-            dogProfileFeatures.add(DogProfileFeature.builder()
-                    .dogProfile(dogProfile)
-                    .feature(feature)
-                    .build());
-        }
+        List<DogProfileFeature> dogProfileFeatures = addFeature(features, dogProfile);
 
         // Additional Feature 저장
         if (request.getAdditionalFeature() != null && !request.getAdditionalFeature().isEmpty()) {
-            Feature additionalFeature = featureRepository.save(
-                    Feature.builder()
-                            .description(request.getAdditionalFeature())
-                            .isCustom(true)
-                            .build()
-            );
-            dogProfileFeatures.add(DogProfileFeature.builder()
-                    .feature(additionalFeature)
-                    .dogProfile(dogProfile)
-                    .build());
+            addAdditionFeature(dogProfileFeatures, dogProfile, request.getAdditionalFeature());
         }
         dogProfile.getDogProfileFeatures().addAll(dogProfileFeatures);
     }
@@ -170,30 +155,11 @@ public class MyPageDogProfileService {
             throw new IllegalArgumentException("유효하지 않은 Feature ID가 포함되어 있습니다.");
         }
 
-        // DogProfileFeature 리스트를 가변 리스트로 생성
-        List<DogProfileFeature> dogProfileFeatures = new ArrayList<>();
-
-        // Feature 추가
-        for (Feature feature : features) {
-            dogProfileFeatures.add(DogProfileFeature.builder()
-                    .dogProfile(dogProfile)
-                    .feature(feature)
-                    .build());
-        }
+        List<DogProfileFeature> dogProfileFeatures = addFeature(features, dogProfile);
 
         // Additional Feature 저장
         if (request.getAdditionalFeature() != null && !request.getAdditionalFeature().isEmpty()) {
-            Feature additionalFeature = featureRepository.save(
-                    Feature.builder()
-                            .description(request.getAdditionalFeature())
-                            .isCustom(true)
-                            .build()
-            );
-            dogProfileFeatures.add(DogProfileFeature.builder()
-                    .feature(additionalFeature)
-                    .dogProfile(dogProfile)
-                    .build());
-
+            addAdditionFeature(dogProfileFeatures, dogProfile, request.getAdditionalFeature());
         }
 
         // DogProfileFeature 저장
@@ -212,5 +178,34 @@ public class MyPageDogProfileService {
         }
 
         dogProfileRepository.delete(dogProfile);
+    }
+
+    private List<DogProfileFeature> addFeature(List<Feature> features, DogProfile dogProfile) {
+        List<DogProfileFeature> dogProfileFeatures = new ArrayList<>();
+
+        // Feature 추가
+        for (Feature feature : features) {
+            dogProfileFeatures.add(DogProfileFeature.builder()
+                    .dogProfile(dogProfile)
+                    .feature(feature)
+                    .build());
+        }
+        return dogProfileFeatures;
+    }
+
+    private void addAdditionFeature(List<DogProfileFeature> dogProfileFeatures,
+                                    DogProfile dogProfile,
+                                    String requestFeature) {
+
+        Feature additionalFeature = featureRepository.save(
+                Feature.builder()
+                        .description(requestFeature)
+                        .isCustom(true)
+                        .build()
+        );
+        dogProfileFeatures.add(DogProfileFeature.builder()
+                .feature(additionalFeature)
+                .dogProfile(dogProfile)
+                .build());
     }
 }

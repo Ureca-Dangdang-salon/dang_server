@@ -1,10 +1,12 @@
 package com.dangdangsalon.domain.chat.controller;
 
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
+import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
 import com.dangdangsalon.domain.chat.dto.ChatRoomDetailDto;
 import com.dangdangsalon.domain.chat.dto.ChatRoomListDto;
 import com.dangdangsalon.domain.chat.dto.CreateChatRoomRequestDto;
 import com.dangdangsalon.domain.chat.dto.CreateChatRoomResponseDto;
+import com.dangdangsalon.domain.chat.service.ChatMessageService;
 import com.dangdangsalon.domain.chat.service.ChatRoomService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
+    private final ChatMessageService chatMessageService;
 
     @PostMapping
     public ApiSuccess<?> createChatRoom(@RequestBody CreateChatRoomRequestDto createChatRoomRequestDto) {
@@ -51,5 +54,14 @@ public class ChatRoomController {
         ChatRoomDetailDto chatRoomDetail = chatRoomService.getChatRoomDetail(roomId, role);
 
         return ApiUtil.success(chatRoomDetail);
+    }
+
+    @GetMapping("/{roomId}/messages/privious")
+    public ApiSuccess<?> getPreviousMessage(@PathVariable Long roomId, @AuthenticationPrincipal CustomOAuth2User user) {
+        Long userId = user.getUserId();
+
+        List<ChatMessageDto> previousMessages = chatMessageService.getPreviousMessages(roomId, userId);
+
+        return ApiUtil.success(previousMessages);
     }
 }

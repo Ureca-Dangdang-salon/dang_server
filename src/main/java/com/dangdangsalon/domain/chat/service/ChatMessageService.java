@@ -8,18 +8,21 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatMessageService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
     private static final String SAVE_MESSAGE_ROOM_ID_KEY = "chat:messages:";
-    private static final String LAST_READ_KEY = "lastRead";
+    private static final String LAST_READ_KEY = "lastRead:";
+    private static final String FIRST_LOADED_KEY = "firstLoadedIndex:";
     private static final int MESSAGE_GET_LIMIT = 7;
 
     public void saveMessageRedis(ChatMessageDto message) {
@@ -76,43 +79,56 @@ public class ChatMessageService {
     public List<ChatMessageDto> getUnreadOrRecentMessages(Long roomId, Long userId) {
         String lastReadKey = LAST_READ_KEY + roomId + ":" + userId;
         String messageKey = SAVE_MESSAGE_ROOM_ID_KEY + roomId;
+        String firstLoadedKey = FIRST_LOADED_KEY + roomId + ":" + userId;
 
         Integer lastReadIndex = (Integer) redisTemplate.opsForValue().get(lastReadKey);
+        Long totalMessageCount = redisTemplate.opsForList().size(messageKey);
 
-        List<Object> rawMessages = new ArrayList<>();
+        List<Object> rawMessages;
 
-        if (lastReadIndex != null) {
-            rawMessages = redisTemplate.opsForList()
-                    .range(messageKey, Math.max(lastReadIndex - MESSAGE_GET_LIMIT + 1, 0), lastReadIndex);
+        if (lastReadIndex != null && totalMessageCount != null) {
+            if (lastReadIndex >= totalMessageCount - 1) {
+                int startIndex = Math.max(lastReadIndex - MESSAGE_GET_LIMIT + 1, 0);
+                rawMessages = redisTemplate.opsForList().range(messageKey, startIndex, lastReadIndex);
+
+                redisTemplate.opsForValue().set(firstLoadedKey, startIndex);
+            } else {
+                rawMessages = redisTemplate.opsForList().range(messageKey, lastReadIndex + 1, -1);
+
+                redisTemplate.opsForValue().set(firstLoadedKey, lastReadIndex + 1);
+            }
         } else {
             rawMessages = redisTemplate.opsForList().range(messageKey, -MESSAGE_GET_LIMIT, -1);
+
+            if (totalMessageCount != null) {
+                redisTemplate.opsForValue().set(firstLoadedKey, Math.max(totalMessageCount.intValue() - MESSAGE_GET_LIMIT, 0));
+            }
         }
 
-        List<ChatMessageDto> messages = rawMessages.stream()
-                .map(rawMessage -> objectMapper.convertValue(rawMessage, ChatMessageDto.class))
-                .toList();
-
         updateLastReadMessage(messageKey, lastReadKey);
-
-        return messages;
-    }
-
-    public List<ChatMessageDto> getPreviousMessages(Long roomId, Long lastLoadedMessageId) {
-        String messageKey = SAVE_MESSAGE_ROOM_ID_KEY + roomId;
-
-        List<Object> rawMessages = redisTemplate.opsForList()
-                .range(messageKey, lastLoadedMessageId - MESSAGE_GET_LIMIT, lastLoadedMessageId - 1);
 
         return rawMessages.stream()
                 .map(rawMessage -> objectMapper.convertValue(rawMessage, ChatMessageDto.class))
                 .toList();
     }
 
-    public List<ChatMessageDto> getNextMessages(Long roomId, Long lastLoadedMessageId) {
+    public List<ChatMessageDto> getPreviousMessages(Long roomId, Long userId) {
         String messageKey = SAVE_MESSAGE_ROOM_ID_KEY + roomId;
+        String firstLoadedKey = FIRST_LOADED_KEY + roomId + ":" + userId;
 
-        List<Object> rawMessages = redisTemplate.opsForList()
-                .range(messageKey, lastLoadedMessageId + 1, lastLoadedMessageId + MESSAGE_GET_LIMIT);
+        Integer firstLoadedIndex = (Integer) redisTemplate.opsForValue().get(firstLoadedKey);
+
+        log.info("firstIndex = " + firstLoadedIndex);
+        if (firstLoadedIndex == null || firstLoadedIndex <= 0) {
+            return List.of();
+        }
+
+        int startIndex = Math.max(firstLoadedIndex - MESSAGE_GET_LIMIT, 0);
+        int endIndex = firstLoadedIndex - 1;
+        log.info("startIndex= " + startIndex + " endIndex= " + endIndex);
+        List<Object> rawMessages = redisTemplate.opsForList().range(messageKey, startIndex, endIndex);
+
+        redisTemplate.opsForValue().set(firstLoadedKey, startIndex);
 
         return rawMessages.stream()
                 .map(rawMessage -> objectMapper.convertValue(rawMessage, ChatMessageDto.class))

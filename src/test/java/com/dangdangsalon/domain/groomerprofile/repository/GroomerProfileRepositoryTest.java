@@ -120,7 +120,7 @@ class GroomerProfileRepositoryTest {
     @Test
     @DisplayName("사용자 ID로 GroomerProfile 조회")
     void testFindByUserId() {
-        Optional<GroomerProfile> foundProfile = groomerProfileRepository.findByUserId(user.getId());
+        Optional<GroomerProfile> foundProfile = groomerProfileRepository.findByUserIdWithDistrict(user.getId());
 
         assertThat(foundProfile).isPresent();
         assertThat(foundProfile.get().getUser().getEmail()).isEqualTo(user.getEmail());

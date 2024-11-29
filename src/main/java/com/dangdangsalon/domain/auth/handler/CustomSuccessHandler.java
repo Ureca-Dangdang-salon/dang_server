@@ -51,17 +51,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 ? "http://localhost:5173/register"
                 : "http://localhost:5173/";
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("{\"redirectUrl\": \"" + redirectUrl + "\"}");
-        response.getWriter().flush();
-
-//        if ("ROLE_PENDING".equals(role)) {
-//            response.sendRedirect("http://localhost:5173/register");
-//        } else {
-//            //기존 회원은 메인 페이지로 리다이렉트
-//            response.sendRedirect("http://localhost:5173/");
-//        }
+        response.sendRedirect(redirectUrl);
     }
 }
 

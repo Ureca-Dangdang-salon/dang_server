@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 public class ChatRedisUtil {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ObjectMapper objectMapper;
 
     private static final String SAVE_MESSAGE_ROOM_ID_KEY = "chat:messages:";
     private static final String LAST_READ_KEY = "lastRead:";

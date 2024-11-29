@@ -106,6 +106,7 @@ CREATE TABLE `groomer_profile`
     `address`         varchar(255) DEFAULT NULL,
     `business_number` varchar(255) DEFAULT NULL,
     `certification`   varchar(255) DEFAULT NULL,
+    `experience`      varchar(255) DEFAULT NULL,
     `description`     text,
     `faq`             text,
     `start_chat`      varchar(255) DEFAULT NULL,

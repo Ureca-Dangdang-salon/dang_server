@@ -1,5 +1,7 @@
 package com.dangdangsalon.domain.dogprofile.entity;
 import com.dangdangsalon.config.base.BaseEntity;
+import com.dangdangsalon.domain.mypage.dto.req.DogProfileRequestDto;
+import com.dangdangsalon.domain.mypage.dto.res.CommonProfileResponseDto;
 import com.dangdangsalon.domain.user.entity.User;
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -41,6 +43,9 @@ public class DogProfile extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @OneToMany(mappedBy = "dogProfile", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<DogProfileFeature> dogProfileFeatures = new ArrayList<>();
+
     @Builder
     public DogProfile(String imageKey, String name, String species, DogAge age, Gender gender, Neutering neutering,
                       int weight, User user) {
@@ -52,5 +57,33 @@ public class DogProfile extends BaseEntity {
         this.neutering = neutering;
         this.weight = weight;
         this.user = user;
+    }
+
+    public boolean isValidUser(Long userId) {
+        return this.getUser().getId().equals(userId);
+    }
+
+    public void updateProfile(String name, String profileImage, String species, DogAge dogAge,
+                              Gender gender, Neutering neutering, int weight) {
+        this.name = name;
+        this.imageKey = profileImage;
+        this.species = species;
+        this.age = dogAge;
+        this.gender = gender;
+        this.neutering = neutering;
+        this.weight = weight;
+    }
+
+    public static DogProfile createDogProfile(DogProfileRequestDto request, User user) {
+        return DogProfile.builder()
+                .name(request.getName())
+                .imageKey(request.getProfileImage() == null ? "default.jpg" : request.getProfileImage())
+                .species(request.getSpecies())
+                .age(DogAge.createDogAge(request.getAgeYear(), request.getAgeMonth()))
+                .gender(request.getGender())
+                .neutering(request.getNeutering())
+                .weight(request.getWeight())
+                .user(user)
+                .build();
     }
 }

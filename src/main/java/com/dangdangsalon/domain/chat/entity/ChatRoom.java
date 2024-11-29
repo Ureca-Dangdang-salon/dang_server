@@ -3,6 +3,7 @@ package com.dangdangsalon.domain.chat.entity;
 import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
+import com.dangdangsalon.domain.user.entity.Role;
 import com.dangdangsalon.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -47,5 +48,13 @@ public class ChatRoom extends BaseEntity {
         this.estimate = estimate;
         this.customer = customer;
         this.groomer = groomer;
+    }
+
+    public void updateExitState(Role userRole, boolean state) {
+        if (userRole.equals(Role.ROLE_USER)) {
+            this.customerLeft = state;
+        } else if (userRole.equals(Role.ROLE_SALON)) {
+            this.groomerLeft = state;
+        }
     }
 }

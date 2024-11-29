@@ -135,6 +135,16 @@ public class ChatMessageService {
                 .toList();
     }
 
+    public void deleteRedisData(Long roomId) {
+        String messageKey = SAVE_MESSAGE_ROOM_ID_KEY + roomId;
+        String lastReadKey = LAST_READ_KEY + roomId + ":*";
+        String firstLoadedKey = FIRST_LOADED_KEY + roomId + ":*";
+
+        redisTemplate.delete(messageKey);
+        redisTemplate.delete(redisTemplate.keys(lastReadKey));
+        redisTemplate.delete(redisTemplate.keys(firstLoadedKey));
+    }
+
     private void updateLastReadMessage(String messageKey, String lastReadKey) {
         Long listSize = redisTemplate.opsForList().size(messageKey);
         if (listSize != null) {

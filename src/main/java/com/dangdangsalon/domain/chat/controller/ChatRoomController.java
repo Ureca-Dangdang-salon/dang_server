@@ -64,4 +64,13 @@ public class ChatRoomController {
 
         return ApiUtil.success(previousMessages);
     }
+
+    @PostMapping("/{roomId}/exit")
+    public ApiSuccess<?> exitChatRoom(@PathVariable Long roomId, @AuthenticationPrincipal CustomOAuth2User user) {
+        String role = user.getRole();
+
+        chatRoomService.exitChatRoom(roomId, role);
+
+        return ApiUtil.success("채팅방을 나갔습니다.");
+    }
 }

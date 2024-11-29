@@ -84,9 +84,9 @@ public class ChatRoomService {
         List<ChatRoom> chatRooms = new ArrayList<>();
 
         if (userRole.equals(Role.ROLE_USER)) {
-            chatRooms = chatRoomRepository.findByGroomerIdOrCustomerId(null, userId);
+            chatRooms = chatRoomRepository.findByCustomerId(userId);
         } else if (userRole.equals(Role.ROLE_SALON)) {
-            chatRooms = chatRoomRepository.findByGroomerIdOrCustomerId(userId, null);
+            chatRooms = chatRoomRepository.findByGroomerId(userId);
         }
 
         return chatRooms.stream()
@@ -115,6 +115,21 @@ public class ChatRoomService {
         List<ChatMessageDto> messages = chatMessageService.getUnreadOrRecentMessages(roomId, userId);
 
         return ChatRoomDetailDto.create(chatRoom, groomerProfile, messages);
+    }
+
+    @Transactional
+    public void exitChatRoom(Long roomId, String role) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다. Id: " + roomId));
+
+        Role userRole = Role.from(role);
+
+        chatRoom.updateExitState(userRole, true);
+
+        if (isAllLeft(chatRoom)) {
+            chatRoomRepository.delete(chatRoom);
+            chatMessageService.deleteRedisData(roomId);
+        }
     }
 
     private ChatRoomListDto convertToChatRoomListDto(ChatRoom chatRoom, Role userRole) {
@@ -202,5 +217,9 @@ public class ChatRoomService {
                 .stream()
                 .map(ServicePriceResponseDto::create)
                 .toList();
+    }
+
+    private static boolean isAllLeft(ChatRoom chatRoom) {
+        return chatRoom.getCustomerLeft() && chatRoom.getGroomerLeft();
     }
 }

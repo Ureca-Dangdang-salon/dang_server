@@ -102,10 +102,7 @@ public class MyPageDogProfileService {
                 request.getName(),
                 request.getProfileImage() == null ? "default.jpg" : request.getProfileImage(),
                 request.getSpecies(),
-                DogAge.builder()
-                        .year(request.getAgeYear())
-                        .month(request.getAgeMonth())
-                        .build(),
+                DogAge.createDogAge(request.getAgeYear(), request.getAgeMonth()),
                 request.getGender(),
                 request.getNeutering(),
                 request.getWeight()

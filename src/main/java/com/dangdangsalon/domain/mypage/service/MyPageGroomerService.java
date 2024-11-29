@@ -67,9 +67,12 @@ public class MyPageGroomerService {
 
         GroomerProfileDetailsResponseDto groomerProfileDetailsResponseDto =
                 groomerProfile.getDetails() != null ?
-                        GroomerProfileDetailsResponseDto.createGroomerProfileDetailsResponseDto(
-                                groomerProfile, totalScore, reviewCount, estimateRequestCount, badges,
-                                servicesOffered, serviceDistricts, certifications
+                        GroomerProfileDetailsResponseDto.create(
+                                groomerProfile,
+                                GroomerProfileDetailsInfoResponseDto.create(
+                                        totalScore, reviewCount, estimateRequestCount, badges,
+                                        servicesOffered, serviceDistricts, certifications
+                                )
                         )
                         : null;
         // 응답 DTO 생성
@@ -118,9 +121,12 @@ public class MyPageGroomerService {
                 .sum() / reviewCount;
 
         // 응답 DTO 생성
-        return GroomerProfileDetailsResponseDto.createGroomerProfileDetailsResponseDto(
-                groomerProfile, totalScore, reviewCount, estimateRequestCount, badges,
-                servicesOffered, serviceDistricts, certifications
+        return GroomerProfileDetailsResponseDto.create(
+                groomerProfile,
+                GroomerProfileDetailsInfoResponseDto.create(
+                        totalScore, reviewCount, estimateRequestCount, badges,
+                        servicesOffered, serviceDistricts, certifications
+                )
         );
     }
 

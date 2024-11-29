@@ -3,7 +3,6 @@ package com.dangdangsalon.domain.mypage.controller;
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.mypage.dto.req.CommonProfileRequestDto;
 import com.dangdangsalon.domain.mypage.dto.res.CommonProfileResponseDto;
-import com.dangdangsalon.domain.mypage.dto.res.UserProfileResponseDto;
 import com.dangdangsalon.domain.mypage.service.MyPageCommonService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
@@ -25,7 +24,7 @@ public class MyPageCommonController {
         return ApiUtil.success(userinfo);
     }
 
-    @PostMapping("")
+    @PutMapping("")
     public ApiSuccess<?> updateUserProfile(
             @AuthenticationPrincipal CustomOAuth2User user,
             @RequestBody CommonProfileRequestDto requestDto) {

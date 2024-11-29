@@ -97,9 +97,9 @@ class MyPageGroomerControllerTest {
         // Given
         Long profileId = 10L;
         GroomerProfileDetailsResponseDto responseDto = GroomerProfileDetailsResponseDto.builder()
-                .serviceName("Groomer")
+                .name("Groomer")
                 .description("Specialist in grooming")
-                .contact("010-1234-1234")
+                .phone("010-1234-1234")
                 .build();
 
         when(myPageGroomerService.getGroomerProfile(profileId)).thenReturn(responseDto);
@@ -108,9 +108,9 @@ class MyPageGroomerControllerTest {
         mockMvc.perform(get("/api/groomerprofile/{profileId}", profileId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.response.serviceName").value("Groomer"))
+                .andExpect(jsonPath("$.response.name").value("Groomer"))
                 .andExpect(jsonPath("$.response.description").value("Specialist in grooming"))
-                .andExpect(jsonPath("$.response.contact").value("010-1234-1234"));
+                .andExpect(jsonPath("$.response.phone").value("010-1234-1234"));
     }
 
     @Test

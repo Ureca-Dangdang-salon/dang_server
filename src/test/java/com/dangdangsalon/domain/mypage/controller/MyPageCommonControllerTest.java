@@ -91,7 +91,7 @@ class MyPageCommonControllerTest {
 
         // 프로필 업데이트 서비스 모킹
         // POST 요청으로 유저 프로필 업데이트
-        mockMvc.perform(post("/api/common")
+        mockMvc.perform(put("/api/common")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(requestDto))
                         .with(csrf())

@@ -75,10 +75,21 @@ public class ChatMessageService {
                     .toList();
         }
 
-        chatRedisUtil.updateLastReadMessage(roomId, userId);
 
         log.info("Redis 메시지 데이터 X -> MongoDB 조회");
-        return chatMessageMongoService.getChatMessagesInMongo(roomId, 0, ChatConst.MESSAGE_GET_LIMIT.getCount());
+
+        List<ChatMessageDto> mongoMessages;
+        if (lastReadIndex == null) {
+            mongoMessages = chatMessageMongoService.getChatMessagesInMongo(roomId, 0, ChatConst.MESSAGE_GET_LIMIT.getCount());
+        } else {
+            mongoMessages = chatMessageMongoService.getUnreadMessages(roomId, lastReadIndex);
+        }
+
+        if (!mongoMessages.isEmpty()) {
+            chatRedisUtil.updateLastReadMessage(roomId, userId);
+        }
+
+        return mongoMessages;
     }
 
     public List<ChatMessageDto> getPreviousMessages(Long roomId, Long userId) {
@@ -89,7 +100,8 @@ public class ChatMessageService {
                 .toList();
     }
 
-    public void deleteRedisData(Long roomId) {
+    public void deleteChatData(Long roomId) {
         chatRedisUtil.deleteRoomData(roomId);
+        chatMessageMongoService.deleteChatMessages(roomId);
     }
 }

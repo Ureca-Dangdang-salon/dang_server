@@ -128,7 +128,7 @@ public class ChatRoomService {
 
         if (chatRoom.isAllLeft()) {
             chatRoomRepository.delete(chatRoom);
-            chatMessageService.deleteRedisData(roomId);
+            chatMessageService.deleteChatData(roomId);
         }
     }
 

@@ -31,7 +31,7 @@ public class ChatMessageMongoService {
                 .toList();
     }
 
-    public List<ChatMessageDto> getUnreadMessages(Long roomId, Long lastReadMessageId) {
+    public List<ChatMessageDto> getUnreadMessages(Long roomId, Integer lastReadMessageId) {
         return chatMessageRepository.findByRoomIdAndMessageIdGreaterThanOrderBySendAtAsc(roomId, lastReadMessageId)
                 .stream()
                 .map(ChatMessageDto::mongoMessageToDto)

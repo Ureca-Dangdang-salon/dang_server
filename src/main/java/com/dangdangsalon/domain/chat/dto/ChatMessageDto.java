@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.chat.dto;
 
+import com.dangdangsalon.domain.chat.entity.ChatMessageMongo;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -41,6 +42,17 @@ public class ChatMessageDto {
                 .senderRole(senderRole)
                 .imageUrl(imageUrl)
                 .sendAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static ChatMessageDto mongoMessageToDto(ChatMessageMongo messages) {
+        return ChatMessageDto.builder()
+                .messageId(messages.getId())
+                .roomId(messages.getRoomId())
+                .senderId(messages.getSenderId())
+                .senderRole(messages.getSenderRole())
+                .imageUrl(messages.getImageUrl())
+                .sendAt(messages.getSendAt())
                 .build();
     }
 }

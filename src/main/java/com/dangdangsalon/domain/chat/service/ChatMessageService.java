@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.chat.service;
 
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
+import com.dangdangsalon.domain.chat.util.ChatConst;
 import com.dangdangsalon.domain.chat.util.ChatRedisUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
@@ -20,6 +21,7 @@ public class ChatMessageService {
 
     private final ObjectMapper objectMapper;
     private final ChatRedisUtil chatRedisUtil;
+    private final ChatMessageMongoService chatMessageMongoService;
 
     public void saveMessageRedis(ChatMessageDto message) {
         chatRedisUtil.saveMessage(message);
@@ -36,11 +38,13 @@ public class ChatMessageService {
             return ((ChatMessageDto) lastMessage).getMessageText();
         }
 
-        if (lastMessage instanceof LinkedHashMap) {
-            return objectMapper.convertValue(lastMessage, ChatMessageDto.class).getMessageText();
+        if (lastMessage == null) {
+            log.info("Redis에 메시지 X -> MongoDB 조회");
+            List<ChatMessageDto> mongoMessages = chatMessageMongoService.getChatMessagesInMongo(roomId, 0, 1);
+            return mongoMessages.get(0).getMessageText();
         }
 
-        throw new IllegalStateException("데이터가 올바르지 않습니다.");
+        return "최신 메시지가 없습니다.";
     }
 
     public int getUnreadCount(Long roomId, Long userId) {
@@ -62,13 +66,19 @@ public class ChatMessageService {
         Integer lastReadIndex = chatRedisUtil.getLastReadIndex(roomId, userId);
         Long totalMessageCount = chatRedisUtil.getTotalMessageCount(roomId);
 
-        List<Object> rawMessages = chatRedisUtil.getMessagesForUnreadOrRecent(roomId, lastReadIndex, totalMessageCount);
+        List<Object> redisMessages = chatRedisUtil.getMessagesForUnreadOrRecent(roomId, lastReadIndex, totalMessageCount);
+
+        if (!redisMessages.isEmpty()) {
+            chatRedisUtil.updateLastReadMessage(roomId, userId);
+            return redisMessages.stream()
+                    .map(messages -> objectMapper.convertValue(messages, ChatMessageDto.class))
+                    .toList();
+        }
 
         chatRedisUtil.updateLastReadMessage(roomId, userId);
 
-        return rawMessages.stream()
-                .map(rawMessage -> objectMapper.convertValue(rawMessage, ChatMessageDto.class))
-                .toList();
+        log.info("Redis 메시지 데이터 X -> MongoDB 조회");
+        return chatMessageMongoService.getChatMessagesInMongo(roomId, 0, ChatConst.MESSAGE_GET_LIMIT.getCount());
     }
 
     public List<ChatMessageDto> getPreviousMessages(Long roomId, Long userId) {

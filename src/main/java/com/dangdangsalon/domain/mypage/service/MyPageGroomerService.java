@@ -32,7 +32,7 @@ public class MyPageGroomerService {
     @Transactional(readOnly = true)
     public GroomerProfileResponseDto getGroomerProfilePage(Long userId) {
         // GroomerProfile을 User와 연결된 정보로 조회
-        GroomerProfile groomerProfile = groomerProfileRepository.findByUserId(userId)
+        GroomerProfile groomerProfile = groomerProfileRepository.findByUserIdWithDistrict(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 미용사를 찾을 수 없습니다."));
 
         Long profileId = groomerProfile.getId();
@@ -156,7 +156,7 @@ public class MyPageGroomerService {
 
     @Transactional
     public void saveGroomerProfileDetails(GroomerProfileDetailsRequestDto requestDto, Long userId) {
-        GroomerProfile groomerProfile = groomerProfileRepository.findByUserId(userId)
+        GroomerProfile groomerProfile = groomerProfileRepository.findByUserIdWithDistrict(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 미용사를 찾을 수 없습니다."));
 
         groomerProfile.updateProfileDetail(

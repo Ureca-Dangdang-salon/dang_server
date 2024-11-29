@@ -69,7 +69,7 @@ class MyPageGroomerServiceTest {
 
         ReflectionTestUtils.setField(groomerProfile, "id", 1L); // Mock으로 ID 설정
 
-        when(groomerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(groomerProfile));
+        when(groomerProfileRepository.findByUserIdWithDistrict(userId)).thenReturn(Optional.of(groomerProfile));
         when(groomerProfileRepository.findServiceAreasWithDistricts(1L)).thenReturn(List.of());
         when(groomerProfileRepository.findGroomerServices(1L)).thenReturn(List.of());
         when(groomerProfileRepository.findBadgesByProfileId(1L)).thenReturn(List.of());
@@ -79,7 +79,7 @@ class MyPageGroomerServiceTest {
 
         // Then
         assertNotNull(response);
-        verify(groomerProfileRepository).findByUserId(userId);
+        verify(groomerProfileRepository).findByUserIdWithDistrict(userId);
     }
 
     @Test
@@ -87,7 +87,7 @@ class MyPageGroomerServiceTest {
     void getGroomerProfilePage_fail() {
         // Given
         Long userId = 1L;
-        when(groomerProfileRepository.findByUserId(userId)).thenReturn(Optional.empty());
+        when(groomerProfileRepository.findByUserIdWithDistrict(userId)).thenReturn(Optional.empty());
 
         // When & Then
         Exception exception = assertThrows(IllegalArgumentException.class,
@@ -170,14 +170,14 @@ class MyPageGroomerServiceTest {
         Long userId = 1L;
         GroomerProfileDetailsRequestDto requestDto = createMockRequestDto();
         GroomerProfile mockProfile = createMockGroomerProfile();
-        when(groomerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(mockProfile));
+        when(groomerProfileRepository.findByUserIdWithDistrict(userId)).thenReturn(Optional.of(mockProfile));
         when(districtRepository.findAllById(requestDto.getServicesDistrictIds())).thenReturn(createMockDistricts());
 
         // When
         myPageGroomerService.saveGroomerProfileDetails(requestDto, userId);
 
         // Then
-        verify(groomerProfileRepository).findByUserId(userId);
+        verify(groomerProfileRepository).findByUserIdWithDistrict(userId);
         verify(districtRepository).findAllById(requestDto.getServicesDistrictIds());
     }
 
@@ -187,7 +187,7 @@ class MyPageGroomerServiceTest {
         // Given
         Long userId = 1L;
         GroomerProfileDetailsRequestDto requestDto = createMockRequestDto();
-        when(groomerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(createMockGroomerProfile()));
+        when(groomerProfileRepository.findByUserIdWithDistrict(userId)).thenReturn(Optional.of(createMockGroomerProfile()));
         when(districtRepository.findAllById(requestDto.getServicesDistrictIds())).thenReturn(List.of()); // Empty list
 
         // When & Then

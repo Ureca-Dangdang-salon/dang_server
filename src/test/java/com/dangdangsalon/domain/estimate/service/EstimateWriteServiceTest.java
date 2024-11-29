@@ -163,7 +163,7 @@ class EstimateWriteServiceTest {
     private DogProfile createMockDogProfile(String name, int year, int month, int weight, Gender gender, Neutering neutering, String imageKey, String species) {
         DogProfile dogProfile = mock(DogProfile.class);
         when(dogProfile.getName()).thenReturn(name);
-        when(dogProfile.getAge()).thenReturn(new DogAge(year, month));
+        when(dogProfile.getAge()).thenReturn(DogAge.createDogAge(year, month));
         when(dogProfile.getWeight()).thenReturn(weight);
         when(dogProfile.getGender()).thenReturn(gender);
         when(dogProfile.getNeutering()).thenReturn(neutering);

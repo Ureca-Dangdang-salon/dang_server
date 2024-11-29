@@ -193,16 +193,16 @@ public class EstimateRequestApiTest {
     @Test
     @WithMockUser(username = "testUser", roles = {"USER"})
     @DisplayName("미용사 견적 요청 삭제 테스트")
-    void cancelEstimateRequest() {
+    void deleteEstimateRequest() {
         RestAssuredMockMvc
                 .given()
                 .when()
-                .put("/api/estimaterequest/1/cancel")
+                .delete("/api/estimaterequest/1")
                 .then()
                 .statusCode(200)
                 .body("response", equalTo("견적 요청 삭제에 성공하였습니다."));
 
-        verify(groomerEstimateRequestService).cancelGroomerEstimateRequest(anyLong());
+        verify(groomerEstimateRequestService).deleteGroomerEstimateRequest(anyLong());
     }
 
 

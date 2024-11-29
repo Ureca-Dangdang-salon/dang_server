@@ -325,15 +325,15 @@ class EstimateRequestControllerTest {
 
     @Test
     @DisplayName("미용사 견적 요청 삭제 - 성공")
-    void cancelEstimateRequest_Success() throws Exception {
+    void deleteEstimateRequest_Success() throws Exception {
         // Given
         Long requestId = 1L;
 
         // 서비스 계층의 메서드 모킹
-        doNothing().when(groomerEstimateRequestService).cancelGroomerEstimateRequest(requestId);
+        doNothing().when(groomerEstimateRequestService).deleteGroomerEstimateRequest(requestId);
 
         // When & Then
-        mockMvc.perform(put("/api/estimaterequest/{requestId}/cancel", requestId)
+        mockMvc.perform(delete("/api/estimaterequest/{requestId}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(csrf())
                         .with(SecurityMockMvcRequestPostProcessors.authentication(

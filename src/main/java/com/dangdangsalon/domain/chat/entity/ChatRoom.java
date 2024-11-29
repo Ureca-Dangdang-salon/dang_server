@@ -57,4 +57,8 @@ public class ChatRoom extends BaseEntity {
             this.groomerLeft = state;
         }
     }
+
+    public boolean isAllLeft() {
+        return this.customerLeft && this.groomerLeft;
+    }
 }

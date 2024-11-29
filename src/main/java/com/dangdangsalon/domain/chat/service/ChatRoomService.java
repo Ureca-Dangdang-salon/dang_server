@@ -126,7 +126,7 @@ public class ChatRoomService {
 
         chatRoom.updateExitState(userRole, true);
 
-        if (isAllLeft(chatRoom)) {
+        if (chatRoom.isAllLeft()) {
             chatRoomRepository.delete(chatRoom);
             chatMessageService.deleteRedisData(roomId);
         }
@@ -217,9 +217,5 @@ public class ChatRoomService {
                 .stream()
                 .map(ServicePriceResponseDto::create)
                 .toList();
-    }
-
-    private static boolean isAllLeft(ChatRoom chatRoom) {
-        return chatRoom.getCustomerLeft() && chatRoom.getGroomerLeft();
     }
 }

@@ -1,12 +1,19 @@
 package com.dangdangsalon.domain.user.entity;
 
 import com.dangdangsalon.config.base.BaseEntity;
+import com.dangdangsalon.domain.coupon.entity.Coupon;
+import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
+import com.dangdangsalon.domain.groomerprofile.review.entity.Review;
+import com.dangdangsalon.domain.orders.entity.Orders;
 import com.dangdangsalon.domain.region.entity.District;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -30,6 +37,22 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private List<DogProfile> dogProfiles = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private List<Coupon> coupons = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private List<Review> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private List<Orders> orders = new ArrayList<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "district_id")
     private District district;
@@ -46,6 +69,16 @@ public class User extends BaseEntity {
 
     public void updateAdditionalInfo(Role role, District district) {
         this.role = role;
+        this.district = district;
+    }
+
+    public void updateRole(Role role) {
+        this.role = role;
+    }
+
+    public void updateUserInfo(String imageKey, String email, District district) {
+        this.imageKey = imageKey;
+        this.email = email;
         this.district = district;
     }
 }

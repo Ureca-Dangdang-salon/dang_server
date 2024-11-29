@@ -102,7 +102,7 @@ public class MyPageApiTest {
                 .contentType(ContentType.JSON)
                 .body(requestDto)
                 .when()
-                .post("/api/common")
+                .put("/api/common")
                 .then()
                 .statusCode(200)
                 .body("response", equalTo("유저 정보가 변경되었습니다."));
@@ -142,7 +142,7 @@ public class MyPageApiTest {
     void getGroomerProfileDetailsTest() {
 
         GroomerProfileDetailsResponseDto mockProfile = GroomerProfileDetailsResponseDto.builder()
-                .serviceName("길동이네")
+                .name("길동이네")
                 .serviceType(ServiceType.SHOP)
                 .build();
 
@@ -155,7 +155,7 @@ public class MyPageApiTest {
                 .get("/api/groomerprofile/1")
                 .then()
                 .statusCode(200)
-                .body("response.serviceName", equalTo("길동이네"))
+                .body("response.name", equalTo("길동이네"))
                 .body("response.serviceType", equalTo("SHOP"));
     }
 

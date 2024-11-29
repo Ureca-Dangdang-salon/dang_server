@@ -184,10 +184,10 @@ public class MyPageGroomerService {
             throw new IllegalArgumentException("프로필을 수정할 권한이 없습니다. userId : " + userId);
         }
         groomerProfile.updateProfile(
-                requestDto.getServiceName(),
+                requestDto.getName(),
                 requestDto.getContactHours(),
                 requestDto.getServiceType(),
-                requestDto.getContact(),
+                requestDto.getPhone(),
                 requestDto.getImageKey(),
                 GroomerDetails.updateGroomerDetails(requestDto)
         );
@@ -211,7 +211,7 @@ public class MyPageGroomerService {
         }
 
         // 요청에 포함된 서비스 ID로 GroomerService 리스트 조회
-        if (requestDto.getServicesOfferedId() != null && !requestDto.getServiceName().isEmpty()) {
+        if (requestDto.getServicesOfferedId() != null && !requestDto.getServicesOfferedId().isEmpty()) {
             List<GroomerService> services = groomerServiceRepository.findAllById(requestDto.getServicesOfferedId());
 
             // 유효하지 않은 서비스 ID 확인

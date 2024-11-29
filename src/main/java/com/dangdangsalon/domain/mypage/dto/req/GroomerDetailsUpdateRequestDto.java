@@ -15,8 +15,8 @@ import java.util.List;
 // 미용사 프로필 수정 2 (요청)
 public class GroomerDetailsUpdateRequestDto {
     private String imageKey;
-    private String serviceName;
-    private String contact;
+    private String name;
+    private String phone;
     private List<Long> servicesDistrictIds;
     private String contactHours;
     private List<Long> servicesOfferedId;

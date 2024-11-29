@@ -1,6 +1,5 @@
 package com.dangdangsalon.domain.mypage.dto.res;
 
-import com.dangdangsalon.domain.groomerprofile.entity.GroomerCanService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,10 +12,4 @@ public class GroomerServicesResponseDto {
     private String description;
     private Boolean isCustom;
 
-    public static GroomerServicesResponseDto fromEntity(GroomerCanService groomerCanService) {
-        return GroomerServicesResponseDto.builder()
-                .description(groomerCanService.getGroomerService().getDescription())
-                .isCustom(groomerCanService.getGroomerService().getIsCustom())
-                .build();
-    }
 }

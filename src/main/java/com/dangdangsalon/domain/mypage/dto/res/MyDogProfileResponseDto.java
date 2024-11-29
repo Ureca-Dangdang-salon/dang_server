@@ -5,12 +5,14 @@ import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
 import com.dangdangsalon.domain.dogprofile.entity.Gender;
 import com.dangdangsalon.domain.dogprofile.entity.Neutering;
 import com.dangdangsalon.domain.estimate.request.dto.FeatureResponseDto;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
+@AllArgsConstructor
 @Builder
 // 반려견 상세 조회 (응답)
 public class MyDogProfileResponseDto {

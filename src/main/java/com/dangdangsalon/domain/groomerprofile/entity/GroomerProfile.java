@@ -110,8 +110,8 @@ public class GroomerProfile extends BaseEntity {
 
     public static GroomerProfile createGroomerProfile(GroomerProfileRequestDto requestDto, User user) {
         return GroomerProfile.builder()
-                .name(requestDto.getServiceName())
-                .phone(requestDto.getContact())
+                .name(requestDto.getName())
+                .phone(requestDto.getPhone())
                 .contactHours(requestDto.getContactHours())
                 .details(null)
                 .user(user)

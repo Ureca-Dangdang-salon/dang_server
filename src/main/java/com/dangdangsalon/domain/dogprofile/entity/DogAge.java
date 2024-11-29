@@ -21,4 +21,11 @@ public class DogAge {
         this.year = year;
         this.month = month;
     }
+
+    public static DogAge createDogAge(int year, int month) {
+        return DogAge.builder()
+                .year(year)
+                .month(month)
+                .build();
+    }
 }

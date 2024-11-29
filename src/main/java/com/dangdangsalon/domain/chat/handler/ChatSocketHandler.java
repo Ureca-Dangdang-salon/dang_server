@@ -1,4 +1,4 @@
-package com.dangdangsalon.domain.chat;
+package com.dangdangsalon.domain.chat.handler;
 
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
 import com.dangdangsalon.domain.chat.service.ChatMessageService;

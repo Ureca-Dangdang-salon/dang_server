@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.chat.service;
 
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
+import com.dangdangsalon.domain.chat.util.ChatRedisUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -17,35 +18,19 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ChatMessageService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
-
-    private static final String SAVE_MESSAGE_ROOM_ID_KEY = "chat:messages:";
-    private static final String LAST_READ_KEY = "lastRead:";
-    private static final String FIRST_LOADED_KEY = "firstLoadedIndex:";
-    private static final int MESSAGE_GET_LIMIT = 7;
+    private final ChatRedisUtil chatRedisUtil;
 
     public void saveMessageRedis(ChatMessageDto message) {
-        String key = SAVE_MESSAGE_ROOM_ID_KEY + message.getRoomId();
-
-        redisTemplate.opsForList().rightPush(key, message);
-        redisTemplate.expire(key, Duration.ofDays(1));
+        chatRedisUtil.saveMessage(message);
     }
 
     public void updateLastReadKey(ChatMessageDto message) {
-        String key = SAVE_MESSAGE_ROOM_ID_KEY + message.getRoomId();
-        String lastReadKey = LAST_READ_KEY + message.getRoomId() + ":" + message.getSenderId();
-
-        Long listSize = redisTemplate.opsForList().size(key);
-
-        if (listSize != null) {
-            redisTemplate.opsForValue().set(lastReadKey, listSize.intValue());
-        }
+        chatRedisUtil.updateLastRead(message);
     }
 
     public String getLastMessage(Long roomId) {
-        String key = SAVE_MESSAGE_ROOM_ID_KEY + roomId;
-        Object lastMessage = redisTemplate.opsForList().index(key, -1);
+        Object lastMessage = chatRedisUtil.getLastMessage(roomId);
 
         if (lastMessage instanceof ChatMessageDto) {
             return ((ChatMessageDto) lastMessage).getMessageText();
@@ -59,53 +44,27 @@ public class ChatMessageService {
     }
 
     public int getUnreadCount(Long roomId, Long userId) {
-        String lastReadKey = LAST_READ_KEY + roomId + ":" + userId;
-        String messageKey = SAVE_MESSAGE_ROOM_ID_KEY + roomId;
+        Long totalMessageCount = chatRedisUtil.getTotalMessageCount(roomId);
+        Integer lastReadIndex = chatRedisUtil.getLastReadIndex(roomId, userId);
 
-        Integer lastReadIndex = (Integer) redisTemplate.opsForValue().get(lastReadKey);
-        Long totalMessages = redisTemplate.opsForList().size(messageKey);
-
-        if (totalMessages == null) {
+        if (totalMessageCount == null) {
             return 0;
         }
 
         if (lastReadIndex == null) {
-            return totalMessages.intValue();
+            return totalMessageCount.intValue();
         }
 
-        return Math.max(totalMessages.intValue() - (lastReadIndex + 1), 0);
+        return Math.max(totalMessageCount.intValue() - (lastReadIndex + 1), 0);
     }
 
     public List<ChatMessageDto> getUnreadOrRecentMessages(Long roomId, Long userId) {
-        String lastReadKey = LAST_READ_KEY + roomId + ":" + userId;
-        String messageKey = SAVE_MESSAGE_ROOM_ID_KEY + roomId;
-        String firstLoadedKey = FIRST_LOADED_KEY + roomId + ":" + userId;
+        Integer lastReadIndex = chatRedisUtil.getLastReadIndex(roomId, userId);
+        Long totalMessageCount = chatRedisUtil.getTotalMessageCount(roomId);
 
-        Integer lastReadIndex = (Integer) redisTemplate.opsForValue().get(lastReadKey);
-        Long totalMessageCount = redisTemplate.opsForList().size(messageKey);
+        List<Object> rawMessages = chatRedisUtil.getMessagesForUnreadOrRecent(roomId, lastReadIndex, totalMessageCount);
 
-        List<Object> rawMessages;
-
-        if (lastReadIndex != null && totalMessageCount != null) {
-            if (lastReadIndex >= totalMessageCount - 1) {
-                int startIndex = Math.max(lastReadIndex - MESSAGE_GET_LIMIT + 1, 0);
-                rawMessages = redisTemplate.opsForList().range(messageKey, startIndex, lastReadIndex);
-
-                redisTemplate.opsForValue().set(firstLoadedKey, startIndex);
-            } else {
-                rawMessages = redisTemplate.opsForList().range(messageKey, lastReadIndex + 1, -1);
-
-                redisTemplate.opsForValue().set(firstLoadedKey, lastReadIndex + 1);
-            }
-        } else {
-            rawMessages = redisTemplate.opsForList().range(messageKey, -MESSAGE_GET_LIMIT, -1);
-
-            if (totalMessageCount != null) {
-                redisTemplate.opsForValue().set(firstLoadedKey, Math.max(totalMessageCount.intValue() - MESSAGE_GET_LIMIT, 0));
-            }
-        }
-
-        updateLastReadMessage(messageKey, lastReadKey);
+        chatRedisUtil.updateLastReadMessage(roomId, userId);
 
         return rawMessages.stream()
                 .map(rawMessage -> objectMapper.convertValue(rawMessage, ChatMessageDto.class))
@@ -113,22 +72,7 @@ public class ChatMessageService {
     }
 
     public List<ChatMessageDto> getPreviousMessages(Long roomId, Long userId) {
-        String messageKey = SAVE_MESSAGE_ROOM_ID_KEY + roomId;
-        String firstLoadedKey = FIRST_LOADED_KEY + roomId + ":" + userId;
-
-        Integer firstLoadedIndex = (Integer) redisTemplate.opsForValue().get(firstLoadedKey);
-
-        log.info("firstIndex = " + firstLoadedIndex);
-        if (firstLoadedIndex == null || firstLoadedIndex <= 0) {
-            return List.of();
-        }
-
-        int startIndex = Math.max(firstLoadedIndex - MESSAGE_GET_LIMIT, 0);
-        int endIndex = firstLoadedIndex - 1;
-        log.info("startIndex= " + startIndex + " endIndex= " + endIndex);
-        List<Object> rawMessages = redisTemplate.opsForList().range(messageKey, startIndex, endIndex);
-
-        redisTemplate.opsForValue().set(firstLoadedKey, startIndex);
+        List<Object> rawMessages = chatRedisUtil.getPreviousMessages(roomId, userId);
 
         return rawMessages.stream()
                 .map(rawMessage -> objectMapper.convertValue(rawMessage, ChatMessageDto.class))
@@ -136,19 +80,6 @@ public class ChatMessageService {
     }
 
     public void deleteRedisData(Long roomId) {
-        String messageKey = SAVE_MESSAGE_ROOM_ID_KEY + roomId;
-        String lastReadKey = LAST_READ_KEY + roomId + ":*";
-        String firstLoadedKey = FIRST_LOADED_KEY + roomId + ":*";
-
-        redisTemplate.delete(messageKey);
-        redisTemplate.delete(redisTemplate.keys(lastReadKey));
-        redisTemplate.delete(redisTemplate.keys(firstLoadedKey));
-    }
-
-    private void updateLastReadMessage(String messageKey, String lastReadKey) {
-        Long listSize = redisTemplate.opsForList().size(messageKey);
-        if (listSize != null) {
-            redisTemplate.opsForValue().set(lastReadKey, listSize.intValue() - 1);
-        }
+        chatRedisUtil.deleteRoomData(roomId);
     }
 }

@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.chat.util;
 
+import static com.dangdangsalon.domain.chat.util.ChatConst.*;
 import static com.dangdangsalon.domain.chat.util.ChatRedisConfig.*;
 
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
@@ -66,13 +67,13 @@ public class ChatRedisUtil {
 
         if (lastReadIndex != null && totalMessageCount != null) {
             if (lastReadIndex >= totalMessageCount - 1) {
-                int startIndex = Math.max(lastReadIndex - MESSAGE_GET_LIMIT + 1, 0);
+                int startIndex = Math.max(lastReadIndex - MESSAGE_GET_LIMIT.getCount() + 1, 0);
                 return redisTemplate.opsForList().range(messageKey, startIndex, lastReadIndex);
             } else {
                 return redisTemplate.opsForList().range(messageKey, lastReadIndex + 1, -1);
             }
         } else {
-            return redisTemplate.opsForList().range(messageKey, -MESSAGE_GET_LIMIT, -1);
+            return redisTemplate.opsForList().range(messageKey, -MESSAGE_GET_LIMIT.getCount(), -1);
         }
     }
 
@@ -87,7 +88,7 @@ public class ChatRedisUtil {
             return List.of();
         }
 
-        int startIndex = Math.max(firstLoadedIndex - MESSAGE_GET_LIMIT, 0);
+        int startIndex = Math.max(firstLoadedIndex - MESSAGE_GET_LIMIT.getCount(), 0);
         int endIndex = firstLoadedIndex - 1;
 
         List<Object> messages = redisTemplate.opsForList().range(messageKey, startIndex, endIndex);

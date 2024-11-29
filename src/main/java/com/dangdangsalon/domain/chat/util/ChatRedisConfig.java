@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ChatRedisConfig {
-    public static final int MESSAGE_GET_LIMIT = 7;
     public static final Duration TTL = Duration.ofDays(1);
 
     public String getSaveMessageKey(Long roomId) {

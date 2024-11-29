@@ -55,15 +55,15 @@ public class GroomerEstimateRequestService {
     }
 
     /**
-     *  미용사가 받은 견적 요청 상태를 CANCEL 로 변경
+     *  견적 요청 삭제(미용사)
      */
     @Transactional
-    public void cancelGroomerEstimateRequest(Long estimateRequestId) {
+    public void deleteGroomerEstimateRequest(Long estimateRequestId) {
 
         GroomerEstimateRequest request = groomerEstimateRequestRepository.findByEstimateRequestId(estimateRequestId)
                 .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다: " + estimateRequestId));
 
-        request.updateStatus(GroomerRequestStatus.CANCEL);
+        groomerEstimateRequestRepository.delete(request);
     }
 
     // 두가지 조건이 만족해야 요청이 간다.

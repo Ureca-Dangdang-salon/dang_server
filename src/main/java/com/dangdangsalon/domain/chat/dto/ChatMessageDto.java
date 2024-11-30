@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.chat.dto;
 
 import com.dangdangsalon.domain.chat.entity.ChatMessageMongo;
+import com.dangdangsalon.util.UUIDUtil;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -25,7 +26,7 @@ public class ChatMessageDto {
 
     public static ChatMessageDto createTextMessage(Long roomId, Long senderId, String senderRole, String messageText) {
         return ChatMessageDto.builder()
-                .messageId(UUID.randomUUID().toString())
+                .messageId(UUIDUtil.generateTimeBasedUUID())
                 .roomId(roomId)
                 .senderId(senderId)
                 .senderRole(senderRole)
@@ -36,7 +37,7 @@ public class ChatMessageDto {
 
     public static ChatMessageDto createImageMessage(Long roomId, Long senderId, String senderRole, String imageUrl) {
         return ChatMessageDto.builder()
-                .messageId(UUID.randomUUID().toString())
+                .messageId(UUIDUtil.generateTimeBasedUUID())
                 .roomId(roomId)
                 .senderId(senderId)
                 .senderRole(senderRole)

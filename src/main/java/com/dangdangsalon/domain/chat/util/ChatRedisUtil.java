@@ -4,10 +4,12 @@ import static com.dangdangsalon.domain.chat.util.ChatConst.*;
 import static com.dangdangsalon.domain.chat.util.ChatRedisConfig.*;
 
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
+import com.dangdangsalon.util.RedisKey;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -106,5 +108,40 @@ public class ChatRedisUtil {
         redisTemplate.delete(messageKey);
         redisTemplate.delete(redisTemplate.keys(lastReadKey));
         redisTemplate.delete(redisTemplate.keys(firstLoadedKey));
+    }
+
+    public Object getMessageAtIndex(Long roomId, int index) {
+        String messageKey = redisConfig.getSaveMessageKey(roomId);
+
+        return redisTemplate.opsForList().index(messageKey, index);
+    }
+
+    public Integer getFirstLoadedIndex(Long roomId, Long userId) {
+        String firstLoadedKey = redisConfig.getFirstLoadedKey(roomId, userId);
+        return (Integer) redisTemplate.opsForValue().get(firstLoadedKey);
+    }
+
+    public Object getLastReadMessage(Long roomId, Integer lastReadIndex) {
+        String messageKey = redisConfig.getSaveMessageKey(roomId);
+        return redisTemplate.opsForList().index(messageKey, lastReadIndex);
+    }
+
+    public List<Object> getAllMessagesFromRoom(String roomKey) {
+        return redisTemplate.opsForList().range(roomKey, 0, -1);
+    }
+
+    public List<String> getAllRoomKeys() {
+        Set<String> keys = redisTemplate.keys(redisConfig.getAllSaveMessageKey());
+
+        if (keys == null) {
+            return List.of();
+        }
+
+        return List.copyOf(keys);
+    }
+
+    public Long extractRoomIdFromKey(String roomKey) {
+        String prefix = RedisKey.SAVE_MESSAGE_ROOM_ID_KEY.getKey();
+        return Long.parseLong(roomKey.replace(prefix, ""));
     }
 }

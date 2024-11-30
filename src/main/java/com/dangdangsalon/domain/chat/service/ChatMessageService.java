@@ -5,6 +5,7 @@ import com.dangdangsalon.domain.chat.util.ChatConst;
 import com.dangdangsalon.domain.chat.util.ChatRedisUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,7 +67,8 @@ public class ChatMessageService {
         Integer lastReadIndex = chatRedisUtil.getLastReadIndex(roomId, userId);
         Long totalMessageCount = chatRedisUtil.getTotalMessageCount(roomId);
 
-        List<Object> redisMessages = chatRedisUtil.getMessagesForUnreadOrRecent(roomId, lastReadIndex, totalMessageCount);
+        List<Object> redisMessages = chatRedisUtil.getMessagesForUnreadOrRecent(roomId, lastReadIndex,
+                totalMessageCount);
 
         if (!redisMessages.isEmpty()) {
             chatRedisUtil.updateLastReadMessage(roomId, userId);
@@ -75,14 +77,23 @@ public class ChatMessageService {
                     .toList();
         }
 
-
         log.info("Redis 메시지 데이터 X -> MongoDB 조회");
-
         List<ChatMessageDto> mongoMessages;
-        if (lastReadIndex == null) {
+        String lastReadMessageId = null;
+
+        if (lastReadIndex != null) {
+            Object lastReadMessage = chatRedisUtil.getLastReadMessage(roomId, lastReadIndex);
+
+            if (lastReadMessage != null) {
+                ChatMessageDto messageDto = objectMapper.convertValue(lastReadMessage, ChatMessageDto.class);
+                lastReadMessageId = messageDto.getMessageId();
+            }
+        }
+
+        if (lastReadMessageId == null) {
             mongoMessages = chatMessageMongoService.getChatMessagesInMongo(roomId, 0, ChatConst.MESSAGE_GET_LIMIT.getCount());
         } else {
-            mongoMessages = chatMessageMongoService.getUnreadMessages(roomId, lastReadIndex);
+            mongoMessages = chatMessageMongoService.getUnreadMessages(roomId, lastReadMessageId);
         }
 
         if (!mongoMessages.isEmpty()) {
@@ -93,15 +104,55 @@ public class ChatMessageService {
     }
 
     public List<ChatMessageDto> getPreviousMessages(Long roomId, Long userId) {
-        List<Object> rawMessages = chatRedisUtil.getPreviousMessages(roomId, userId);
+        List<Object> redisMessages = chatRedisUtil.getPreviousMessages(roomId, userId);
 
-        return rawMessages.stream()
-                .map(rawMessage -> objectMapper.convertValue(rawMessage, ChatMessageDto.class))
-                .toList();
+        if (!redisMessages.isEmpty()) {
+            return redisMessages.stream()
+                    .map(rawMessage -> objectMapper.convertValue(rawMessage, ChatMessageDto.class))
+                    .toList();
+        }
+
+        log.info("Redis 메시지 데이터 X -> MongoDB 조회");
+        LocalDateTime beforeMessageSendAt = getLastMessageSendAtFromRedis(roomId, userId);
+        return chatMessageMongoService.getPreviousMessages(roomId, beforeMessageSendAt,
+                ChatConst.MESSAGE_GET_LIMIT.getCount());
     }
 
     public void deleteChatData(Long roomId) {
         chatRedisUtil.deleteRoomData(roomId);
         chatMessageMongoService.deleteChatMessages(roomId);
+    }
+
+    private LocalDateTime getLastMessageSendAtFromRedis(Long roomId, Long userId) {
+        Integer lastLoadedIndex = chatRedisUtil.getFirstLoadedIndex(roomId, userId);
+
+        if (lastLoadedIndex != null) {
+            ChatMessageDto lastLoadedMessage = objectMapper.convertValue(
+                    chatRedisUtil.getMessageAtIndex(roomId, lastLoadedIndex), ChatMessageDto.class);
+
+            if (lastLoadedMessage != null) {
+                return lastLoadedMessage.getSendAt();
+            }
+        }
+
+        return LocalDateTime.now();
+    }
+
+    public void saveAllMessagesMongo() {
+        List<String> roomKeys = chatRedisUtil.getAllRoomKeys();
+
+        for (String roomKey : roomKeys) {
+            Long roomId = chatRedisUtil.extractRoomIdFromKey(roomKey);
+
+            List<Object> redisMessages = chatRedisUtil.getAllMessagesFromRoom(roomKey);
+
+            List<ChatMessageDto> chatMessages = redisMessages.stream()
+                    .map(message -> objectMapper.convertValue(message, ChatMessageDto.class))
+                    .toList();
+
+            chatMessages.forEach(chatMessageMongoService::saveChatMessage);
+
+            chatRedisUtil.deleteRoomData(roomId);
+        }
     }
 }

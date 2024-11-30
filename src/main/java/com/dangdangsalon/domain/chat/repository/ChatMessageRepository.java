@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 public interface ChatMessageRepository extends MongoRepository<ChatMessageMongo, String> {
     List<ChatMessageMongo> findByRoomIdOrderBySendAtDesc(Long roomId, Pageable pageable);
 
-    List<ChatMessageMongo> findByRoomIdAndMessageIdGreaterThanOrderBySendAtAsc(Long roomId, Integer messageId);
+    List<ChatMessageMongo> findByRoomIdAndIdGreaterThanOrderBySendAtAsc(Long roomId, String id);
 
     List<ChatMessageMongo> findByRoomIdAndSendAtLessThan(Long roomId, LocalDateTime sendAt, Pageable pageable);
 

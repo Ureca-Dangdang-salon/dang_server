@@ -3,6 +3,7 @@ package com.dangdangsalon.domain.chat.handler;
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
 import com.dangdangsalon.domain.chat.service.ChatMessageService;
 import com.dangdangsalon.util.JwtUtil;
+import com.dangdangsalon.util.UUIDUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.SecondaryTable;
 import java.time.LocalDateTime;
@@ -68,7 +69,7 @@ public class ChatSocketHandler extends TextWebSocketHandler {
         String senderRole = (String) session.getAttributes().get("senderRole");
 
         chatMessageDto = ChatMessageDto.builder()
-                .messageId(UUID.randomUUID().toString())
+                .messageId(UUIDUtil.generateTimeBasedUUID())
                 .roomId(chatMessageDto.getRoomId())
                 .senderId(senderId)
                 .senderRole(senderRole)

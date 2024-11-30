@@ -6,9 +6,13 @@ public enum RedisKey {
     LAST_READ_KEY("lastRead:"),
     FIRST_LOADED_KEY("firstLoadedIndex:");
 
-    private final String keyString;
+    private final String key;
 
-    RedisKey(String keyString) {
-        this.keyString = keyString;
+    RedisKey(String key) {
+        this.key = key;
+    }
+
+    public String getKey() {
+        return this.key;
     }
 }

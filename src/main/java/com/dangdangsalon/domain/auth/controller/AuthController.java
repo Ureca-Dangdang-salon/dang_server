@@ -27,13 +27,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/refresh")
-    public ApiSuccess<?> refreshAccessToken(HttpServletRequest request) {
+    public ApiSuccess<?> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
 
         String refreshToken = cookieUtil.getCookieValue("refreshToken", request);
 
-        Map<String, String> responseBody = authService.refreshAccessToken(refreshToken);
+        authService.refreshAccessToken(refreshToken, response);
 
-        return ApiUtil.success(responseBody);
+        return ApiUtil.success("액세스 토큰 갱신에 성공했습니다.");
     }
 
     @PostMapping("/join")

@@ -6,6 +6,7 @@ import com.dangdangsalon.domain.user.entity.Role;
 import com.dangdangsalon.domain.user.entity.User;
 import com.dangdangsalon.domain.user.repository.UserRepository;
 import com.dangdangsalon.exception.TokenExpiredException;
+import com.dangdangsalon.util.CookieUtil;
 import com.dangdangsalon.util.JwtUtil;
 import com.dangdangsalon.util.RedisUtil;
 import jakarta.servlet.http.Cookie;
@@ -22,10 +23,12 @@ public class AuthService {
 
     private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
+    private final CookieUtil cookieUtil;
+
     private final UserRepository userRepository;
     private final DistrictRepository districtRepository;
 
-    public Map<String, String> refreshAccessToken(String refreshToken) {
+    public void refreshAccessToken(String refreshToken, HttpServletResponse response) {
         if (jwtUtil.isExpired(refreshToken)) {
             throw new TokenExpiredException();
         }
@@ -42,10 +45,12 @@ public class AuthService {
 
         String newAccessToken = jwtUtil.createAccessToken(userId, username, role);
 
-        Map<String, String> responseBody = new HashMap<>();
-        responseBody.put("accessToken", "Bearer " + newAccessToken);
+        Cookie accessTokenCookie = new Cookie("Authorization", null);
+        accessTokenCookie.setMaxAge(0);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setHttpOnly(true);
 
-        return responseBody;
+        response.addCookie(cookieUtil.createCookie("Authorization", newAccessToken));
     }
 
     @Transactional

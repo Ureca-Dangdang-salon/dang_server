@@ -52,6 +52,7 @@ public class ChatMessageDto {
                 .roomId(messages.getRoomId())
                 .senderId(messages.getSenderId())
                 .senderRole(messages.getSenderRole())
+                .messageText(messages.getMessageText())
                 .imageUrl(messages.getImageUrl())
                 .sendAt(messages.getSendAt())
                 .build();

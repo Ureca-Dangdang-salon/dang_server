@@ -12,7 +12,8 @@
 
         // WebSocket 연결
         function connect() {
-            socket = new WebSocket(`ws://localhost:8080/ws/chat?roomId=${roomId}`);
+            const token = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjIsInVzZXJuYW1lIjoia2FrYW8gMzgwMTI1ODMwOSIsInJvbGUiOiJST0xFX1NBTE9OIiwiaWF0IjoxNzMyOTM5Njg3LCJleHAiOjE3MzI5NDMyODd9.AYwTgF3W_gF-SP6myq9_UVkosnvcyRjU7J8BFhl3u38";
+            socket = new WebSocket(`ws://localhost:8080/ws/chat?roomId=${roomId}&token=${token}`);
 
             socket.onopen = () => {
                 console.log('WebSocket 연결 성공');
@@ -39,7 +40,7 @@
                 const response = await fetch(`/api/chatrooms/${roomId}/enter`, {
                     method: "GET",
                     headers: {
-                        "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjIsInVzZXJuYW1lIjoia2FrYW8gMzgwMTI1ODMwOSIsInJvbGUiOiJST0xFX1NBTE9OIiwiaWF0IjoxNzMyOTMyNzYwLCJleHAiOjE3MzI5MzYzNjB9.duXhZxDDem_LOVdAalZC6t729fmRTFB16cJptzPL-PI`,
+                        "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjIsInVzZXJuYW1lIjoia2FrYW8gMzgwMTI1ODMwOSIsInJvbGUiOiJST0xFX1NBTE9OIiwiaWF0IjoxNzMyOTM5Njg3LCJleHAiOjE3MzI5NDMyODd9.AYwTgF3W_gF-SP6myq9_UVkosnvcyRjU7J8BFhl3u38`,
                         "Content-Type": "application/json"
                     }
                 });
@@ -73,7 +74,7 @@
                 const response = await fetch(`/api/chatrooms/${roomId}/messages/privious`, {
                     method: "GET",
                     headers: {
-                        "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjIsInVzZXJuYW1lIjoia2FrYW8gMzgwMTI1ODMwOSIsInJvbGUiOiJST0xFX1NBTE9OIiwiaWF0IjoxNzMyOTMyNzYwLCJleHAiOjE3MzI5MzYzNjB9.duXhZxDDem_LOVdAalZC6t729fmRTFB16cJptzPL-PI`,
+                        "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjIsInVzZXJuYW1lIjoia2FrYW8gMzgwMTI1ODMwOSIsInJvbGUiOiJST0xFX1NBTE9OIiwiaWF0IjoxNzMyOTM5Njg3LCJleHAiOjE3MzI5NDMyODd9.AYwTgF3W_gF-SP6myq9_UVkosnvcyRjU7J8BFhl3u38`,
                         "Content-Type": "application/json"
                     }
                 });

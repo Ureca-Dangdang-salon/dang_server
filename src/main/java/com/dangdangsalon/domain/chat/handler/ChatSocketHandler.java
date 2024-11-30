@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -35,22 +36,47 @@ public class ChatSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String cookieHeader = session.getHandshakeHeaders().getFirst("Cookie");
-
-        if (cookieHeader != null) {
-            String token = extractTokenFromCookie(cookieHeader);
-
-            if (token != null) {
-                Long senderId = jwtUtil.getUserId(token);
-                String senderRole = jwtUtil.getRole(token);
-
-                session.getAttributes().put("senderId", senderId);
-                session.getAttributes().put("senderRole", senderRole);
-            }
-        }
+//        String authorizationHeader = session.getHandshakeHeaders().getFirst("Authorization");
+//
+//        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+//            String token = authorizationHeader.substring(7);
+//
+//            Long senderId = jwtUtil.getUserId(token);
+//            String senderRole = jwtUtil.getRole(token);
+//
+//            session.getAttributes().put("senderId", senderId);
+//            session.getAttributes().put("senderRole", senderRole);
+//        } STOMP로 바꾸면 클라이언트측에서 토큰 담아 요청 가능
 
         String query = Objects.requireNonNull(session.getUri()).getQuery();
-        String roomIdParam = query.split("=")[1];
+        String token = null;
+
+        if (query != null && query.contains("token=")) {
+            String tempToken = query.split("token=")[1];
+            log.info(tempToken);
+            token = tempToken.substring(7);
+            log.info(token);
+        }
+
+        if (token != null) {
+            Long senderId = jwtUtil.getUserId(token);
+            String senderRole = jwtUtil.getRole(token);
+
+            session.getAttributes().put("senderId", senderId);
+            session.getAttributes().put("senderRole", senderRole);
+        }
+
+//        String query = Objects.requireNonNull(session.getUri()).getQuery();
+        Map<String, String> queryParams = Arrays.stream(query.split("&"))
+                .map(param -> param.split("=", 2)) // "=" 기준으로 키와 값 분리
+                .collect(Collectors.toMap(
+                        parts -> parts[0], // Key
+                        parts -> parts.length > 1 ? parts[1] : "" // Value
+                ));
+        log.info(query);
+//        String roomIdParam = query.split("=")[1];
+        String roomIdParam = queryParams.get("roomId");
+//        Long roomId = Long.parseLong(roomIdParam.substring(1));
         Long roomId = Long.parseLong(roomIdParam);
         String sessionId = session.getId();
 

@@ -27,6 +27,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
         String requestURI = request.getRequestURI();
 
         if (requestURI.endsWith("/api/auth/refresh")) {
@@ -34,12 +35,12 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (requestURI.startsWith("/login") || requestURI.startsWith("/oauth2")) {
+        String token = getTokenFromCookies(request, "Authorization");
+
+        if (token == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        String token = getTokenFromCookies(request, "Authorization");
 
         if (jwtUtil.isExpired(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

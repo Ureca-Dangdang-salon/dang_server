@@ -35,17 +35,13 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-//        String authorization = request.getHeader("Authorization");
-//
-//        if (authorization == null || !authorization.startsWith("Bearer ")) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
-//
-//        String token = authorization.split(" ")[1];
-
         String token = getTokenFromCookies(request, "Authorization");
-        log.info(token);
+
+        if (token == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (jwtUtil.isExpired(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;

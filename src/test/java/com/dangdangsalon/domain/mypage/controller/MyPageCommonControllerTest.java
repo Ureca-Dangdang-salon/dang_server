@@ -56,7 +56,7 @@ class MyPageCommonControllerTest {
 
         // 유저 프로필 데이터 예시
         CommonProfileResponseDto mockResponse = new CommonProfileResponseDto("imageKey",
-                "email@example.com","종로구","서울시");
+                "name", "email@example.com", "종로구", "서울시");
         when(myPageCommonService.getUserinfo(mockUserId)).thenReturn(mockResponse);
 
         // GET 요청으로 유저 프로필 조회

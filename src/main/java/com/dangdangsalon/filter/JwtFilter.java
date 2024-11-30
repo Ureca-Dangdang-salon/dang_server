@@ -45,7 +45,7 @@ public class JwtFilter extends OncePerRequestFilter {
 //        String token = authorization.split(" ")[1];
 
         String token = getTokenFromCookies(request, "Authorization");
-
+        log.info(token);
         if (jwtUtil.isExpired(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;

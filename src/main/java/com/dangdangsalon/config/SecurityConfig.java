@@ -40,7 +40,7 @@ public class SecurityConfig {
                         .successHandler(customSuccessHandler))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/oauth2/authorization/**", "/api/test", "/actuator/**",
+                        .requestMatchers("/login", "/oauth2/authorization/**", "/api/test", "/actuator/**",
                                 "/api/contests/winner/**", "/api/images/**", "/api/groomerprofile/{groomerProfileId}")
                         .permitAll()
                         .requestMatchers("/api/auth/join").hasRole("PENDING")

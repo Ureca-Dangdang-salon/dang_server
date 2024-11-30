@@ -43,7 +43,7 @@ public class AuthService {
         String newAccessToken = jwtUtil.createAccessToken(userId, username, role);
 
         Map<String, String> responseBody = new HashMap<>();
-        responseBody.put("accessToken", "Bearer" + newAccessToken);
+        responseBody.put("accessToken", "Bearer " + newAccessToken);
 
         return responseBody;
     }

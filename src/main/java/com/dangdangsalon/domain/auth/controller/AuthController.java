@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.auth.controller;
 
+import com.dangdangsalon.domain.auth.dto.CheckLoginDto;
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.auth.dto.JoinAdditionalInfoDto;
 import com.dangdangsalon.domain.auth.service.AuthService;
@@ -13,6 +14,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +31,7 @@ public class AuthController {
     @PostMapping("/refresh")
     public ApiSuccess<?> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
 
-        String refreshToken = cookieUtil.getCookieValue("refreshToken", request);
+        String refreshToken = cookieUtil.getCookieValue("Refresh-Token", request);
 
         authService.refreshAccessToken(refreshToken, response);
 
@@ -60,5 +62,14 @@ public class AuthController {
         authService.logout(refreshToken, response);
 
         return ApiUtil.success("로그아웃이 완료되었습니다.");
+    }
+
+    @GetMapping("/check/login")
+    public ApiSuccess<?> getAuthenticatedUser(@AuthenticationPrincipal CustomOAuth2User user) {
+        if (user == null) {
+            return ApiUtil.success("로그인이 되어있지 않습니다.");
+        }
+
+        return ApiUtil.success(authService.checkLogin(user));
     }
 }

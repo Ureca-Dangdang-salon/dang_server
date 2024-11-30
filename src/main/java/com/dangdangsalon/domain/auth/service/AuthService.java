@@ -1,5 +1,7 @@
 package com.dangdangsalon.domain.auth.service;
 
+import com.dangdangsalon.domain.auth.dto.CheckLoginDto;
+import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.auth.dto.JoinAdditionalInfoDto;
 import com.dangdangsalon.domain.region.repository.DistrictRepository;
 import com.dangdangsalon.domain.user.entity.Role;
@@ -90,5 +92,13 @@ public class AuthService {
 
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
+    }
+
+    public CheckLoginDto checkLogin(CustomOAuth2User user) {
+        return CheckLoginDto.builder()
+                .isLogin(true)
+                .userId(user.getUserId())
+                .role(user.getRole())
+                .build();
     }
 }

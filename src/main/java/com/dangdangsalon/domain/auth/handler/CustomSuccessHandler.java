@@ -41,14 +41,15 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String refreshToken = jwtUtil.createRefreshToken(userId, username, role);
         redisUtil.saveRefreshToken(userId.toString(), refreshToken, 60 * 60 * 10000L);
 
-        response.addCookie(cookieUtil.createCookie("Authorization", accessToken));
         response.addCookie(cookieUtil.createCookie("Refresh-Token", refreshToken));
+        response.addCookie(cookieUtil.createCookie("Authorization", accessToken));
 
+//        response.addHeader("Authorization", "Bearer " + accessToken);
         log.info("Access Token: {}", accessToken);
         log.info("Refresh Token: {}", refreshToken);
 
         String redirectUrl = Role.from("ROLE_PENDING").equals(Role.ROLE_PENDING)
-                ? "http://localhost:5173/register"
+                ? "http://localhost:5173/survey"
                 : "http://localhost:5173/";
 
         response.sendRedirect(redirectUrl);

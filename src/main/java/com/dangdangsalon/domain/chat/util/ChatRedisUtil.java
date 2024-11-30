@@ -144,4 +144,9 @@ public class ChatRedisUtil {
         String prefix = RedisKey.SAVE_MESSAGE_ROOM_ID_KEY.getKey();
         return Long.parseLong(roomKey.replace(prefix, ""));
     }
+
+    public void updateFirstLoadedIndex(Long roomId, Long userId, int index) {
+        String firstLoadedKey = redisConfig.getFirstLoadedKey(roomId, userId);
+        redisTemplate.opsForValue().set(firstLoadedKey, index);
+    }
 }

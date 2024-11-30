@@ -71,6 +71,8 @@ public class ChatMessageService {
                 totalMessageCount);
 
         if (!redisMessages.isEmpty()) {
+            Integer firstLoadedIndex = chatRedisUtil.getFirstLoadedIndex(roomId, userId);
+            chatRedisUtil.updateFirstLoadedIndex(roomId, userId, firstLoadedIndex - redisMessages.size() - 1);
             chatRedisUtil.updateLastReadMessage(roomId, userId);
             return redisMessages.stream()
                     .map(messages -> objectMapper.convertValue(messages, ChatMessageDto.class))
@@ -97,6 +99,8 @@ public class ChatMessageService {
         }
 
         if (!mongoMessages.isEmpty()) {
+            Integer firstLoadedIndex = chatRedisUtil.getFirstLoadedIndex(roomId, userId);
+            chatRedisUtil.updateFirstLoadedIndex(roomId, userId, firstLoadedIndex - mongoMessages.size() - 1);
             chatRedisUtil.updateLastReadMessage(roomId, userId);
         }
 
@@ -106,7 +110,14 @@ public class ChatMessageService {
     public List<ChatMessageDto> getPreviousMessages(Long roomId, Long userId) {
         List<Object> redisMessages = chatRedisUtil.getPreviousMessages(roomId, userId);
 
+        if (chatRedisUtil.getFirstLoadedIndex(roomId, userId) == 0) {
+            return List.of();
+        }
+
         if (!redisMessages.isEmpty()) {
+            Integer firstLoadedIndex = chatRedisUtil.getFirstLoadedIndex(roomId, userId);
+            chatRedisUtil.updateFirstLoadedIndex(roomId, userId, firstLoadedIndex - redisMessages.size() - 1);
+
             return redisMessages.stream()
                     .map(rawMessage -> objectMapper.convertValue(rawMessage, ChatMessageDto.class))
                     .toList();
@@ -114,8 +125,15 @@ public class ChatMessageService {
 
         log.info("Redis 메시지 데이터 X -> MongoDB 조회");
         LocalDateTime beforeMessageSendAt = getLastMessageSendAtFromRedis(roomId, userId);
-        return chatMessageMongoService.getPreviousMessages(roomId, beforeMessageSendAt,
+        List<ChatMessageDto> mongoMessages = chatMessageMongoService.getPreviousMessages(roomId, beforeMessageSendAt,
                 ChatConst.MESSAGE_GET_LIMIT.getCount());
+
+        if (!mongoMessages.isEmpty()) {
+            Integer firstLoadedIndex = chatRedisUtil.getFirstLoadedIndex(roomId, userId);
+            chatRedisUtil.updateFirstLoadedIndex(roomId, userId, firstLoadedIndex - mongoMessages.size() - 1);
+        }
+
+        return mongoMessages;
     }
 
     public void deleteChatData(Long roomId) {

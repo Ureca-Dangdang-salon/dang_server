@@ -58,8 +58,10 @@ public class ChatSocketHandler extends TextWebSocketHandler {
             session.getAttributes().put("senderRole", senderRole);
         }
 
+
         String roomIdParam = query.split("=")[1];
-        Long roomId = Long.parseLong(roomIdParam.substring(1));
+        Long roomId = Long.parseLong(roomIdParam);
+        log.info(String.valueOf(roomId));
         String sessionId = session.getId();
 
         chatRoomSessions.putIfAbsent(roomId, ConcurrentHashMap.newKeySet());

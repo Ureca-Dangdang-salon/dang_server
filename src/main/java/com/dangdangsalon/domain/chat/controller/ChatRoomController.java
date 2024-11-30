@@ -56,7 +56,7 @@ public class ChatRoomController {
         return ApiUtil.success(chatRoomDetail);
     }
 
-    @GetMapping("/{roomId}/messages/privious")
+    @GetMapping("/{roomId}/messages/previous")
     public ApiSuccess<?> getPreviousMessage(@PathVariable Long roomId, @AuthenticationPrincipal CustomOAuth2User user) {
         Long userId = user.getUserId();
 

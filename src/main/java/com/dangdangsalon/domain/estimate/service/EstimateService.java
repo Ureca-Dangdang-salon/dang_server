@@ -21,6 +21,7 @@ import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.groomerprofile.repository.GroomerProfileRepository;
 import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
 import com.dangdangsalon.domain.groomerservice.repository.GroomerServiceRepository;
+import com.dangdangsalon.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,7 @@ public class EstimateService {
     private final EstimateRequestProfilesRepository estimateRequestProfilesRepository;
     private final EstimateRequestServiceRepository estimateRequestServiceRepository;
     private final DogProfileFeatureRepository dogProfileFeatureRepository;
+    private final NotificationService notificationService;
 
     // 견적서 등록
     @Transactional
@@ -68,6 +70,9 @@ public class EstimateService {
                 .build();
 
         estimateRepository.save(estimate);
+
+        // 푸쉬 알람
+        sendNotificationToUser(estimateRequest, estimate, groomerProfile);
 
         //강아지별 특이사항, 서비스 다 따로 저장하기는 로직...
         requestDto.getDogPriceList().forEach(dogPriceDto -> {
@@ -223,5 +228,20 @@ public class EstimateService {
                 .map(dogProfileFeature -> new FeatureResponseDto(
                         dogProfileFeature.getFeature().getDescription()))
                 .toList();
+    }
+
+    private void sendNotificationToUser(EstimateRequest estimateRequest,Estimate estimate, GroomerProfile groomerProfile) {
+
+        Long userId = estimateRequest.getUser().getId(); // 사용자 ID 가져오기
+        String fcmToken = notificationService.getFcmToken(userId); // Redis에서 FCM 토큰 조회
+
+        if (fcmToken != null) {
+            String title = groomerProfile.getName() + "님이 견적을 보냈습니다.";
+            String body = "견적 내용을 확인해보세요.";
+            notificationService.sendNotificationWithData(fcmToken, title, body,"견적서", estimate.getId()); // 알림 전송
+
+            // redis 에 알림 내용 저장
+            notificationService.saveNotificationToRedis(userId, title, body, "견적서", estimate.getId());
+        }
     }
 }

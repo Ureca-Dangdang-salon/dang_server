@@ -1,12 +1,13 @@
 package com.dangdangsalon.domain.payment.service;
 
+import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.orders.entity.OrderStatus;
 import com.dangdangsalon.domain.orders.entity.Orders;
 import com.dangdangsalon.domain.orders.repository.OrdersRepository;
-import com.dangdangsalon.domain.payment.dto.PaymentCancelRequestDto;
-import com.dangdangsalon.domain.payment.dto.PaymentCancelResponseDto;
 import com.dangdangsalon.domain.payment.dto.PaymentApproveRequestDto;
 import com.dangdangsalon.domain.payment.dto.PaymentApproveResponseDto;
+import com.dangdangsalon.domain.payment.dto.PaymentCancelRequestDto;
+import com.dangdangsalon.domain.payment.dto.PaymentCancelResponseDto;
 import com.dangdangsalon.domain.payment.entity.Payment;
 import com.dangdangsalon.domain.payment.entity.PaymentStatus;
 import com.dangdangsalon.domain.payment.repository.PaymentRepository;
@@ -34,6 +35,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final WebClient webClient;
+    private final NotificationService notificationService;
 
     @Value("${toss.api.key}")
     private String tossApiKey;
@@ -82,6 +84,8 @@ public class PaymentService {
 
             paymentRepository.save(payment);
             order.updateOrderStatus(OrderStatus.ACCEPTED);
+
+            sendNotificationToUser(order);
 
             return paymentResponse;
         } finally {
@@ -174,5 +178,20 @@ public class PaymentService {
 
     private void deleteIdempotencyKey(String key) {
         redisTemplate.delete(key);
+    }
+
+    private void sendNotificationToUser(Orders orders) {
+
+        Long userId = orders.getUser().getId(); // 사용자 ID 가져오기
+        String fcmToken = notificationService.getFcmToken(userId); // Redis에서 FCM 토큰 조회
+
+        if (fcmToken != null) {
+            String title = "결제가 완료되었습니다";
+            String body = "결제 내역을 확인해보세요.";
+            notificationService.sendNotificationWithData(fcmToken, title, body,"결제", userId); // 알림 전송
+
+            // redis 에 알림 내용 저장
+            notificationService.saveNotificationToRedis(userId, title, body, "결제", userId);
+        }
     }
 }

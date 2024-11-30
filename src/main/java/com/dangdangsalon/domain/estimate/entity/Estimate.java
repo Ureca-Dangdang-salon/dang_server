@@ -52,4 +52,8 @@ public class Estimate extends BaseEntity {
         this.totalAmount = totalAmount;
         this.date = date;
     }
+
+    public void updateStatus(EstimateStatus status) {
+        this.status = status;
+    }
 }

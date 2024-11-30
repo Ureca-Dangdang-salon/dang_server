@@ -1,5 +1,9 @@
 package com.dangdangsalon.domain.notification.service;
 
+import com.dangdangsalon.domain.notification.entity.FcmToken;
+import com.dangdangsalon.domain.notification.repository.FcmTokenRepository;
+import com.dangdangsalon.domain.user.entity.User;
+import com.dangdangsalon.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -24,12 +29,9 @@ public class NotificationService {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
+    private final FcmTokenRepository fcmTokenRepository;
+    private final UserRepository userRepository;
 
-    private static final Duration NOTIFICATION_TTL = Duration.ofDays(14); // 14일
-
-    /**
-     * FCM 알림 전송
-     */
     public void sendNotificationWithData(String token, String title, String body, String type, Long referenceId) {
         try {
             // 메시지 구성
@@ -45,59 +47,87 @@ public class NotificationService {
 
             // 메시지 전송
             String response = FirebaseMessaging.getInstance().send(message);
-            log.info("FCM 알림 전송 성공 " + response);
+            log.info("FCM 알림 전송 성공: " + response);
 
         } catch (FirebaseMessagingException e) {
-            log.error("FCM 알림 전송에 실패했습니다. ", e);
+            log.error("FCM 알림 전송에 실패했습니다.", e);
         }
     }
 
-    /**
-     * FCM 토큰 저장
-     */
+    @Transactional
     public void saveOrUpdateFcmToken(Long userId, String token) {
-        String key = getRedisKey(userId);
-        String existingToken = redisTemplate.opsForValue().get(key);
 
-        // 새 토큰인지 확인
-        if (existingToken == null || !existingToken.equals(token)) {
-            // 새 토큰 저장 및 시간 업데이트
-            redisTemplate.opsForValue().set(key, token);
-            redisTemplate.opsForHash().put(key + ":timestamp", "updated_at", LocalDateTime.now().toString());
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId)
+        );
+
+        Optional<FcmToken> existingToken = fcmTokenRepository.findByFcmToken(token);
+
+        // 프론트에서 넘겨주는 토큰이 동일하면 시간만 업데이트
+        if (existingToken.isPresent()) {
+            existingToken.get().updateTokenLastUserAt();
+        } else {
+            // 다르면 저장 (한 사람이 여러 디바이스를 사용할 수도 있다)
+            FcmToken newToken = FcmToken.builder()
+                    .fcmToken(token)
+                    .lastUserAt(LocalDateTime.now())
+                    .user(user)
+                    .build();
+
+            fcmTokenRepository.save(newToken);
         }
     }
 
-    /**
-     * FCM 토큰 가져오기
-     */
+
     public String getFcmToken(Long userId) {
-        String key = getRedisKey(userId);
-        return redisTemplate.opsForValue().get(key);
+        return fcmTokenRepository.findByUserId(userId)
+                .map(FcmToken::getFcmToken)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자에 대한 FCM 토큰을 찾을 수 없습니다."));
     }
 
-    /**
-     * FCM 토큰 삭제
-     */
+    @Transactional
     public void deleteFcmToken(Long userId) {
-        String key = getRedisKey(userId);
-        redisTemplate.delete(key);
-        redisTemplate.delete(key + ":timestamp");
+        fcmTokenRepository.deleteByUserId(userId);
     }
 
-
     /**
-     * 비활성 토큰 삭제 (30일 이상 업데이트되지 않은 경우)
+     * 비활성 토큰 삭제 (60일 이상 업데이트되지 않은 경우)
      */
+    @Transactional
     @Scheduled(cron = "0 0 0 * * ?") // 매일 자정 실행
     public void removeInactiveTokens() {
-        Set<String> keys = redisTemplate.keys("fcm:token:*");
+        List<FcmToken> inactiveTokens = fcmTokenRepository.findAll().stream()
+                .filter(token -> Duration.between(token.getLastUserAt(), LocalDateTime.now()).toDays() > 60)
+                .toList();
+
+        fcmTokenRepository.deleteAll(inactiveTokens);
+    }
+
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void removeOldNotifications() {
+        Set<String> keys = redisTemplate.keys("notifications:*");
+
         for (String key : keys) {
-            String lastUpdatedAt = (String) redisTemplate.opsForHash().get(key + ":timestamp", "updated_at");
-            if (lastUpdatedAt != null) {
-                LocalDateTime lastUpdated = LocalDateTime.parse(lastUpdatedAt);
-                if (Duration.between(lastUpdated, LocalDateTime.now()).toDays() > 30) {
-                    redisTemplate.delete(key);
-                    redisTemplate.delete(key + ":timestamp");
+            List<String> notificationList = redisTemplate.opsForList().range(key, 0, -1);
+
+            if (notificationList == null || notificationList.isEmpty()) {
+                continue;
+            }
+
+            for (String notificationJson : notificationList) {
+                try {
+                    // JSON 문자열을 Map으로 변환
+                    Map<String, Object> notificationData = objectMapper.readValue(notificationJson, new TypeReference<Map<String, Object>>() {});
+
+                    // createdAt 확인
+                    LocalDateTime createdAt = LocalDateTime.parse(notificationData.get("createdAt").toString());
+                    if (Duration.between(createdAt, LocalDateTime.now()).toDays() > 14) {
+                        // 만료된 알림 삭제
+                        redisTemplate.opsForList().remove(key, 1, notificationJson);
+                    }
+                } catch (JsonProcessingException e) {
+                    log.error("알림 데이터를 처리하는 중 오류 발생", e);
                 }
             }
         }
@@ -125,8 +155,6 @@ public class NotificationService {
             // 읽지 않은 알림 개수 증가
             redisTemplate.opsForValue().increment("unread_count:" + userId);
 
-            // TTL 설정
-            redisTemplate.expire(key, NOTIFICATION_TTL);
         } catch (JsonProcessingException e) {
             log.error("Redis 알림 저장에 실패하였습니다", e);
         }
@@ -235,12 +263,5 @@ public class NotificationService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("모든 알림 읽음 처리 중 오류가 발생했습니다.", e);
         }
-    }
-
-    /**
-     * Redis Key 생성
-     */
-    private String getRedisKey(Long userId) {
-        return "fcm:token:" + userId;
     }
 }

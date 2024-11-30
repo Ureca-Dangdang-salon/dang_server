@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.orders.service;
 
 import com.dangdangsalon.domain.estimate.entity.Estimate;
+import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.orders.dto.OrdersRequestDto;
 import com.dangdangsalon.domain.orders.dto.OrdersResponseDto;
@@ -49,6 +50,8 @@ public class OrdersService {
                 .tossOrderId(ordersRequestDto.getTossOrderId())
                 .build();
         ordersRepository.save(order);
+
+        estimate.updateStatus(EstimateStatus.ACCEPTED);
 
         return OrdersResponseDto.builder()
                 .orderName(order.getOrderName())

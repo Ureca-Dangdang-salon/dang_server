@@ -53,9 +53,9 @@ public class EstimateRequestController {
     /**
      *  미용사 견적 요청 삭제 버튼 클릭 api
      */
-    @PutMapping("/{requestId}/cancel")
-    public ApiSuccess<?> cancelEstimateRequest(@PathVariable Long requestId) {
-        groomerEstimateRequestService.cancelGroomerEstimateRequest(requestId);
+    @DeleteMapping("/{requestId}")
+    public ApiSuccess<?> deleteEstimateRequest(@PathVariable Long requestId) {
+        groomerEstimateRequestService.deleteGroomerEstimateRequest(requestId);
         return ApiUtil.success("견적 요청 삭제에 성공하였습니다.");
     }
 

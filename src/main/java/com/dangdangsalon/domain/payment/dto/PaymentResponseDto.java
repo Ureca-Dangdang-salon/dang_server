@@ -10,6 +10,8 @@ import java.util.List;
 @Builder
 public class PaymentResponseDto {
 
+    private String groomerName;
+    private String groomerImage;
     private LocalDateTime paymentDate;
     private List<PaymentDogProfileResponseDto> dogProfileList;
     private int totalAmount;

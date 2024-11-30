@@ -41,6 +41,8 @@ public class PaymentGetService {
             List<PaymentDogProfileResponseDto> dogProfileList = getDogProfileServices(order);
 
             return PaymentResponseDto.builder()
+                    .groomerName(order.getEstimate().getGroomerProfile().getName())
+                    .groomerImage(order.getEstimate().getGroomerProfile().getImageKey())
                     .paymentDate(payment.getRequestedAt())
                     .dogProfileList(dogProfileList)
                     .totalAmount(payment.getTotalAmount())

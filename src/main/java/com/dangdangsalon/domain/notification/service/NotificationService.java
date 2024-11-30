@@ -7,10 +7,7 @@ import com.dangdangsalon.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
+import com.google.firebase.messaging.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,24 +30,33 @@ public class NotificationService {
     private final UserRepository userRepository;
 
     public void sendNotificationWithData(String token, String title, String body, String type, Long referenceId) {
-        try {
             // 메시지 구성
-            Message message = Message.builder()
-                    .setToken(token)
-                    .setNotification(Notification.builder()
-                            .setTitle(title)  // 알림 제목
-                            .setBody(body)    // 알림 내용
-                            .build())
-                    .putData("type", type)
-                    .putData("referenceId", String.valueOf(referenceId))
-                    .build();
+        Message message = Message.builder()
+                .setToken(token)
+                .setNotification(Notification.builder()
+                        .setTitle(title)  // 알림 제목
+                        .setBody(body)    // 알림 내용
+                        .build())
+                .putData("type", type)
+                .putData("referenceId", String.valueOf(referenceId))
+                .build();
 
+        try {
             // 메시지 전송
             String response = FirebaseMessaging.getInstance().send(message);
             log.info("FCM 알림 전송 성공: " + response);
 
         } catch (FirebaseMessagingException e) {
-            log.error("FCM 알림 전송에 실패했습니다.", e);
+            if (e.getMessagingErrorCode().equals(MessagingErrorCode.INVALID_ARGUMENT)) {
+                log.error("FCM 토큰이 유효하지 않습니다.", e);
+                deleteFcmToken(token);
+            } else if (e.getMessagingErrorCode().equals(MessagingErrorCode.UNREGISTERED)) {
+                log.error("FCM 토큰이 재발급 이전 토큰입니다.", e);
+                deleteFcmToken(token);
+            }
+            else {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -85,9 +91,8 @@ public class NotificationService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자에 대한 FCM 토큰을 찾을 수 없습니다."));
     }
 
-    @Transactional
-    public void deleteFcmToken(Long userId) {
-        fcmTokenRepository.deleteByUserId(userId);
+    public void deleteFcmToken(String token) {
+        fcmTokenRepository.deleteByFcmToken(token);
     }
 
     /**

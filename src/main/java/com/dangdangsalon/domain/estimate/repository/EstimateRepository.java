@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,4 +16,7 @@ public interface EstimateRepository extends JpaRepository<Estimate, Long> {
 
     Optional<List<Estimate>> findByEstimateRequest(EstimateRequest estimateRequest);
 
+    @Query("SELECT e FROM Estimate e WHERE e.date BETWEEN :start AND :end")
+    List<Estimate> findReservationsForTomorrow(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }
+

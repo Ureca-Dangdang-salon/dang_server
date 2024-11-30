@@ -45,10 +45,10 @@ public class NotificationService {
 
             // 메시지 전송
             String response = FirebaseMessaging.getInstance().send(message);
-            log.info("FCM 알림 전송 성공" + response);
+            log.info("FCM 알림 전송 성공 " + response);
 
         } catch (FirebaseMessagingException e) {
-            log.error("FCM 알림 전송에 실패했습니다.", e);
+            log.error("FCM 알림 전송에 실패했습니다. ", e);
         }
     }
 

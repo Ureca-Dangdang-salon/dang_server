@@ -7,6 +7,8 @@ import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
 import com.dangdangsalon.domain.estimate.request.entity.RequestStatus;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
+import com.dangdangsalon.domain.groomerprofile.repository.GroomerProfileRepository;
 import com.dangdangsalon.domain.region.entity.District;
 import com.dangdangsalon.domain.region.repository.DistrictRepository;
 import com.dangdangsalon.domain.user.entity.User;
@@ -47,6 +49,9 @@ class EstimateRequestServicesTest {
     private GroomerEstimateRequestService groomerEstimateRequestService;
 
     @Mock
+    private GroomerProfileRepository groomerProfileRepository;
+
+    @Mock
     private EstimateRequestRepository estimateRequestRepository;
 
     @BeforeEach
@@ -59,20 +64,23 @@ class EstimateRequestServicesTest {
     void testInsertEstimateRequest_Success() {
         // given
         Long userId = 1L;
+        Long groomerProfileId = 1L;
         User mockUser = mock(User.class);
         District mockDistrict = mock(District.class);
+        GroomerProfile mockGroomerProfile = mock(GroomerProfile.class);
         EstimateRequest mockEstimateRequest = mock(EstimateRequest.class);
 
         EstimateRequestDto estimateRequestDto = new EstimateRequestDto(
-                "서울특별시",
-                "강남구",
+                1L,
+                groomerProfileId,
                 LocalDateTime.now(),
                 "ANY",
                 Collections.emptyList()
         );
 
         given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
-        given(districtRepository.findByName(estimateRequestDto.getDistrict())).willReturn(mockDistrict);
+        given(districtRepository.findById(estimateRequestDto.getDistrictId())).willReturn(Optional.of(mockDistrict));
+        given(groomerProfileRepository.findById(groomerProfileId)).willReturn(Optional.of(mockGroomerProfile));
         given(estimateRequestInsertService.insertEstimateRequest(estimateRequestDto, mockUser, mockDistrict))
                 .willReturn(mockEstimateRequest);
 
@@ -81,11 +89,13 @@ class EstimateRequestServicesTest {
 
         // then
         verify(userRepository, times(1)).findById(userId);
-        verify(districtRepository, times(1)).findByName(estimateRequestDto.getDistrict());
+        verify(districtRepository, times(1)).findById(estimateRequestDto.getDistrictId());
+        verify(groomerProfileRepository, times(1)).findById(groomerProfileId);
         verify(estimateRequestInsertService, times(1)).insertEstimateRequest(estimateRequestDto, mockUser, mockDistrict);
         verify(groomerEstimateRequestService, times(1))
-                .insertGroomerEstimateRequests(mockEstimateRequest, mockDistrict, estimateRequestDto);
+                .insertGroomerEstimateRequestForSpecificGroomer(mockEstimateRequest, mockGroomerProfile, estimateRequestDto);
     }
+
 
     @Test
     @DisplayName("견적 요청 등록 실패 - 유저 ID 없음")
@@ -93,8 +103,8 @@ class EstimateRequestServicesTest {
         // given
         Long userId = 1L;
         EstimateRequestDto estimateRequestDto = new EstimateRequestDto(
-                "서울특별시",
-                "강남구",
+                1L,
+                1L,
                 LocalDateTime.now(),
                 "ANY",
                 Collections.emptyList()
@@ -106,10 +116,10 @@ class EstimateRequestServicesTest {
         assertThatThrownBy(() ->
                 estimateRequestServices.insertEstimateRequest(estimateRequestDto, userId))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("유저 아이디를 찾을 수 없습니다: " + userId);
+                .hasMessage("유저를 찾을 수 없습니다: " + userId);
 
         verify(userRepository, times(1)).findById(userId);
-        verify(districtRepository, never()).findByName(any());
+        verify(districtRepository, never()).findById(any());
         verify(estimateRequestInsertService, never()).insertEstimateRequest(any(), any(), any());
         verify(groomerEstimateRequestService, never()).insertGroomerEstimateRequests(any(), any(), any());
     }

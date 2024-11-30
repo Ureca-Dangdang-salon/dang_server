@@ -11,6 +11,7 @@ import lombok.Getter;
 @Builder
 public class CommonProfileResponseDto {
     private String imageKey;
+    private String name;
     private String email;
     private String district;
     private String city;
@@ -18,6 +19,7 @@ public class CommonProfileResponseDto {
     public static CommonProfileResponseDto createCommonProfileResponseDto(User user) {
         return CommonProfileResponseDto.builder()
                 .imageKey(user.getImageKey())
+                .name(user.getName())
                 .email(user.getEmail())
                 .city(user.getDistrict().getCity().getName())
                 .district(user.getDistrict().getName())

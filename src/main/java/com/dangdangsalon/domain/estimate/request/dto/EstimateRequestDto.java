@@ -9,15 +9,15 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class EstimateRequestDto {
-    private String city;
-    private String district;
+    private Long groomerProfileId;
+    private Long districtId;
     private LocalDateTime date;
     private String serviceType;
     private List<DogEstimateRequestDto> dogEstimateRequestList;
 
-    public EstimateRequestDto(String city, String district, LocalDateTime date, String serviceType, List<DogEstimateRequestDto> dogEstimateRequestList) {
-        this.city = city;
-        this.district = district;
+    public EstimateRequestDto(Long groomerProfileId, Long districtId, LocalDateTime date, String serviceType, List<DogEstimateRequestDto> dogEstimateRequestList) {
+        this.groomerProfileId = groomerProfileId;
+        this.districtId = districtId;
         this.date = date;
         this.serviceType = serviceType;
         this.dogEstimateRequestList = dogEstimateRequestList;

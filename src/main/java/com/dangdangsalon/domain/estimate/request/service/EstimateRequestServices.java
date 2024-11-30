@@ -8,6 +8,8 @@ import com.dangdangsalon.domain.estimate.request.dto.MyEstimateRequestResponseDt
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.estimate.request.entity.RequestStatus;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
+import com.dangdangsalon.domain.groomerprofile.repository.GroomerProfileRepository;
 import com.dangdangsalon.domain.region.entity.District;
 import com.dangdangsalon.domain.region.repository.DistrictRepository;
 import com.dangdangsalon.domain.user.entity.User;
@@ -27,17 +29,30 @@ public class EstimateRequestServices {
     private final DistrictRepository districtRepository;
     private final EstimateRequestRepository estimateRequestRepository;
     private final UserRepository userRepository;
+    private final GroomerProfileRepository groomerProfileRepository;
 
     // 견적 요청 등록
     @Transactional
     public void insertEstimateRequest(EstimateRequestDto estimateRequestDto, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저 아이디를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다: " + userId));
 
-        District district = districtRepository.findByName(estimateRequestDto.getDistrict());
+        District district = districtRepository.findById(estimateRequestDto.getDistrictId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 구를 찾을 수 없습니다: " +estimateRequestDto.getDistrictId()));
+
         EstimateRequest estimateRequest = estimateRequestInsertService.insertEstimateRequest(estimateRequestDto, user, district);
 
-        groomerEstimateRequestService.insertGroomerEstimateRequests(estimateRequest, district, estimateRequestDto);
+        if (estimateRequestDto.getGroomerProfileId() != null) {
+            // groomerProfileId가 있는 경우 1대1 요청
+            GroomerProfile groomerProfile = groomerProfileRepository.findById(estimateRequestDto.getGroomerProfileId())
+                    .orElseThrow(() -> new IllegalArgumentException("미용사를 찾을 수 없습니다: " + estimateRequestDto.getGroomerProfileId()));
+
+            groomerEstimateRequestService.insertGroomerEstimateRequestForSpecificGroomer(estimateRequest, groomerProfile, estimateRequestDto);
+
+        } else {
+            // groomerProfileId가 없는 경우
+            groomerEstimateRequestService.insertGroomerEstimateRequests(estimateRequest, district, estimateRequestDto);
+        }
     }
 
     // 내 견적 요청 조회 (채팅)

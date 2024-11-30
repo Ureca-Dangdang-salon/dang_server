@@ -6,6 +6,7 @@ import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestService;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestServiceRepository;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
 import com.dangdangsalon.domain.orders.entity.OrderStatus;
 import com.dangdangsalon.domain.orders.entity.Orders;
@@ -93,10 +94,17 @@ class PaymentGetServiceTest {
                 .build();
         ReflectionTestUtils.setField(mockEstimateRequest, "id", 1L);
 
+        GroomerProfile mockGroomerProfile = GroomerProfile.builder()
+                .name("이민수")
+                .imageKey("test-image-key")
+                .build();
+
         mockOrder = Orders.builder()
                 .user(mockUser)
                 .status(OrderStatus.ACCEPTED)
-                .estimate(Estimate.builder().estimateRequest(mockEstimateRequest).build())
+                .estimate(Estimate.builder()
+                        .groomerProfile(mockGroomerProfile)
+                        .estimateRequest(mockEstimateRequest).build())
                 .build();
         ReflectionTestUtils.setField(mockOrder, "id", 1L);
 
@@ -130,6 +138,8 @@ class PaymentGetServiceTest {
         assertThat(paymentList).hasSize(1);
 
         PaymentResponseDto payment = paymentList.get(0);
+        assertThat(payment.getGroomerName()).isEqualTo("이민수");
+        assertThat(payment.getGroomerImage()).isEqualTo("test-image-key");
         assertThat(payment.getTotalAmount()).isEqualTo(15000);
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.ACCEPTED.toString());
         assertThat(payment.getDogProfileList()).hasSize(1);

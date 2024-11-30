@@ -9,6 +9,7 @@ import jakarta.persistence.SecondaryTable;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -36,26 +37,17 @@ public class ChatSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-//        String authorizationHeader = session.getHandshakeHeaders().getFirst("Authorization");
-//
-//        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-//            String token = authorizationHeader.substring(7);
-//
-//            Long senderId = jwtUtil.getUserId(token);
-//            String senderRole = jwtUtil.getRole(token);
-//
-//            session.getAttributes().put("senderId", senderId);
-//            session.getAttributes().put("senderRole", senderRole);
-//        } STOMP로 바꾸면 클라이언트측에서 토큰 담아 요청 가능
-
         String query = Objects.requireNonNull(session.getUri()).getQuery();
         String token = null;
 
-        if (query != null && query.contains("token=")) {
-            String tempToken = query.split("token=")[1];
-            log.info(tempToken);
-            token = tempToken.substring(7);
-            log.info(token);
+        List<String> cookies = session.getHandshakeHeaders().get("Cookie");
+
+        if (cookies != null && !cookies.isEmpty()) {
+            token = cookies.stream()
+                    .map(this::extractTokenFromCookie)
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(null);
         }
 
         if (token != null) {
@@ -66,18 +58,8 @@ public class ChatSocketHandler extends TextWebSocketHandler {
             session.getAttributes().put("senderRole", senderRole);
         }
 
-//        String query = Objects.requireNonNull(session.getUri()).getQuery();
-        Map<String, String> queryParams = Arrays.stream(query.split("&"))
-                .map(param -> param.split("=", 2)) // "=" 기준으로 키와 값 분리
-                .collect(Collectors.toMap(
-                        parts -> parts[0], // Key
-                        parts -> parts.length > 1 ? parts[1] : "" // Value
-                ));
-        log.info(query);
-//        String roomIdParam = query.split("=")[1];
-        String roomIdParam = queryParams.get("roomId");
-//        Long roomId = Long.parseLong(roomIdParam.substring(1));
-        Long roomId = Long.parseLong(roomIdParam);
+        String roomIdParam = query.split("=")[1];
+        Long roomId = Long.parseLong(roomIdParam.substring(1));
         String sessionId = session.getId();
 
         chatRoomSessions.putIfAbsent(roomId, ConcurrentHashMap.newKeySet());

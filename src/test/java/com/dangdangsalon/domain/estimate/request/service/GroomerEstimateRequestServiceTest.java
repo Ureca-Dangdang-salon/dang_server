@@ -158,8 +158,8 @@ class GroomerEstimateRequestServiceTest {
     }
 
     @Test
-    @DisplayName("견적 요청 상태를 CANCEL로 변경")
-    void cancelGroomerEstimateRequest_Success() {
+    @DisplayName("견적 요청 삭제 미용사")
+    void deleteGroomerEstimateRequest_Success() {
         // given
         Long estimateRequestId = 1L;
         GroomerEstimateRequest groomerEstimateRequest = mock(GroomerEstimateRequest.class);
@@ -168,15 +168,15 @@ class GroomerEstimateRequestServiceTest {
                 .thenReturn(Optional.of(groomerEstimateRequest));
 
         // when
-        groomerEstimateRequestService.cancelGroomerEstimateRequest(estimateRequestId);
+        groomerEstimateRequestService.deleteGroomerEstimateRequest(estimateRequestId);
 
         // then
-        verify(groomerEstimateRequest, times(1)).updateStatus(GroomerRequestStatus.CANCEL);
+        verify(groomerEstimateRequest, times(1));
     }
 
     @Test
     @DisplayName("견적 요청 ID가 없을 때 예외 발생")
-    void cancelGroomerEstimateRequest_NotFound() {
+    void deleteGroomerEstimateRequest_NotFound() {
         // given
         Long estimateRequestId = 1L;
 
@@ -184,10 +184,14 @@ class GroomerEstimateRequestServiceTest {
                 .thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> groomerEstimateRequestService.cancelGroomerEstimateRequest(estimateRequestId))
+        assertThatThrownBy(() -> groomerEstimateRequestService.deleteGroomerEstimateRequest(estimateRequestId))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("견적 요청을 찾을 수 없습니다: " + estimateRequestId);
+
+        // verify that the repository method was called once
+        verify(groomerEstimateRequestRepository, times(1)).findByEstimateRequestId(estimateRequestId);
     }
+
 
     private EstimateRequestDto createEstimateRequestDto() {
         DogEstimateRequestDto dogEstimateRequestDto = new DogEstimateRequestDto(

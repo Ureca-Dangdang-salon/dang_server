@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/oauth2/authorization/**", "/api/test", "/actuator/**",
-                                "/api/contests/winner/**", "/api/images/**", "/api/groomerprofile/{groomerProfileId}",
+                                "/api/groomerprofile/{groomerProfileId}",
                                 "/api/contests/winner/**", "/api/images/**", "/chat", "/ws/chat/**")
                         .permitAll()
                         .requestMatchers("/api/auth/join").hasRole("PENDING")

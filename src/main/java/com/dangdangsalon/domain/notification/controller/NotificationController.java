@@ -2,6 +2,7 @@ package com.dangdangsalon.domain.notification.controller;
 
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.notification.dto.FcmTokenRequestDto;
+import com.dangdangsalon.domain.notification.service.NotificationScheduler;
 import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final NotificationScheduler notificationScheduler;
 
     /**
      * 로그인 시 FCM 토큰을 Redis에 저장
@@ -56,10 +58,10 @@ public class NotificationController {
      * 알림 읽음 처리
      */
     @PostMapping("/read")
-    public ApiSuccess<?> updateNotificationAsRead(@RequestParam int index,
+    public ApiSuccess<?> updateNotificationAsRead(@RequestParam String uuid,
                                                 @AuthenticationPrincipal CustomOAuth2User user) {
         Long userId = user.getUserId();
-        notificationService.updateNotificationAsRead(userId, index);
+        notificationService.updateNotificationAsRead(userId, uuid);
         return ApiUtil.success("알림이 성공적으로 읽음 처리되었습니다.");
     }
 

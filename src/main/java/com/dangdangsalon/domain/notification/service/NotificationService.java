@@ -108,7 +108,6 @@ public class NotificationService {
         fcmTokenRepository.deleteAll(inactiveTokens);
     }
 
-
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeOldNotifications() {
         Set<String> keys = redisTemplate.keys("notifications:*");
@@ -144,8 +143,11 @@ public class NotificationService {
     public void saveNotificationToRedis(Long userId, String title, String body, String type, Long referenceId) {
         String key = "notifications:" + userId;
 
+        String notificationId = UUID.randomUUID().toString();
+
         // 알림 데이터 생성
         Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("id", notificationId);
         notificationData.put("title", title);
         notificationData.put("body", body);
         notificationData.put("isRead", false);
@@ -206,28 +208,28 @@ public class NotificationService {
                 .toList();
     }
 
-
     /**
      * 알림 읽음 처리
      */
-    public void updateNotificationAsRead(Long userId, int index) {
+    public void updateNotificationAsRead(Long userId, String uuid) {
         String key = "notifications:" + userId;
 
-        // 해당 알림 가져오기
-        String notification = redisTemplate.opsForList().index(key, index);
-        if (notification == null) {
-            throw new IllegalArgumentException("알림을 찾을 수 없습니다: Index = " + index);
-        }
+        List<String> notifications = redisTemplate.opsForList().range(key, 0, -1);
 
         try {
-            // JSON 데이터를 Map 으로 변환 후 읽음 처리
-            Map<String, Object> notificationData = objectMapper.readValue(notification, Map.class);
-            if (Boolean.FALSE.equals(notificationData.get("isRead"))) {
-                notificationData.put("isRead", true);
-                redisTemplate.opsForList().set(key, index, objectMapper.writeValueAsString(notificationData));
+            for (int i = 0; i < notifications.size(); i++) {
+                String notification = notifications.get(i);
+                Map<String, Object> notificationData = objectMapper.readValue(notification, Map.class);
 
-                // 읽지 않은 알림 개수 감소
-                redisTemplate.opsForValue().decrement("unread_count:" + userId);
+                if (uuid.equals(notificationData.get("id"))) {
+                    if (Boolean.FALSE.equals(notificationData.get("isRead"))) {
+                        notificationData.put("isRead", true);
+
+                        redisTemplate.opsForList().set(key, i, objectMapper.writeValueAsString(notificationData));
+
+                        redisTemplate.opsForValue().decrement("unread_count:" + userId);
+                    }
+                }
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException("알림 읽음 처리 중 오류가 발생했습니다", e);

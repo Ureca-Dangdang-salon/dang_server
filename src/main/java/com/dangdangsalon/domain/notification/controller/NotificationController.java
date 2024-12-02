@@ -4,6 +4,7 @@ import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.notification.dto.FcmTokenRequestDto;
 import com.dangdangsalon.domain.notification.service.NotificationScheduler;
 import com.dangdangsalon.domain.notification.service.NotificationService;
+import com.dangdangsalon.domain.notification.service.NotificationTopicService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,8 @@ import java.util.Map;
 public class NotificationController {
 
     private final NotificationService notificationService;
-    private final NotificationScheduler notificationScheduler;
+    private final NotificationTopicService notificationTopicService;
+
 
     /**
      * 로그인 시 FCM 토큰을 Redis에 저장
@@ -73,5 +75,40 @@ public class NotificationController {
         Long userId = user.getUserId();
         notificationService.notificationsAsRead(userId);
         return ApiUtil.success("모든 알림이 성공적으로 읽음 처리되었습니다.");
+    }
+
+    /**
+     * 페스티벌 주제 구독
+     */
+    @PostMapping("/subscribe/festival")
+    public ApiSuccess<?> subscribeToFestival(@AuthenticationPrincipal CustomOAuth2User user, @RequestBody FcmTokenRequestDto requestDto) {
+        Long userId = user.getUserId();
+
+        notificationService.saveOrUpdateFcmToken(userId, requestDto.getFcmToken());
+        notificationTopicService.subscribeToTopic(requestDto.getFcmToken(), "festival");
+
+        return ApiUtil.success("페스티벌 주제에 성공적으로 구독되었습니다.");
+    }
+
+    /**
+     * 페스티벌 주제 구독 해제
+     */
+    @PostMapping("/unsubscribe/festival")
+    public ApiSuccess<?> unsubscribeFromFestival(@RequestBody FcmTokenRequestDto requestDto) {
+        // 주제 구독 해제
+        notificationTopicService.unsubscribeFromTopic(requestDto.getFcmToken(), "festival");
+
+        return ApiUtil.success("페스티벌 주제 구독이 해제되었습니다.");
+    }
+
+    /**
+     * 주제로 알림 보내기
+     */
+    @PostMapping("/send")
+    public ApiSuccess<?> sendNotificationToTopic(@RequestParam String topic,
+                                                 @RequestParam String title,
+                                                 @RequestParam String body) {
+        notificationTopicService.sendNotificationToTopic(topic, title, body);
+        return ApiUtil.success("알림이 성공적으로 전송되었습니다.");
     }
 }

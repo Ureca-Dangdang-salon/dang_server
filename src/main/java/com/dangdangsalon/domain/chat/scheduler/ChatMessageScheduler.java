@@ -15,7 +15,7 @@ public class ChatMessageScheduler {
 
     private final ChatMessageService chatMessageService;
 
-    @Scheduled(cron = "0 32 11 * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void saveMessageMongo() {
         log.info("Redis -> Mongo save()");
 

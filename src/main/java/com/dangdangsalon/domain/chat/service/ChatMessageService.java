@@ -25,18 +25,22 @@ public class ChatMessageService {
     private final ChatMessageMongoService chatMessageMongoService;
 
     public void saveMessageRedis(ChatMessageDto message) {
+        Long sequence = chatRedisUtil.getNextSequence(message.getRoomId());
+        message.updateSequence(sequence);
+
         chatRedisUtil.saveMessage(message);
     }
 
     public void updateLastReadKey(ChatMessageDto message) {
-        chatRedisUtil.updateLastRead(message);
+        chatRedisUtil.updateLastReadSequence(message);
     }
 
     public String getLastMessage(Long roomId) {
         Object lastMessage = chatRedisUtil.getLastMessage(roomId);
 
         if (lastMessage instanceof ChatMessageDto) {
-            return ((ChatMessageDto) lastMessage).getMessageText();
+            String messageText = ((ChatMessageDto) lastMessage).getMessageText();
+            return (messageText == null) ? "사진을 보냈습니다." : messageText;
         }
 
         if (lastMessage == null) {
@@ -49,88 +53,82 @@ public class ChatMessageService {
     }
 
     public int getUnreadCount(Long roomId, Long userId) {
-        Long totalMessageCount = chatRedisUtil.getTotalMessageCount(roomId);
-        Integer lastReadIndex = chatRedisUtil.getLastReadIndex(roomId, userId);
+        Long totalSequence = chatRedisUtil.getCurrentSequence(roomId);
+        if (totalSequence == null) {
+            log.info("Redis 시퀀스 조회 불가 -> MongoDB에서 시퀀스 조회");
 
-        if (totalMessageCount == null) {
-            return 0;
-        }
+            totalSequence = chatMessageMongoService.getMaxSequence(roomId);
 
-        if (lastReadIndex == null) {
-            return totalMessageCount.intValue();
-        }
-
-        return Math.max(totalMessageCount.intValue() - (lastReadIndex + 1), 0);
-    }
-
-    public List<ChatMessageDto> getUnreadOrRecentMessages(Long roomId, Long userId) {
-        Integer lastReadIndex = chatRedisUtil.getLastReadIndex(roomId, userId);
-        Long totalMessageCount = chatRedisUtil.getTotalMessageCount(roomId);
-
-        List<Object> redisMessages = chatRedisUtil.getMessagesForUnreadOrRecent(roomId, lastReadIndex,
-                totalMessageCount);
-
-        if (!redisMessages.isEmpty()) {
-            Integer firstLoadedIndex = chatRedisUtil.getFirstLoadedIndex(roomId, userId);
-            chatRedisUtil.updateFirstLoadedIndex(roomId, userId, firstLoadedIndex - redisMessages.size() - 1);
-            chatRedisUtil.updateLastReadMessage(roomId, userId);
-            return redisMessages.stream()
-                    .map(messages -> objectMapper.convertValue(messages, ChatMessageDto.class))
-                    .toList();
-        }
-
-        log.info("Redis 메시지 데이터 X -> MongoDB 조회");
-        List<ChatMessageDto> mongoMessages;
-        String lastReadMessageId = null;
-
-        if (lastReadIndex != null) {
-            Object lastReadMessage = chatRedisUtil.getLastReadMessage(roomId, lastReadIndex);
-
-            if (lastReadMessage != null) {
-                ChatMessageDto messageDto = objectMapper.convertValue(lastReadMessage, ChatMessageDto.class);
-                lastReadMessageId = messageDto.getMessageId();
+            if (totalSequence == null) {
+                return 0;
             }
         }
 
-        if (lastReadMessageId == null) {
-            mongoMessages = chatMessageMongoService.getChatMessagesInMongo(roomId, 0, ChatConst.MESSAGE_GET_LIMIT.getCount());
-        } else {
-            mongoMessages = chatMessageMongoService.getUnreadMessages(roomId, lastReadMessageId);
+        Long lastReadSequence = chatRedisUtil.getLastReadSequence(roomId, userId);
+
+        if (lastReadSequence == null) {
+            return totalSequence.intValue();
         }
 
-        if (!mongoMessages.isEmpty()) {
-            Integer firstLoadedIndex = chatRedisUtil.getFirstLoadedIndex(roomId, userId);
-            chatRedisUtil.updateFirstLoadedIndex(roomId, userId, firstLoadedIndex - mongoMessages.size() - 1);
-            chatRedisUtil.updateLastReadMessage(roomId, userId);
+        return totalSequence.intValue() - lastReadSequence.intValue();
+    }
+
+    public List<ChatMessageDto> getUnreadOrRecentMessages(Long roomId, Long userId) {
+        Long lastReadSequence = chatRedisUtil.getLastReadSequence(roomId, userId);
+        log.info("lastReadSequence = " + lastReadSequence);
+        Long currentSequence = chatRedisUtil.getCurrentSequence(roomId);
+        log.info("currentSequence = " + currentSequence);
+        Long newFirstLoadedSequence = 0L;
+
+        //읽지 않은 메시지가 있는 경우 (읽지 않은 메시지 ~ 최신 메시지)
+        if (lastReadSequence != null && lastReadSequence < currentSequence) {
+            List<ChatMessageDto> unreadMessages = getFromUnreadMessagesToCurrentMessage(roomId,
+                    userId, lastReadSequence, currentSequence);
+
+            newFirstLoadedSequence = unreadMessages.get(0).getSequence();
+            chatRedisUtil.updateFirstLoadedSequence(roomId, userId, newFirstLoadedSequence);
+
+            return unreadMessages;
         }
 
-        return mongoMessages;
+        //읽지 않은 메시지가 없는 경우 -> 최신 메시지부터 N개 조회
+        List<ChatMessageDto> recentMessages = getRecentMessages(roomId, currentSequence);
+
+        newFirstLoadedSequence = recentMessages.get(0).getSequence();
+        chatRedisUtil.updateFirstLoadedSequence(roomId, userId, newFirstLoadedSequence);
+        return recentMessages;
     }
 
     public List<ChatMessageDto> getPreviousMessages(Long roomId, Long userId) {
-        List<Object> redisMessages = chatRedisUtil.getPreviousMessages(roomId, userId);
+        Long firstLoadedSequence = chatRedisUtil.getFirstLoadedSequence(roomId, userId);
 
-        if (chatRedisUtil.getFirstLoadedIndex(roomId, userId) == 0) {
+        if (firstLoadedSequence == null || firstLoadedSequence <= 0) {
             return List.of();
         }
 
+        List<Object> redisMessages = chatRedisUtil.getMessagesBySequence(
+                roomId, Math.max(0L, firstLoadedSequence - ChatConst.MESSAGE_GET_LIMIT.getCount()),
+                firstLoadedSequence - 1
+        );
+
         if (!redisMessages.isEmpty()) {
-            Integer firstLoadedIndex = chatRedisUtil.getFirstLoadedIndex(roomId, userId);
-            chatRedisUtil.updateFirstLoadedIndex(roomId, userId, firstLoadedIndex - redisMessages.size() - 1);
+            ChatMessageDto firstMessage = objectMapper.convertValue(redisMessages.get(0), ChatMessageDto.class);
+            Long newFirstLoadedSequence = firstMessage.getSequence() - 1;
+            chatRedisUtil.updateFirstLoadedSequence(roomId, userId, newFirstLoadedSequence);
 
             return redisMessages.stream()
-                    .map(rawMessage -> objectMapper.convertValue(rawMessage, ChatMessageDto.class))
+                    .map(message -> objectMapper.convertValue(message, ChatMessageDto.class))
                     .toList();
         }
 
-        log.info("Redis 메시지 데이터 X -> MongoDB 조회");
-        LocalDateTime beforeMessageSendAt = getLastMessageSendAtFromRedis(roomId, userId);
-        List<ChatMessageDto> mongoMessages = chatMessageMongoService.getPreviousMessages(roomId, beforeMessageSendAt,
-                ChatConst.MESSAGE_GET_LIMIT.getCount());
+        log.info("Redis에 이전 메시지 X -> MongoDB 조회");
+        List<ChatMessageDto> mongoMessages = chatMessageMongoService.getMessagesBeforeSequence(
+                roomId, firstLoadedSequence, ChatConst.MESSAGE_GET_LIMIT.getCount()
+        );
 
         if (!mongoMessages.isEmpty()) {
-            Integer firstLoadedIndex = chatRedisUtil.getFirstLoadedIndex(roomId, userId);
-            chatRedisUtil.updateFirstLoadedIndex(roomId, userId, firstLoadedIndex - mongoMessages.size() - 1);
+            Long newFirstLoadedSequence = mongoMessages.get(mongoMessages.size() - 1).getSequence();
+            chatRedisUtil.updateFirstLoadedSequence(roomId, userId, newFirstLoadedSequence);
         }
 
         return mongoMessages;
@@ -139,21 +137,6 @@ public class ChatMessageService {
     public void deleteChatData(Long roomId) {
         chatRedisUtil.deleteRoomData(roomId);
         chatMessageMongoService.deleteChatMessages(roomId);
-    }
-
-    private LocalDateTime getLastMessageSendAtFromRedis(Long roomId, Long userId) {
-        Integer lastLoadedIndex = chatRedisUtil.getFirstLoadedIndex(roomId, userId);
-
-        if (lastLoadedIndex != null) {
-            ChatMessageDto lastLoadedMessage = objectMapper.convertValue(
-                    chatRedisUtil.getMessageAtIndex(roomId, lastLoadedIndex), ChatMessageDto.class);
-
-            if (lastLoadedMessage != null) {
-                return lastLoadedMessage.getSendAt();
-            }
-        }
-
-        return LocalDateTime.now();
     }
 
     public void saveAllMessagesMongo() {
@@ -172,5 +155,41 @@ public class ChatMessageService {
 
             chatRedisUtil.deleteRoomData(roomId);
         }
+    }
+
+    private List<ChatMessageDto> getFromUnreadMessagesToCurrentMessage(Long roomId, Long userId, Long lastReadSequence,
+                                                                       Long currentSequence) {
+        List<Object> redisMessages = chatRedisUtil.getMessagesBySequence(roomId, lastReadSequence + 1, currentSequence);
+
+        if (!redisMessages.isEmpty()) {
+            chatRedisUtil.updateLastReadSequence(roomId, userId, currentSequence);
+            return redisMessages.stream()
+                    .map(message -> objectMapper.convertValue(message, ChatMessageDto.class))
+                    .toList();
+        }
+
+        log.info("Redis 데이터 X -> MongoDB 조회 roomId: {}, lastReadSequence: {}", roomId, lastReadSequence);
+        List<ChatMessageDto> mongoMessages = chatMessageMongoService.getMessagesFromSequence(roomId,
+                lastReadSequence, ChatConst.MESSAGE_GET_LIMIT.getCount());
+
+        Long lastSequence = mongoMessages.get(mongoMessages.size() - 1).getSequence();
+        chatRedisUtil.updateLastReadSequence(roomId, userId, lastSequence);
+
+        return mongoMessages;
+    }
+
+    private List<ChatMessageDto> getRecentMessages(Long roomId, Long currentSequence) {
+        List<Object> recentRedisMessages = chatRedisUtil.getMessagesBySequence(
+                roomId, currentSequence - ChatConst.MESSAGE_GET_LIMIT.getCount() + 1, currentSequence);
+
+        if (!recentRedisMessages.isEmpty()) {
+            return recentRedisMessages.stream()
+                    .map(message -> objectMapper.convertValue(message, ChatMessageDto.class))
+                    .toList();
+        }
+
+        log.info("Redis 데이터 X -> MongoDB 조회 roomId: {}, currentSequence: {}", roomId, currentSequence);
+        return chatMessageMongoService.getMessagesFromSequence(roomId,
+                currentSequence - ChatConst.MESSAGE_GET_LIMIT.getCount(), ChatConst.MESSAGE_GET_LIMIT.getCount());
     }
 }

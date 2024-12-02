@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ChatMessageDto {
 
+    private Long sequence;
     private String messageId;
     private Long roomId;
     private Long senderId;
@@ -24,8 +25,9 @@ public class ChatMessageDto {
     private LocalDateTime sendAt;
     private ChatEstimateInfo estimateInfo;
 
-    public static ChatMessageDto createTextMessage(Long roomId, Long senderId, String senderRole, String messageText) {
+    public static ChatMessageDto createTextMessage(Long sequence, Long roomId, Long senderId, String senderRole, String messageText) {
         return ChatMessageDto.builder()
+                .sequence(sequence)
                 .messageId(UUIDUtil.generateTimeBasedUUID())
                 .roomId(roomId)
                 .senderId(senderId)
@@ -35,8 +37,9 @@ public class ChatMessageDto {
                 .build();
     }
 
-    public static ChatMessageDto createImageMessage(Long roomId, Long senderId, String senderRole, String imageUrl) {
+    public static ChatMessageDto createImageMessage(Long sequence, Long roomId, Long senderId, String senderRole, String imageUrl) {
         return ChatMessageDto.builder()
+                .sequence(sequence)
                 .messageId(UUIDUtil.generateTimeBasedUUID())
                 .roomId(roomId)
                 .senderId(senderId)
@@ -48,6 +51,7 @@ public class ChatMessageDto {
 
     public static ChatMessageDto mongoMessageToDto(ChatMessageMongo messages) {
         return ChatMessageDto.builder()
+                .sequence(messages.getSequence())
                 .messageId(messages.getId())
                 .roomId(messages.getRoomId())
                 .senderId(messages.getSenderId())
@@ -56,5 +60,9 @@ public class ChatMessageDto {
                 .imageUrl(messages.getImageUrl())
                 .sendAt(messages.getSendAt())
                 .build();
+    }
+
+    public void updateSequence(Long sequence) {
+        this.sequence = sequence;
     }
 }

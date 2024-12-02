@@ -12,6 +12,7 @@ import com.dangdangsalon.domain.chat.dto.CreateChatRoomResponseDto;
 import com.dangdangsalon.domain.chat.entity.ChatRoom;
 import com.dangdangsalon.domain.chat.entity.SenderRole;
 import com.dangdangsalon.domain.chat.repository.ChatRoomRepository;
+import com.dangdangsalon.domain.chat.util.ChatRedisUtil;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.dto.ServicePriceResponseDto;
@@ -24,6 +25,7 @@ import com.dangdangsalon.domain.payment.dto.PaymentDogProfileResponseDto;
 import com.dangdangsalon.domain.user.entity.Role;
 import com.dangdangsalon.domain.user.entity.User;
 import com.dangdangsalon.domain.user.repository.UserRepository;
+import com.dangdangsalon.util.RedisUtil;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +44,7 @@ public class ChatRoomService {
     private final EstimateRequestServiceRepository estimateRequestServiceRepository;
 
     private final ChatMessageService chatMessageService;
+    private final ChatRedisUtil chatRedisUtil;
 
     @Transactional
     public CreateChatRoomResponseDto createChatRoom(CreateChatRoomRequestDto createChatRoomRequestDto) {
@@ -157,7 +160,10 @@ public class ChatRoomService {
     }
 
     private void saveFirstChatToRedis(ChatRoom createdChatRoom, User groomer, Estimate estimate) {
+        Long currentSequence = chatRedisUtil.getCurrentSequence(createdChatRoom.getId());
+
         ChatMessageDto estimateMessage = ChatMessageDto.builder()
+                .sequence(++currentSequence)
                 .messageId(UUID.randomUUID().toString())
                 .roomId(createdChatRoom.getId())
                 .senderId(groomer.getId())
@@ -169,19 +175,21 @@ public class ChatRoomService {
         GroomerProfile groomerProfile = groomerProfileRepository.findByUserId(groomer.getId())
                 .orElseThrow(() -> new IllegalArgumentException("미용사 프로필이 존재하지 않습니다. Id: " + groomer.getId()));
 
-        ChatMessageDto wantSendImageMessage = ChatMessageDto.createImageMessage(createdChatRoom.getId(),
+        ChatMessageDto wantSendImageMessage = ChatMessageDto.createImageMessage(++currentSequence, createdChatRoom.getId(),
                 groomer.getId(), Role.ROLE_SALON.name(), estimate.getImageKey());
 
-        ChatMessageDto wantSendDescriptionMessage = ChatMessageDto.createTextMessage(createdChatRoom.getId(),
+        ChatMessageDto wantSendDescriptionMessage = ChatMessageDto.createTextMessage(++currentSequence, createdChatRoom.getId(),
                 groomer.getId(), Role.ROLE_SALON.name(), estimate.getDescription());
 
-        ChatMessageDto firstMessage = ChatMessageDto.createTextMessage(createdChatRoom.getId(),
+        ChatMessageDto firstMessage = ChatMessageDto.createTextMessage(++currentSequence, createdChatRoom.getId(),
                 groomer.getId(), Role.ROLE_SALON.name(), groomerProfile.getDetails().getStartChat());
 
         chatMessageService.saveMessageRedis(estimateMessage);
         chatMessageService.saveMessageRedis(wantSendImageMessage);
         chatMessageService.saveMessageRedis(wantSendDescriptionMessage);
         chatMessageService.saveMessageRedis(firstMessage);
+
+        chatRedisUtil.updateCurrentSequence(createdChatRoom.getId(), currentSequence);
     }
 
     private ChatEstimateInfo createEstimateMessage(Estimate estimate) {

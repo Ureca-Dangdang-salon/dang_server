@@ -2,9 +2,10 @@ package com.dangdangsalon.util;
 
 public enum RedisKey {
 
-    SAVE_MESSAGE_ROOM_ID_KEY("chat:messages:"),
-    LAST_READ_KEY("lastRead:"),
-    FIRST_LOADED_KEY("firstLoadedIndex:");
+    SAVE_MESSAGE_ROOM_ID_KEY("chat:messages:roomId="),
+    LAST_READ_KEY("lastReadSequence:"),
+    FIRST_LOADED_KEY("firstLoadedSequence:"),
+    SEQUENCE_KEY("chat:sequence:roomId=");
 
     private final String key;
 

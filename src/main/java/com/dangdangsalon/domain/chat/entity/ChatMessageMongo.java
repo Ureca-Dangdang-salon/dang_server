@@ -15,6 +15,7 @@ public class ChatMessageMongo {
     @Id
     private String id;
 
+    private Long sequence;
     private Long roomId;
     private Long senderId;
     private String senderRole;
@@ -23,10 +24,11 @@ public class ChatMessageMongo {
     private LocalDateTime sendAt;
 
     @Builder
-    public ChatMessageMongo(String id, Long roomId, Long senderId, String senderRole, String messageText,
+    public ChatMessageMongo(String id, Long sequence, Long roomId, Long senderId, String senderRole, String messageText,
                             String imageUrl,
                             LocalDateTime sendAt) {
         this.id = id;
+        this.sequence = sequence;
         this.roomId = roomId;
         this.senderId = senderId;
         this.senderRole = senderRole;
@@ -38,6 +40,7 @@ public class ChatMessageMongo {
     public static ChatMessageMongo createMessage(ChatMessageDto message) {
         return ChatMessageMongo.builder()
                 .id(message.getMessageId())
+                .sequence(message.getSequence())
                 .roomId(message.getRoomId())
                 .senderId(message.getSenderId())
                 .senderRole(message.getSenderRole())

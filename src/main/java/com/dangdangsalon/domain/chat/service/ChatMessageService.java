@@ -113,7 +113,7 @@ public class ChatMessageService {
 
         if (!redisMessages.isEmpty()) {
             ChatMessageDto firstMessage = objectMapper.convertValue(redisMessages.get(0), ChatMessageDto.class);
-            Long newFirstLoadedSequence = firstMessage.getSequence() - 1;
+            Long newFirstLoadedSequence = firstMessage.getSequence();
             chatRedisUtil.updateFirstLoadedSequence(roomId, userId, newFirstLoadedSequence);
 
             return redisMessages.stream()
@@ -127,7 +127,8 @@ public class ChatMessageService {
         );
 
         if (!mongoMessages.isEmpty()) {
-            Long newFirstLoadedSequence = mongoMessages.get(mongoMessages.size() - 1).getSequence();
+            Long newFirstLoadedSequence = mongoMessages.get(0).getSequence();
+            log.info("newFirstLoadedSequence= " + newFirstLoadedSequence);
             chatRedisUtil.updateFirstLoadedSequence(roomId, userId, newFirstLoadedSequence);
         }
 

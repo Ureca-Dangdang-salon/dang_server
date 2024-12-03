@@ -7,16 +7,22 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatMessageMongoService {
 
     private final ChatMessageRepository chatMessageRepository;
+    private final MongoTemplate mongoTemplate;
 
     public void saveChatMessage(ChatMessageDto message) {
         ChatMessageMongo savedChatMessage = ChatMessageMongo.createMessage(message);
@@ -32,26 +38,43 @@ public class ChatMessageMongoService {
     }
 
     public List<ChatMessageDto> getMessagesBeforeSequence(Long roomId, Long firstLoadedSequence, int limit) {
-        Pageable pageable = PageRequest.of(0, limit, Sort.by("sequence").descending());
-        List<ChatMessageDto> messages = new ArrayList<>(
-                chatMessageRepository.findByRoomIdAndSequenceLessThanOrderBySequenceDesc(roomId,
-                                firstLoadedSequence, pageable)
-                        .stream()
-                        .map(ChatMessageDto::mongoMessageToDto)
-                        .toList()); //스트림의 toList()는 기본적으로 불변리스트 생성함. 따라서 아래 addAll() 메서드 실패.
+//        List<ChatMessageDto> messages = chatMessageRepository.findByRoomIdAndSequenceLessThanOrderBySequenceAsc(
+//                        roomId, firstLoadedSequence, limit)
+//                .stream()
+//                .map(ChatMessageDto::mongoMessageToDto)
+//                .toList();
 
-        if (messages.size() < limit) {
-            Long lastSequence = messages.isEmpty() ? firstLoadedSequence : messages.get(messages.size() - 1).getSequence();
-            List<ChatMessageDto> additionalMessages = chatMessageRepository.findByRoomIdAndSequenceLessThanOrderBySequenceDesc(
-                            roomId, lastSequence, PageRequest.of(0, limit - messages.size() - 1, Sort.by("sequence").descending()))
-                    .stream()
-                    .map(ChatMessageDto::mongoMessageToDto)
-                    .toList();
+        int startSequence = calculateStartSequence(firstLoadedSequence, limit);
 
-            messages.addAll(additionalMessages);
+        Query query = new Query()
+                .addCriteria(
+                        Criteria.where("roomId").is(roomId).and("sequence").gte(startSequence).lt(firstLoadedSequence))
+                .with(Sort.by(Sort.Direction.ASC, "sequence"))
+                .limit(limit);
+
+        List<ChatMessageMongo> messages = mongoTemplate.find(query, ChatMessageMongo.class);
+
+        if (messages.isEmpty()) {
+            return List.of();
         }
 
-        return messages;
+        return messages.stream()
+                .map(ChatMessageDto::mongoMessageToDto)
+                .toList();
+
+        // 결과 반환
+//        return messages;
+
+//        if (messages.size() < limit) {
+//            Long lastSequence = messages.get(messages.size() - 1).getSequence();
+//            List<ChatMessageDto> additionalMessages = chatMessageRepository.findByRoomIdAndSequenceLessThanOrderBySequenceAsc(
+//                            roomId, lastSequence, pageable)
+//                    .stream()
+//                    .map(ChatMessageDto::mongoMessageToDto)
+//                    .toList();
+//
+//            messages.addAll(additionalMessages);
+//        }
     }
 
     public void deleteChatMessages(Long roomId) {
@@ -68,12 +91,17 @@ public class ChatMessageMongoService {
 
     public Long getMaxSequence(Long roomId) {
         Pageable pageable = PageRequest.of(0, 1, Sort.by("sequence").descending());
-        List<ChatMessageMongo> recentMessages = chatMessageRepository.findTopByRoomIdOrderBySequenceDesc(roomId, pageable);
+        List<ChatMessageMongo> recentMessages = chatMessageRepository.findTopByRoomIdOrderBySequenceDesc(roomId,
+                pageable);
 
         if (recentMessages.isEmpty()) {
             return 0L;
         }
 
         return recentMessages.get(0).getSequence();
+    }
+
+    private int calculateStartSequence(Long firstLoadedSequence, int limit) {
+        return Math.max(0, (int) (firstLoadedSequence - limit));
     }
 }

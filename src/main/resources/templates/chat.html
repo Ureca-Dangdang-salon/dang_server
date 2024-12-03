@@ -143,7 +143,7 @@
     // 메시지 표시
     function displayMessage(message, insertAtTop = false) {
         const newMessage = document.createElement("li");
-        newMessage.textContent = `[${message.senderRole}] ${message.senderId}: ${message.messageText}`;
+        newMessage.textContent = `${message.sequence} [${message.senderRole}] ${message.senderId}: ${message.messageText}`;
 
         if (insertAtTop) {
             messagesContainer.insertBefore(newMessage, messagesContainer.firstChild);

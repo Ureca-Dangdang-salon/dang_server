@@ -6,6 +6,7 @@ import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.notification.service.NotificationService;
+import com.dangdangsalon.domain.notification.service.RedisNotificationService;
 import com.dangdangsalon.domain.user.entity.User;
 import com.dangdangsalon.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class EstimateNotificationService {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final EstimateRepository estimateRepository;
+    private final RedisNotificationService redisNotificationService;
 
     @Transactional
     public void sendNotificationToUser(EstimateRequest estimateRequest, Estimate estimate, GroomerProfile groomerProfile) {
@@ -46,7 +48,7 @@ public class EstimateNotificationService {
                 notificationService.sendNotificationWithData(fcmToken, title, body, "견적서", estimate.getId()); // 알림 전송
 
                 // Redis에 알림 내용 저장
-                notificationService.saveNotificationToRedis(userId, title, body, "견적서", estimate.getId());
+                redisNotificationService.saveNotificationToRedis(userId, title, body, "견적서", estimate.getId());
             }
         }
     }

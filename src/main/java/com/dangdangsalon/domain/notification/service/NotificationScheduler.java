@@ -30,6 +30,7 @@ public class NotificationScheduler {
     private final ObjectMapper objectMapper;
     private final EstimateRepository estimateRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private final RedisNotificationService redisNotificationService;
 
     @Transactional
     @Scheduled(cron = "0 0 20 * * ?")
@@ -61,7 +62,7 @@ public class NotificationScheduler {
             }
 
             // Redis 알림 저장
-            notificationService.saveNotificationToRedis(userId, title, body, "RESERVATION_REMINDER", estimate.getId());
+            redisNotificationService.saveNotificationToRedis(userId, title, body, "RESERVATION_REMINDER", estimate.getId());
         }
     }
 

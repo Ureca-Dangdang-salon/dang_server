@@ -6,6 +6,7 @@ import com.dangdangsalon.domain.notification.dto.FcmTokenTopicRequestDto;
 import com.dangdangsalon.domain.notification.dto.NotificationDto;
 import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.notification.service.NotificationTopicService;
+import com.dangdangsalon.domain.notification.service.RedisNotificationService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
     private final NotificationTopicService notificationTopicService;
+    private final RedisNotificationService redisNotificationService;
 
     @PostMapping("/fcm-token")
     public ApiSuccess<?> registerFcmToken(@RequestBody FcmTokenRequestDto requestDto, @AuthenticationPrincipal CustomOAuth2User user) {
@@ -34,28 +36,28 @@ public class NotificationController {
     @GetMapping("/unread-count")
     public ApiSuccess<?> getUnreadNotificationCount(@AuthenticationPrincipal CustomOAuth2User user) {
         Long userId = user.getUserId();
-        Long unreadCount = notificationService.getUnreadNotificationCount(userId);
+        Long unreadCount = redisNotificationService.getUnreadNotificationCount(userId);
         return ApiUtil.success(unreadCount);
     }
 
     @GetMapping("/list")
     public ApiSuccess<?> getNotificationList(@AuthenticationPrincipal CustomOAuth2User user) {
         Long userId = user.getUserId();
-        List<NotificationDto> notificationDtoList = notificationService.getNotificationList(userId);
+        List<NotificationDto> notificationDtoList = redisNotificationService.getNotificationList(userId);
         return ApiUtil.success(notificationDtoList);
     }
 
     @PostMapping("/read")
     public ApiSuccess<?> updateNotificationAsRead(@RequestParam String uuid, @AuthenticationPrincipal CustomOAuth2User user) {
         Long userId = user.getUserId();
-        notificationService.updateNotificationAsRead(userId, uuid);
+        redisNotificationService.updateNotificationAsRead(userId, uuid);
         return ApiUtil.success("알림이 성공적으로 읽음 처리되었습니다.");
     }
 
     @PostMapping("/read-all")
     public ApiSuccess<?> markAllNotificationsAsRead(@AuthenticationPrincipal CustomOAuth2User user) {
         Long userId = user.getUserId();
-        notificationService.notificationsAsRead(userId);
+        redisNotificationService.notificationsAsRead(userId);
         return ApiUtil.success("모든 알림이 성공적으로 읽음 처리되었습니다.");
     }
 

@@ -39,8 +39,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final WebClient webClient;
-    private final NotificationService notificationService;
-    private final UserRepository userRepository;
+    private final PaymentNotificationService paymentNotificationService;
 
     @Value("${toss.api.key}")
     private String tossApiKey;
@@ -91,7 +90,7 @@ public class PaymentService {
             paymentRepository.save(payment);
             order.updateOrderStatus(OrderStatus.ACCEPTED);
 
-            sendNotificationToUser(order);
+            paymentNotificationService.sendNotificationToUser(order);
 
             return paymentResponse;
         } finally {
@@ -188,28 +187,5 @@ public class PaymentService {
         redisTemplate.delete(key);
     }
 
-    private void sendNotificationToUser(Orders orders) {
 
-        Long userId = orders.getUser().getId();
-
-        User user = userRepository.findById(userId).orElseThrow(() ->
-                new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId)
-        );
-        if (Boolean.FALSE.equals(user.getNotificationEnabled())) {
-            log.info("알림 비활성화: " + user.getId());
-        } else {
-            Optional<String> optionalFcmToken = notificationService.getFcmToken(userId);
-
-            if (optionalFcmToken.isPresent()) {
-                String fcmToken = optionalFcmToken.get();
-
-                String title = "결제가 완료되었습니다";
-                String body = "결제 내역을 확인해보세요.";
-                notificationService.sendNotificationWithData(fcmToken, title, body, "결제", userId); // 알림 전송
-
-                // redis 에 알림 내용 저장
-                notificationService.saveNotificationToRedis(userId, title, body, "결제", userId);
-            }
-        }
-    }
 }

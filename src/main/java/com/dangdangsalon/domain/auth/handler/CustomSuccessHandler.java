@@ -50,7 +50,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         String redirectUrl = role.equals(Role.ROLE_PENDING.name())
                 ? "http://localhost:5173/survey"
-                : "http://localhost:5173/";
+                : "http://localhost:5173/home";
 
         response.sendRedirect(redirectUrl);
     }

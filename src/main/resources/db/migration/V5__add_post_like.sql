@@ -11,3 +11,6 @@ CREATE TABLE post_like
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 ALTER TABLE contest_post DROP COLUMN like_count;
+
+ALTER TABLE `chat_message`
+    ADD COLUMN `is_read` BIT(1) NOT NULL DEFAULT 0;

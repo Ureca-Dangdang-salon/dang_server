@@ -48,7 +48,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         log.info("Access Token: {}", accessToken);
         log.info("Refresh Token: {}", refreshToken);
 
-        String redirectUrl = Role.from("ROLE_PENDING").equals(Role.ROLE_PENDING)
+        String redirectUrl = role.equals(Role.ROLE_PENDING.name())
                 ? "http://localhost:5173/survey"
                 : "http://localhost:5173/";
 

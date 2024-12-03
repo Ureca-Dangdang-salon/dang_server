@@ -2,7 +2,7 @@ package com.dangdangsalon.domain.notification.controller;
 
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.notification.dto.FcmTokenRequestDto;
-import com.dangdangsalon.domain.notification.service.NotificationScheduler;
+import com.dangdangsalon.domain.notification.dto.FcmTokenTopicRequestDto;
 import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.notification.service.NotificationTopicService;
 import com.dangdangsalon.util.ApiUtil;
@@ -59,22 +59,22 @@ public class NotificationController {
         return ApiUtil.success("모든 알림이 성공적으로 읽음 처리되었습니다.");
     }
 
-    @PostMapping("/subscribe/festival")
-    public ApiSuccess<?> subscribeToFestival(@AuthenticationPrincipal CustomOAuth2User user, @RequestBody FcmTokenRequestDto requestDto) {
+    @PostMapping("/subscribe")
+    public ApiSuccess<?> subscribe(@AuthenticationPrincipal CustomOAuth2User user, @RequestBody FcmTokenTopicRequestDto requestDto) {
         Long userId = user.getUserId();
 
         notificationService.saveOrUpdateFcmToken(userId, requestDto.getFcmToken());
-        notificationTopicService.subscribeToTopic(requestDto.getFcmToken(), "festival");
+        notificationTopicService.subscribeToTopic(requestDto.getFcmToken(), requestDto.getTopic());
 
-        return ApiUtil.success("페스티벌 주제에 성공적으로 구독되었습니다.");
+        return ApiUtil.success("성공적으로 구독되었습니다.");
     }
 
-    @PostMapping("/unsubscribe/festival")
-    public ApiSuccess<?> unsubscribeFromFestival(@RequestBody FcmTokenRequestDto requestDto) {
+    @PostMapping("/unsubscribe")
+    public ApiSuccess<?> unsubscribe(@RequestBody FcmTokenTopicRequestDto requestDto) {
 
-        notificationTopicService.unsubscribeFromTopic(requestDto.getFcmToken(), "festival");
+        notificationTopicService.unsubscribeFromTopic(requestDto.getFcmToken(), requestDto.getTopic());
 
-        return ApiUtil.success("페스티벌 주제 구독이 해제되었습니다.");
+        return ApiUtil.success("구독이 해제되었습니다.");
     }
 
     @PostMapping("/update/{enabled}")

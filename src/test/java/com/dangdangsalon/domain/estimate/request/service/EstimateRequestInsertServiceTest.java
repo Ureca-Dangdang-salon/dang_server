@@ -155,8 +155,8 @@ class EstimateRequestInsertServiceTest {
 
     private EstimateRequestDto createEstimateRequestDto(List<DogEstimateRequestDto> dogEstimateRequestDtoList) {
         return new EstimateRequestDto(
-                "서울특별시",
-                "강남구",
+                1L,
+                1L,
                 LocalDateTime.now(),
                 "VISIT",
                 dogEstimateRequestDtoList

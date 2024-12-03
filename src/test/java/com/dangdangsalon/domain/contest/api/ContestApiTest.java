@@ -12,6 +12,7 @@ import com.dangdangsalon.domain.contest.entity.Contest;
 import com.dangdangsalon.domain.contest.service.ContestPostLikeService;
 import com.dangdangsalon.domain.contest.service.ContestPostService;
 import com.dangdangsalon.domain.contest.service.ContestService;
+import com.dangdangsalon.util.JwtUtil;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
@@ -54,10 +55,18 @@ public class ContestApiTest {
     @MockBean
     private ContestPostLikeService contestPostLikeService;
 
+    @MockBean
+    private JwtUtil jwtUtil;
+
     @BeforeEach
     void setup() {
         RestAssured.port = port;
         RestAssuredMockMvc.mockMvc(mockMvc);
+
+        given(jwtUtil.isExpired(anyString())).willReturn(false);
+        given(jwtUtil.getUserId(anyString())).willReturn(1L);
+        given(jwtUtil.getUsername(anyString())).willReturn("testUser");
+        given(jwtUtil.getRole(anyString())).willReturn("ROLE_USER");
     }
 
     @Test
@@ -73,6 +82,7 @@ public class ContestApiTest {
 
         RestAssuredMockMvc
                 .given()
+                .cookie("Authorization", "mock.jwt.token")
                 .contentType(ContentType.JSON)
                 .when()
                 .get("/api/contests")
@@ -101,6 +111,7 @@ public class ContestApiTest {
 
         RestAssuredMockMvc
                 .given()
+                .cookie("Authorization", "mock.jwt.token")
                 .contentType(ContentType.JSON)
                 .when()
                 .get("/api/contests/1")
@@ -123,6 +134,7 @@ public class ContestApiTest {
 
         RestAssuredMockMvc
                 .given()
+                .cookie("Authorization", "mock.jwt.token")
                 .contentType(ContentType.JSON)
                 .when()
                 .get("/api/contests/1/check")
@@ -196,6 +208,7 @@ public class ContestApiTest {
 
         RestAssuredMockMvc
                 .given()
+                .cookie("Authorization", "mock.jwt.token")
                 .contentType(ContentType.JSON)
                 .body(requestDto)
                 .when()
@@ -218,6 +231,7 @@ public class ContestApiTest {
 
         RestAssuredMockMvc
                 .given()
+                .cookie("Authorization", "mock.jwt.token")
                 .when()
                 .delete("/api/posts/1")
                 .then()
@@ -238,6 +252,7 @@ public class ContestApiTest {
 
         RestAssuredMockMvc
                 .given()
+                .cookie("Authorization", "mock.jwt.token")
                 .when()
                 .post("/api/posts/1/like")
                 .then()
@@ -258,6 +273,7 @@ public class ContestApiTest {
 
         RestAssuredMockMvc
                 .given()
+                .cookie("Authorization", "mock.jwt.token")
                 .when()
                 .delete("/api/posts/1/like")
                 .then()

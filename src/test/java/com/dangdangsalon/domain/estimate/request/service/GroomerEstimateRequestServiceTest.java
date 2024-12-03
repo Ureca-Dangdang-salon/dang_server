@@ -5,7 +5,10 @@ import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.estimate.request.entity.RequestStatus;
-import com.dangdangsalon.domain.groomerprofile.entity.*;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerCanService;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerServiceArea;
+import com.dangdangsalon.domain.groomerprofile.entity.ServiceType;
 import com.dangdangsalon.domain.groomerprofile.repository.GroomerCanServiceRepository;
 import com.dangdangsalon.domain.groomerprofile.repository.GroomerServiceAreaRepository;
 import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerEstimateRequest;
@@ -130,7 +133,7 @@ class GroomerEstimateRequestServiceTest {
         // when & then
         assertThatThrownBy(() -> groomerEstimateRequestService.getEstimateRequest(groomerProfileId))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("해당 지역에 대한 미용사 정보를 찾을 수 없습니다");
+                .hasMessage("해당 요청에 대한 미용사 정보를 찾을 수 없습니다");
     }
 
     @Test
@@ -140,25 +143,30 @@ class GroomerEstimateRequestServiceTest {
         District district = mock(District.class);
         EstimateRequest estimateRequest = mock(EstimateRequest.class);
         when(estimateRequest.getServiceType()).thenReturn(ServiceType.VISIT);
+
         EstimateRequestDto estimateRequestDto = createEstimateRequestDto();
 
         GroomerServiceArea serviceArea = mock(GroomerServiceArea.class);
         GroomerProfile groomerProfile = mock(GroomerProfile.class);
 
+        // Mock 동작 설정
         when(groomerServiceAreaRepository.findByDistrict(district))
                 .thenReturn(Optional.of(List.of(serviceArea)));
         when(serviceArea.getGroomerProfile()).thenReturn(groomerProfile);
-        when(groomerProfile.getServiceType()).thenReturn(ServiceType.VISIT);
+        when(groomerProfile.getServiceType()).thenReturn(ServiceType.SHOP);
 
         // when
         groomerEstimateRequestService.insertGroomerEstimateRequests(estimateRequest, district, estimateRequestDto);
 
         // then
+        // 저장이 호출되지 않았는지 검증
         verify(groomerEstimateRequestRepository, never()).save(any(GroomerEstimateRequest.class));
     }
 
+
+
     @Test
-    @DisplayName("견적 요청 삭제 미용사")
+    @DisplayName("견적 요청 삭제 성공")
     void deleteGroomerEstimateRequest_Success() {
         // given
         Long estimateRequestId = 1L;
@@ -171,7 +179,8 @@ class GroomerEstimateRequestServiceTest {
         groomerEstimateRequestService.deleteGroomerEstimateRequest(estimateRequestId);
 
         // then
-        verify(groomerEstimateRequest, times(1));
+        verify(groomerEstimateRequestRepository, times(1)).findByEstimateRequestId(estimateRequestId);
+
     }
 
     @Test
@@ -192,11 +201,60 @@ class GroomerEstimateRequestServiceTest {
         verify(groomerEstimateRequestRepository, times(1)).findByEstimateRequestId(estimateRequestId);
     }
 
+    @Test
+    @DisplayName("1대1 견적 요청 성공")
+    void insertGroomerEstimateRequestForSpecificGroomer_Success() {
+        // given
+        EstimateRequest estimateRequest = mock(EstimateRequest.class);
+        GroomerProfile groomerProfile = mock(GroomerProfile.class);
+
+        EstimateRequestDto estimateRequestDto = createEstimateRequestDto();
+
+        // 서비스 타입 ANY로 설정
+        when(estimateRequest.getServiceType()).thenReturn(ServiceType.ANY);
+        when(groomerProfile.getServiceType()).thenReturn(ServiceType.ANY);
+
+        // 가능한 서비스 설정
+        List<GroomerCanService> canServices = createGroomerCanServices();
+        when(groomerCanServiceRepository.findByGroomerProfile(groomerProfile))
+                .thenReturn(canServices);
+
+        // when
+        groomerEstimateRequestService.insertGroomerEstimateRequestForSpecificGroomer(
+                estimateRequest, groomerProfile, estimateRequestDto);
+
+        // then
+        verify(groomerEstimateRequestRepository, times(1)).save(any(GroomerEstimateRequest.class));
+    }
+
+    @Test
+    @DisplayName("1대1 견적 요청 성공 요청 실패")
+    void insertGroomerEstimateRequestForSpecificGroomer_Failure_ServiceTypeMismatch() {
+        // given
+        EstimateRequest estimateRequest = mock(EstimateRequest.class);
+        GroomerProfile groomerProfile = mock(GroomerProfile.class);
+
+        EstimateRequestDto estimateRequestDto = createEstimateRequestDto();
+
+        // 서비스 타입이 다르게 설정
+        when(estimateRequest.getServiceType()).thenReturn(ServiceType.VISIT);
+        when(groomerProfile.getServiceType()).thenReturn(ServiceType.SHOP);
+
+        // when & then
+        assertThatThrownBy(() ->
+                groomerEstimateRequestService.insertGroomerEstimateRequestForSpecificGroomer(
+                        estimateRequest, groomerProfile, estimateRequestDto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("미용사가 제공하는 서비스 타입과 필요한 서비스를 모두 제공할 수 없습니다.");
+
+        // 저장이 호출되지 않았는지 검증
+        verify(groomerEstimateRequestRepository, never()).save(any(GroomerEstimateRequest.class));
+    }
 
     private EstimateRequestDto createEstimateRequestDto() {
         DogEstimateRequestDto dogEstimateRequestDto = new DogEstimateRequestDto(
                 1L, "currentImage.jpg", "styleRefImage.jpg", true, false, "견적 요청", List.of(1L));
-        return new EstimateRequestDto("서울", "강남구", LocalDateTime.now(), "ANY", List.of(dogEstimateRequestDto));
+        return new EstimateRequestDto(1L, 1L, LocalDateTime.now(), "ANY", List.of(dogEstimateRequestDto));
     }
 
     private List<GroomerCanService> createGroomerCanServices() {

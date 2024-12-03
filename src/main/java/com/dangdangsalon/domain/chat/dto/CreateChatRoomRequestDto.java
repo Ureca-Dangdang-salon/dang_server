@@ -1,4 +1,4 @@
-package com.dangdangsalon.domain.orders.dto;
+package com.dangdangsalon.domain.chat.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrdersRequestDto {
-    private int amount;
-    private String tossOrderId;
-    private String orderName;
+public class CreateChatRoomRequestDto {
+
+    private Long estimateId;
 }

@@ -1,10 +1,12 @@
 package com.dangdangsalon.domain.groomerprofile.repository;
 
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
+import java.util.Optional;
 import com.dangdangsalon.domain.mypage.dto.res.BadgeResponseDto;
 import com.dangdangsalon.domain.mypage.dto.res.DistrictResponseDto;
 import com.dangdangsalon.domain.mypage.dto.res.GroomerServicesResponseDto;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -13,6 +15,9 @@ import java.util.Optional;
 
 
 public interface GroomerProfileRepository extends JpaRepository<GroomerProfile, Long> {
+
+    @Query("SELECT gp From GroomerProfile gp WHERE gp.user.id = :userId")
+    Optional<GroomerProfile> findByUserId(Long userId);
 
     @Query("SELECT gp FROM GroomerProfile gp " +
             "JOIN FETCH gp.user " +

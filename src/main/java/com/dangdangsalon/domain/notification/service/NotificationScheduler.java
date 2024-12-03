@@ -2,6 +2,7 @@ package com.dangdangsalon.domain.notification.service;
 
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
+import com.dangdangsalon.domain.notification.dto.ReviewNotificationDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -94,7 +95,7 @@ public class NotificationScheduler {
     }
 
     @Transactional
-    @Scheduled(cron = "0 * * * * ?")
+    @Scheduled(cron = "0 * * * * ?") // 매 분마다 실행
     public void sendReviewReminders() {
         Set<String> keys = redisTemplate.keys("review_notification:*");
 
@@ -103,13 +104,13 @@ public class NotificationScheduler {
                 try {
                     String jsonData = redisTemplate.opsForValue().get(key);
 
-                    Map<String, Object> reminderData = new ObjectMapper().readValue(jsonData, new TypeReference<>() {});
+                    ReviewNotificationDto reminderData = new ObjectMapper().readValue(jsonData, ReviewNotificationDto.class);
 
-                    LocalDateTime scheduledTime = LocalDateTime.parse((String) reminderData.get("scheduledTime"));
+                    LocalDateTime scheduledTime = LocalDateTime.parse(reminderData.getScheduledTime());
 
                     if (LocalDateTime.now().isAfter(scheduledTime)) {
-                        Long userId = Long.valueOf(reminderData.get("userId").toString());
-                        Long estimateId = Long.valueOf(reminderData.get("estimateId").toString());
+                        Long userId = reminderData.getUserId();
+                        Long estimateId = reminderData.getEstimateId();
 
                         Estimate estimate = estimateRepository.findWithEstimateById(estimateId)
                                 .orElseThrow(() -> new IllegalArgumentException("견적서가 없습니다: " + estimateId));
@@ -121,6 +122,7 @@ public class NotificationScheduler {
                                 notificationService.sendNotificationWithData(fcmToken, title, body, "REVIEW_REQUEST", estimateId)
                         );
 
+                        // Redis에서 알림 데이터 삭제
                         redisTemplate.delete(key);
                     }
                 } catch (Exception e) {

@@ -1,11 +1,12 @@
 package com.dangdangsalon.domain.notification.service;
 
+import com.dangdangsalon.domain.notification.dto.NotificationDto;
+import com.dangdangsalon.domain.notification.dto.ReviewNotificationDto;
 import com.dangdangsalon.domain.notification.entity.FcmToken;
 import com.dangdangsalon.domain.notification.repository.FcmTokenRepository;
 import com.dangdangsalon.domain.user.entity.User;
 import com.dangdangsalon.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.*;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -137,19 +141,20 @@ public class NotificationService {
 
         String notificationId = UUID.randomUUID().toString();
 
-        // 알림 데이터 생성
-        Map<String, Object> notificationData = new HashMap<>();
-        notificationData.put("id", notificationId);
-        notificationData.put("title", title);
-        notificationData.put("body", body);
-        notificationData.put("isRead", false);
-        notificationData.put("createdAt", LocalDateTime.now());
-        notificationData.put("type", type);
-        notificationData.put("referenceId", referenceId);
+        // DTO 생성
+        NotificationDto notificationDto = NotificationDto.builder()
+                .id(notificationId)
+                .title(title)
+                .body(body)
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .type(type)
+                .referenceId(referenceId)
+                .build();
 
         try {
-            // 알림 데이터를 Redis List에 추가
-            redisTemplate.opsForList().leftPush(key, objectMapper.writeValueAsString(notificationData));
+            // DTO를 JSON 문자열로 변환 후 Redis List에 추가
+            redisTemplate.opsForList().leftPush(key, objectMapper.writeValueAsString(notificationDto));
 
             // 읽지 않은 알림 개수 증가
             redisTemplate.opsForValue().increment("unread_count:" + userId);
@@ -169,13 +174,11 @@ public class NotificationService {
         }
     }
 
-    public List<Map<String, Object>> getNotificationList(Long userId) {
+    public List<NotificationDto> getNotificationList(Long userId) {
         String key = "notifications:" + userId;
 
-        // Redis List에서 알림 데이터 가져오기
         List<String> notificationList = redisTemplate.opsForList().range(key, 0, -1);
 
-        // 알림이 없으면 빈 리스트 반환
         if (notificationList == null || notificationList.isEmpty()) {
             return Collections.emptyList();
         }
@@ -183,13 +186,13 @@ public class NotificationService {
         return notificationList.stream()
                 .map(notification -> {
                     try {
-                        // JSON 문자열을 Map으로 변환
-                        return objectMapper.readValue(notification, new TypeReference<Map<String, Object>>() {});
+                        // JSON 문자열을 DTO로 변환
+                        return objectMapper.readValue(notification, NotificationDto.class);
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException("알림 파싱 실패", e);
                     }
                 })
-                .filter(notificationData -> Boolean.FALSE.equals(notificationData.get("isRead")))
+                .filter(notificationDto -> !notificationDto.isRead())
                 .toList();
     }
 
@@ -198,19 +201,25 @@ public class NotificationService {
 
         List<String> notifications = redisTemplate.opsForList().range(key, 0, -1);
 
+        if (notifications == null || notifications.isEmpty()) {
+            return;
+        }
+
         try {
             for (int i = 0; i < notifications.size(); i++) {
                 String notification = notifications.get(i);
-                Map<String, Object> notificationData = objectMapper.readValue(notification, new TypeReference<>() {});
 
-                if (uuid.equals(notificationData.get("id"))) {
-                    if (Boolean.FALSE.equals(notificationData.get("isRead"))) {
-                        notificationData.put("isRead", true);
+                NotificationDto notificationDto = objectMapper.readValue(notification, NotificationDto.class);
 
-                        redisTemplate.opsForList().set(key, i, objectMapper.writeValueAsString(notificationData));
+                if (uuid.equals(notificationDto.getId()) && !notificationDto.isRead()) {
+                    notificationDto.updateIsRead(true);
 
-                        redisTemplate.opsForValue().decrement("unread_count:" + userId);
-                    }
+                    // 업데이트된 DTO를 JSON으로 변환하여 Redis에 저장
+                    redisTemplate.opsForList().set(key, i, objectMapper.writeValueAsString(notificationDto));
+
+                    // 읽지 않은 알림 개수 감소
+                    redisTemplate.opsForValue().decrement("unread_count:" + userId);
+                    break;
                 }
             }
         } catch (JsonProcessingException e) {
@@ -221,7 +230,6 @@ public class NotificationService {
     public void notificationsAsRead(Long userId) {
         String key = "notifications:" + userId;
 
-        // Redis List 에서 모든 알림 가져오기
         List<String> notifications = redisTemplate.opsForList().range(key, 0, -1);
 
         if (notifications == null || notifications.isEmpty()) {
@@ -229,16 +237,15 @@ public class NotificationService {
         }
 
         try {
-            // 모든 알림을 순회하며 읽음 처리
             for (int i = 0; i < notifications.size(); i++) {
                 String notification = notifications.get(i);
 
-                Map<String, Object> notificationData = objectMapper.readValue(notification, new TypeReference<>() {});
+                NotificationDto notificationDto = objectMapper.readValue(notification, NotificationDto.class);
 
-                // 읽지 않은 알림만 읽음 처리
-                if (Boolean.FALSE.equals(notificationData.get("isRead"))) {
-                    notificationData.put("isRead", true);
-                    redisTemplate.opsForList().set(key, i, objectMapper.writeValueAsString(notificationData));
+                if (!notificationDto.isRead()) {
+                    notificationDto.updateIsRead(true);
+
+                    redisTemplate.opsForList().set(key, i, objectMapper.writeValueAsString(notificationDto));
                 }
             }
 
@@ -250,13 +257,15 @@ public class NotificationService {
         }
     }
 
+
     public void scheduleReviewNotification(Long userId, Long estimateId) {
         String key = "review_notification:" + estimateId;
 
-        Map<String, Object> reminderData = new HashMap<>();
-        reminderData.put("userId", userId);
-        reminderData.put("estimateId", estimateId);
-        reminderData.put("scheduledTime", LocalDateTime.now().plusMinutes(1).toString()); // 미용사가 미용완료 누르고 30분 뒤
+        ReviewNotificationDto reminderData = ReviewNotificationDto.builder()
+                .userId(userId)
+                .estimateId(estimateId)
+                .scheduledTime(LocalDateTime.now().plusMinutes(30).toString()) // 미용사가 미용완료 누르고 30분 뒤
+                .build();
 
         try {
             redisTemplate.opsForValue().set(key, new ObjectMapper().writeValueAsString(reminderData));

@@ -3,6 +3,7 @@ package com.dangdangsalon.domain.notification.controller;
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.notification.dto.FcmTokenRequestDto;
 import com.dangdangsalon.domain.notification.dto.FcmTokenTopicRequestDto;
+import com.dangdangsalon.domain.notification.dto.NotificationDto;
 import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.notification.service.NotificationTopicService;
 import com.dangdangsalon.util.ApiUtil;
@@ -12,7 +13,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,8 +41,8 @@ public class NotificationController {
     @GetMapping("/list")
     public ApiSuccess<?> getNotificationList(@AuthenticationPrincipal CustomOAuth2User user) {
         Long userId = user.getUserId();
-        List<Map<String, Object>> notifications = notificationService.getNotificationList(userId);
-        return ApiUtil.success(notifications);
+        List<NotificationDto> notificationDtoList = notificationService.getNotificationList(userId);
+        return ApiUtil.success(notificationDtoList);
     }
 
     @PostMapping("/read")

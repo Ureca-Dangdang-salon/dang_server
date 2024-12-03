@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/oauth2/authorization/**", "/api/test", "/actuator/**",
                                 "/api/contests/winner/**", "/api/images/**", "/api/groomerprofile/{groomerProfileId}",
-                                "/api/auth/check/login", "/api/auth/refresh")
+                                "/api/auth/check/login", "/api/auth/refresh", "/ws/chat/**")
                         .permitAll()
                         .requestMatchers("/api/auth/join").hasRole("PENDING")
                         .anyRequest().hasAnyRole("USER", "SALON", "ADMIN") // 나머지 경로는 인증 필요
@@ -60,7 +60,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(
-                List.of("https://dangdangsalon.netlify.app", "http://localhost:5173")); // 허용할 Origin
+                List.of("https://dangdangsalon.netlify.app", "http://localhost:5173", "http://localhost:8080")); // 허용할 Origin
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE")); // 허용할 HTTP 메서드
         configuration.setAllowedHeaders(List.of("*")); // 허용할 헤더
         configuration.setExposedHeaders(List.of("*")); // 노출할 헤더

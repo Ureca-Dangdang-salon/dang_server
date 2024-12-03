@@ -269,7 +269,7 @@ public class MyPageApiTest {
                 .given()
                 .contentType(ContentType.JSON)
                 .when()
-                .get("/api/dogprofile")
+                .get("/api/userprofile")
                 .then()
                 .statusCode(200)
                 .body("response.profileImage", equalTo("imageKey"))

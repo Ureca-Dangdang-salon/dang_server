@@ -12,20 +12,20 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/dogprofile")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class MyPageDogProfileController {
 
     private final MyPageDogProfileService myPageDogProfileService;
 
-    @GetMapping("")
+    @GetMapping("/userprofile")
     public ApiSuccess<?> getUserProfile(@AuthenticationPrincipal CustomOAuth2User user) {
         Long userId = user.getUserId();
         UserProfileResponseDto userProfile = myPageDogProfileService.getUserProfile(userId);
         return ApiUtil.success(userProfile);
     }
 
-    @GetMapping("/{dogProfileId}")
+    @GetMapping("/dogprofile/{dogProfileId}")
     public ApiSuccess<?> getDogProfile(@AuthenticationPrincipal CustomOAuth2User user,
                                        @PathVariable Long dogProfileId) {
         Long userId = user.getUserId();
@@ -33,7 +33,7 @@ public class MyPageDogProfileController {
         return ApiUtil.success(dogProfile);
     }
 
-    @PostMapping("")
+    @PostMapping("/dogprofile")
     public ApiSuccess<?> saveDogProfile(@RequestBody DogProfileRequestDto requestDto,
             @AuthenticationPrincipal CustomOAuth2User user) {
         Long userId = user.getUserId();
@@ -41,7 +41,7 @@ public class MyPageDogProfileController {
         return ApiUtil.success("반려견 프로필 등록이 완료되었습니다.");
     }
 
-    @PutMapping("/{dogProfileId}")
+    @PutMapping("/dogprofile/{dogProfileId}")
     public ApiSuccess<?> updateDogProfile(@RequestBody DogProfileRequestDto requestDto,
                                         @AuthenticationPrincipal CustomOAuth2User user,
                                         @PathVariable Long dogProfileId) {
@@ -50,7 +50,7 @@ public class MyPageDogProfileController {
         return ApiUtil.success("반려견 프로필 수정이 완료되었습니다.");
     }
 
-    @DeleteMapping("/{dogProfileId}")
+    @DeleteMapping("/dogprofile/{dogProfileId}")
     public ApiSuccess<?> deleteDogProfile(@AuthenticationPrincipal CustomOAuth2User user,
                                           @PathVariable Long dogProfileId) {
         Long userId = user.getUserId();

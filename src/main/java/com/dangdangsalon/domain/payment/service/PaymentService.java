@@ -28,6 +28,7 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -54,15 +55,16 @@ public class PaymentService {
 
     private static final String IDEMPOTENCY_KEY_PREFIX = "payment:cancel:idempotency:";
     private static final String PAYMENT_IDEMPOTENCY_KEY_PREFIX = "payment:approve:idempotency:";
-    private static final String APPROVE_VALUE = "APPROVE_REQUEST_IN_PROGRESS";
-    private static final String CANCEL_VALUE = "CANCEL_REQUEST_IN_PROGRESS";
 
     // 결제 승인(tossAPI)
     @Transactional
-    public PaymentApproveResponseDto approvePayment(PaymentApproveRequestDto paymentApproveRequestDto, String idempotencyKey) {
-        String redisKey = PAYMENT_IDEMPOTENCY_KEY_PREFIX + idempotencyKey;
+    public PaymentApproveResponseDto approvePayment(PaymentApproveRequestDto paymentApproveRequestDto, Long userId) {
 
-        if (saveIdempotencyKey(redisKey, APPROVE_VALUE)) {
+        String idempotencyKey = UUID.randomUUID().toString();
+        String key = PAYMENT_IDEMPOTENCY_KEY_PREFIX + userId;
+
+        // 멱등키 저장 (중복 요청 방지)
+        if (saveIdempotencyKey(key, idempotencyKey)) {
             throw new IllegalStateException("이미 동일한 결제 승인 요청이 처리 중입니다.");
         }
 
@@ -93,16 +95,18 @@ public class PaymentService {
 
             return paymentResponse;
         } finally {
-            deleteIdempotencyKey(redisKey);
+            deleteIdempotencyKey(key);
         }
     }
 
     // 결제 취소(tossAPI)
     @Transactional
-    public PaymentCancelResponseDto cancelPayment(PaymentCancelRequestDto paymentCancelRequestDto, String idempotencyKey) {
-        String redisKey = IDEMPOTENCY_KEY_PREFIX + idempotencyKey;
+    public PaymentCancelResponseDto cancelPayment(PaymentCancelRequestDto paymentCancelRequestDto, Long userId) {
 
-        if (saveIdempotencyKey(redisKey, CANCEL_VALUE)) {
+        String idempotencyKey = UUID.randomUUID().toString();
+        String key = IDEMPOTENCY_KEY_PREFIX + userId;
+        // 멱등키 저장 (중복 요청 방지)
+        if (saveIdempotencyKey(key, idempotencyKey)) {
             throw new IllegalStateException("이미 동일한 결제 취소 요청이 처리 중입니다.");
         }
 
@@ -121,7 +125,7 @@ public class PaymentService {
                     .status(paymentCancelResponseDto.getStatus())
                     .build();
         } finally {
-            deleteIdempotencyKey(redisKey);
+            deleteIdempotencyKey(key);
         }
     }
 

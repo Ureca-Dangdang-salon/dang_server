@@ -30,7 +30,18 @@ public class NotificationService {
     private final UserRepository userRepository;
 
     public void sendNotificationWithData(String token, String title, String body, String type, Long referenceId) {
-            // 메시지 구성
+
+        FcmToken fcmToken = fcmTokenRepository.findByFcmToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("FCM 토큰을 찾을 수 없습니다: " + token));
+
+        User user = fcmToken.getUser();
+
+        if (Boolean.FALSE.equals(user.getNotificationEnabled())) {
+            log.info("알림 비활성화 상태로 알림 전송 건너뜀: " + user.getId());
+            return;
+        }
+
+        // 메시지 구성
         Message message = Message.builder()
                 .setToken(token)
                 .setNotification(Notification.builder()
@@ -184,7 +195,7 @@ public class NotificationService {
         try {
             for (int i = 0; i < notifications.size(); i++) {
                 String notification = notifications.get(i);
-                Map<String, Object> notificationData = objectMapper.readValue(notification, new TypeReference<Map<String, Object>>() {});
+                Map<String, Object> notificationData = objectMapper.readValue(notification, new TypeReference<>() {});
 
                 if (uuid.equals(notificationData.get("id"))) {
                     if (Boolean.FALSE.equals(notificationData.get("isRead"))) {
@@ -216,7 +227,7 @@ public class NotificationService {
             for (int i = 0; i < notifications.size(); i++) {
                 String notification = notifications.get(i);
 
-                Map<String, Object> notificationData = objectMapper.readValue(notification, new TypeReference<Map<String, Object>>() {});
+                Map<String, Object> notificationData = objectMapper.readValue(notification, new TypeReference<>() {});
 
                 // 읽지 않은 알림만 읽음 처리
                 if (Boolean.FALSE.equals(notificationData.get("isRead"))) {
@@ -230,6 +241,21 @@ public class NotificationService {
 
         } catch (JsonProcessingException e) {
             throw new RuntimeException("모든 알림 읽음 처리 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    public void scheduleReviewNotification(Long userId, Long estimateId) {
+        String key = "review_notification:" + estimateId;
+
+        Map<String, Object> reminderData = new HashMap<>();
+        reminderData.put("userId", userId);
+        reminderData.put("estimateId", estimateId);
+        reminderData.put("scheduledTime", LocalDateTime.now().plusMinutes(1).toString()); // 미용사가 미용완료 누르고 30분 뒤
+
+        try {
+            redisTemplate.opsForValue().set(key, new ObjectMapper().writeValueAsString(reminderData));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("알림 예약 데이터 저장 중 오류 발생", e);
         }
     }
 }

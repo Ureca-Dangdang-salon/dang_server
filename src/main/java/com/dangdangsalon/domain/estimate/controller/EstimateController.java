@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.estimate.controller;
 
 import com.dangdangsalon.domain.estimate.dto.*;
+import com.dangdangsalon.domain.estimate.service.EstimateNotificationService;
 import com.dangdangsalon.domain.estimate.service.EstimateService;
 import com.dangdangsalon.domain.estimate.service.EstimateWriteService;
 import com.dangdangsalon.util.ApiUtil;
@@ -17,6 +18,7 @@ public class EstimateController {
 
     private final EstimateWriteService estimateWriteService;
     private final EstimateService estimateService;
+    private final EstimateNotificationService estimateNotificationService;
 
     // 견적서 작성 반려견 요청 목록 조회
     @GetMapping("/dogrequest/{requestId}")
@@ -70,7 +72,7 @@ public class EstimateController {
     // 미용 완료 버튼 클릭시 견적서 상태 변화
     @PutMapping("/{estimateId}")
     public ApiSuccess<?> updateEstimateStatus(@PathVariable Long estimateId) {
-        estimateService.updateEstimateStatus(estimateId);
+        estimateNotificationService.updateEstimateStatus(estimateId);
         return ApiUtil.success("견적서 상태 업데이트 완료");
     }
 }

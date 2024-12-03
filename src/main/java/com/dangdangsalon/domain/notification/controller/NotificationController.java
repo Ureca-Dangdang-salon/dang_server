@@ -77,8 +77,8 @@ public class NotificationController {
         return ApiUtil.success("페스티벌 주제 구독이 해제되었습니다.");
     }
 
-    @PostMapping("/update")
-    public ApiSuccess<?> updateUserNotification(@AuthenticationPrincipal CustomOAuth2User user, @RequestParam boolean enabled){
+    @PostMapping("/update/{enabled}")
+    public ApiSuccess<?> updateUserNotification(@AuthenticationPrincipal CustomOAuth2User user, @PathVariable boolean enabled){
         Long userId = user.getUserId();
         notificationService.updateUserNotification(userId, enabled);
         return ApiUtil.success("알림 설정이 업데이트 되었습니다.");

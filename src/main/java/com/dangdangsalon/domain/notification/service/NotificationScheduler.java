@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -29,6 +30,7 @@ public class NotificationScheduler {
     private final EstimateRepository estimateRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
+    @Transactional
     @Scheduled(cron = "0 0 20 * * ?")
     public void sendReservationReminder() {
         // 내일의 시작과 끝 시간 계산
@@ -62,6 +64,7 @@ public class NotificationScheduler {
         }
     }
 
+    @Transactional
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeOldNotifications() {
         Set<String> keys = redisTemplate.keys("notifications:*");
@@ -86,6 +89,43 @@ public class NotificationScheduler {
                     }
                 } catch (JsonProcessingException e) {
                     log.error("알림 데이터를 처리하는 중 오류 발생", e);
+                }
+            }
+        }
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 * * * * ?")
+    public void sendReviewReminders() {
+        Set<String> keys = redisTemplate.keys("review_notification:*");
+
+        if (keys != null) {
+            for (String key : keys) {
+                try {
+                    String jsonData = redisTemplate.opsForValue().get(key);
+
+                    Map<String, Object> reminderData = new ObjectMapper().readValue(jsonData, new TypeReference<>() {});
+
+                    LocalDateTime scheduledTime = LocalDateTime.parse((String) reminderData.get("scheduledTime"));
+
+                    if (LocalDateTime.now().isAfter(scheduledTime)) {
+                        Long userId = Long.valueOf(reminderData.get("userId").toString());
+                        Long estimateId = Long.valueOf(reminderData.get("estimateId").toString());
+
+                        Estimate estimate = estimateRepository.findWithEstimateById(estimateId)
+                                .orElseThrow(() -> new IllegalArgumentException("견적서가 없습니다: " + estimateId));
+
+                        // FCM 알림 전송
+                        String title = "리뷰 작성 요청";
+                        String body = estimate.getGroomerProfile().getName() + "님에 대한 리뷰를 작성해주세요!";
+                        notificationService.getFcmToken(userId).ifPresent(fcmToken ->
+                                notificationService.sendNotificationWithData(fcmToken, title, body, "REVIEW_REQUEST", estimateId)
+                        );
+
+                        redisTemplate.delete(key);
+                    }
+                } catch (Exception e) {
+                    log.error("리뷰 작성 알림 전송 중 오류 발생: " + key, e);
                 }
             }
         }

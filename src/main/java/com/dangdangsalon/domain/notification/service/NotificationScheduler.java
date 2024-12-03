@@ -64,7 +64,6 @@ public class NotificationScheduler {
         }
     }
 
-    @Transactional
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeOldNotifications() {
         Set<String> keys = redisTemplate.keys("notifications:*");
@@ -79,7 +78,7 @@ public class NotificationScheduler {
             for (String notificationJson : notificationList) {
                 try {
                     // JSON 문자열을 Map으로 변환
-                    Map<String, Object> notificationData = objectMapper.readValue(notificationJson, new TypeReference<Map<String, Object>>() {});
+                    Map<String, Object> notificationData = objectMapper.readValue(notificationJson, new TypeReference<>() {});
 
                     // createdAt 확인
                     LocalDateTime createdAt = LocalDateTime.parse(notificationData.get("createdAt").toString());

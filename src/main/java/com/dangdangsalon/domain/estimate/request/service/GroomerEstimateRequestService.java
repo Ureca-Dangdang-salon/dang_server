@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 // groomer 관련 서비스
 @Slf4j
@@ -134,13 +135,18 @@ public class GroomerEstimateRequestService {
         if (Boolean.FALSE.equals(user.getNotificationEnabled())) {
             log.info("알림 비활성화: " + user.getId());
         }else{
-            String fcmToken = notificationService.getFcmToken(userId);
-            String title = "새로운 견적 요청";
-            String body = "새로운 견적 요청이 도착했습니다. 확인하세요.";
-            // 알림 전송
-            notificationService.sendNotificationWithData(fcmToken, title, body, "견적 요청", estimateRequest.getId());
-            // redis 에 알림 내용 저장
-            notificationService.saveNotificationToRedis(userId, title, body, "견적 요청", estimateRequest.getId());
+            Optional<String> optionalFcmToken = notificationService.getFcmToken(userId);
+
+            if (optionalFcmToken.isPresent()) {
+                String fcmToken = optionalFcmToken.get();
+
+                String title = "새로운 견적 요청";
+                String body = "새로운 견적 요청이 도착했습니다. 확인하세요.";
+                // 알림 전송
+                notificationService.sendNotificationWithData(fcmToken, title, body, "견적 요청", estimateRequest.getId());
+                // redis 에 알림 내용 저장
+                notificationService.saveNotificationToRedis(userId, title, body, "견적 요청", estimateRequest.getId());
+            }
         }
     }
 }

@@ -27,6 +27,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -192,14 +193,19 @@ public class PaymentService {
         );
         if (Boolean.FALSE.equals(user.getNotificationEnabled())) {
             log.info("알림 비활성화: " + user.getId());
-        }else{
-            String fcmToken = notificationService.getFcmToken(userId);
-            String title = "결제가 완료되었습니다";
-            String body = "결제 내역을 확인해보세요.";
-            notificationService.sendNotificationWithData(fcmToken, title, body,"결제", userId); // 알림 전송
+        } else {
+            Optional<String> optionalFcmToken = notificationService.getFcmToken(userId);
 
-            // redis 에 알림 내용 저장
-            notificationService.saveNotificationToRedis(userId, title, body, "결제", userId);
+            if (optionalFcmToken.isPresent()) {
+                String fcmToken = optionalFcmToken.get();
+
+                String title = "결제가 완료되었습니다";
+                String body = "결제 내역을 확인해보세요.";
+                notificationService.sendNotificationWithData(fcmToken, title, body, "결제", userId); // 알림 전송
+
+                // redis 에 알림 내용 저장
+                notificationService.saveNotificationToRedis(userId, title, body, "결제", userId);
+            }
         }
     }
 }

@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,13 +31,18 @@ public class EstimateNotificationService {
         if (Boolean.FALSE.equals(user.getNotificationEnabled())) {
             log.info("알림 비활성화: " + user.getId());
         }else {
-            String fcmToken = notificationService.getFcmToken(userId);
-            String title = groomerProfile.getName() + "님이 견적을 보냈습니다.";
-            String body = "견적 내용을 확인해보세요.";
-            notificationService.sendNotificationWithData(fcmToken, title, body,"견적서", estimate.getId()); // 알림 전송
+            Optional<String> optionalFcmToken = notificationService.getFcmToken(userId);
 
-            // redis 에 알림 내용 저장
-            notificationService.saveNotificationToRedis(userId, title, body, "견적서", estimate.getId());
+            if (optionalFcmToken.isPresent()) {
+                String fcmToken = optionalFcmToken.get();
+
+                String title = groomerProfile.getName() + "님이 견적을 보냈습니다.";
+                String body = "견적 내용을 확인해보세요.";
+                notificationService.sendNotificationWithData(fcmToken, title, body, "견적서", estimate.getId()); // 알림 전송
+
+                // Redis에 알림 내용 저장
+                notificationService.saveNotificationToRedis(userId, title, body, "견적서", estimate.getId());
+            }
         }
     }
 }

@@ -105,7 +105,6 @@ public class EstimateService {
                 .build();
     }
 
-
     // 견적서 수정 조회
     @Transactional(readOnly = true)
     public EstimateResponseDto getEstimateGroomer(Long estimateId) {
@@ -203,6 +202,15 @@ public class EstimateService {
                 .date(estimate.getDate())
                 .startChat(groomerProfile.getDetails().getStartChat())
                 .build();
+    }
+
+    @Transactional
+    public void updateEstimateStatus(Long estimateId){
+
+        Estimate estimate = estimateRepository.findById(estimateId)
+                .orElseThrow(() -> new IllegalArgumentException("견적서를 찾을 수 없습니다: " + estimateId));
+
+        estimate.updateStatus(EstimateStatus.ACCEPTED);
     }
 
     // 견적 요청한 서비스 정보 가져오기

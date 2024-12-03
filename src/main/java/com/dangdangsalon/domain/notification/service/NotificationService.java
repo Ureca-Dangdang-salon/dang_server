@@ -30,16 +30,6 @@ public class NotificationService {
     private final UserRepository userRepository;
 
     public void sendNotificationWithData(String token, String title, String body, String type, Long referenceId) {
-
-        FcmToken fcmToken = fcmTokenRepository.findByFcmToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("FCM 토큰을 찾을 수 없습니다: " + token));
-
-        User user = fcmToken.getUser();
-
-        if (Boolean.FALSE.equals(user.getNotificationEnabled())) {
-            log.info("알림 비활성화 상태로 알림 전송 건너뜀: " + user.getId());
-            return;
-        }
             // 메시지 구성
         Message message = Message.builder()
                 .setToken(token)
@@ -94,10 +84,9 @@ public class NotificationService {
         }
     }
 
-    public String getFcmToken(Long userId) {
+    public Optional<String> getFcmToken(Long userId) {
         return fcmTokenRepository.findByUserId(userId)
-                .map(FcmToken::getFcmToken)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자에 대한 FCM 토큰을 찾을 수 없습니다."));
+                .map(FcmToken::getFcmToken);
     }
 
     public void deleteFcmToken(String token) {

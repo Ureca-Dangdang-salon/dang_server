@@ -11,6 +11,7 @@ import com.dangdangsalon.domain.orders.repository.OrdersRepository;
 import com.dangdangsalon.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -21,6 +22,7 @@ public class OrdersService {
     private final OrdersRepository ordersRepository;
     private final EstimateRepository estimateRepository;
 
+    @Transactional
     public OrdersResponseDto insertOrders(Long estimateId, OrdersRequestDto ordersRequestDto) {
 
         Estimate estimate = estimateRepository.findById(estimateId)
@@ -50,8 +52,6 @@ public class OrdersService {
                 .tossOrderId(ordersRequestDto.getTossOrderId())
                 .build();
         ordersRepository.save(order);
-
-        estimate.updateStatus(EstimateStatus.ACCEPTED);
 
         return OrdersResponseDto.builder()
                 .orderName(order.getOrderName())

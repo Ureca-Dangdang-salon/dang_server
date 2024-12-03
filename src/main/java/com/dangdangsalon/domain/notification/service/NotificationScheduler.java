@@ -48,10 +48,9 @@ public class NotificationScheduler {
             String body = "내일 " + timeOnly + "시에 강아지 미용이 예정되어 있습니다.";
 
             // 푸시 알림
-            String fcmToken = notificationService.getFcmToken(userId);
-            if (fcmToken != null) {
-                notificationService.sendNotificationWithData(fcmToken, title, body, "RESERVATION_REMINDER", estimate.getId());
-            }
+            notificationService.getFcmToken(userId).ifPresent(fcmToken ->
+                    notificationService.sendNotificationWithData(fcmToken, title, body, "RESERVATION_REMINDER", estimate.getId())
+            );
 
             // 이메일 알림
             if (email != null) {

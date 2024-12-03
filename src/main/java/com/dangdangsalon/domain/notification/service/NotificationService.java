@@ -73,27 +73,33 @@ public class NotificationService {
 
     @Transactional
     public void saveOrUpdateFcmToken(Long userId, String token) {
-
-        User user = userRepository.findById(userId).orElseThrow(() ->
-                new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId)
-        );
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
 
         Optional<FcmToken> existingToken = fcmTokenRepository.findByFcmToken(token);
 
-        // 프론트에서 넘겨주는 토큰이 동일하면 시간만 업데이트
+        // 한 사람이 똑같은 디바이스로 여러 계정으로 로그인 시 기존 FCM 토큰 삭제 후 저장 로직(한 사람이 여러 계정 사용 가능)
         if (existingToken.isPresent()) {
-            existingToken.get().updateTokenLastUserAt();
-        } else {
-            // 다르면 저장 (한 사람이 여러 디바이스를 사용할 수도 있다)
-            FcmToken newToken = FcmToken.builder()
-                    .fcmToken(token)
-                    .lastUserAt(LocalDateTime.now())
-                    .user(user)
-                    .build();
-
-            fcmTokenRepository.save(newToken);
+            FcmToken tokenToUpdate = existingToken.get();
+            if (!tokenToUpdate.getUser().getId().equals(userId)) {
+                // 다른 사용자와 연결된 경우 삭제
+                fcmTokenRepository.delete(tokenToUpdate);
+            } else {
+                // 동일한 사용자와 연결된 경우 갱신
+                tokenToUpdate.updateTokenLastUserAt();
+                return;
+            }
         }
+
+        // 새로운 토큰 생성 및 저장
+        FcmToken newToken = FcmToken.builder()
+                .fcmToken(token)
+                .user(user)
+                .lastUserAt(LocalDateTime.now())
+                .build();
+        fcmTokenRepository.save(newToken);
     }
+
 
     public Optional<String> getFcmToken(Long userId) {
         return fcmTokenRepository.findByUserId(userId)

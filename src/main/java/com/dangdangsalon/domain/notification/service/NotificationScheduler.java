@@ -2,21 +2,32 @@ package com.dangdangsalon.domain.notification.service;
 
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationScheduler {
 
     private final NotificationService notificationService;
     private final NotificationEmailService notificationEmailService;
+    private final ObjectMapper objectMapper;
     private final EstimateRepository estimateRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Scheduled(cron = "0 0 20 * * ?")
     public void sendReservationReminder() {
@@ -49,6 +60,35 @@ public class NotificationScheduler {
 
             // Redis 알림 저장
             notificationService.saveNotificationToRedis(userId, title, body, "RESERVATION_REMINDER", estimate.getId());
+        }
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void removeOldNotifications() {
+        Set<String> keys = redisTemplate.keys("notifications:*");
+
+        for (String key : keys) {
+            List<String> notificationList = redisTemplate.opsForList().range(key, 0, -1);
+
+            if (notificationList == null || notificationList.isEmpty()) {
+                continue;
+            }
+
+            for (String notificationJson : notificationList) {
+                try {
+                    // JSON 문자열을 Map으로 변환
+                    Map<String, Object> notificationData = objectMapper.readValue(notificationJson, new TypeReference<Map<String, Object>>() {});
+
+                    // createdAt 확인
+                    LocalDateTime createdAt = LocalDateTime.parse(notificationData.get("createdAt").toString());
+                    if (Duration.between(createdAt, LocalDateTime.now()).toDays() > 14) {
+                        // 만료된 알림 삭제
+                        redisTemplate.opsForList().remove(key, 1, notificationJson);
+                    }
+                } catch (JsonProcessingException e) {
+                    log.error("알림 데이터를 처리하는 중 오류 발생", e);
+                }
+            }
         }
     }
 }

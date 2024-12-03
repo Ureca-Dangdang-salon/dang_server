@@ -11,6 +11,8 @@ import com.dangdangsalon.domain.payment.dto.PaymentCancelResponseDto;
 import com.dangdangsalon.domain.payment.entity.Payment;
 import com.dangdangsalon.domain.payment.entity.PaymentStatus;
 import com.dangdangsalon.domain.payment.repository.PaymentRepository;
+import com.dangdangsalon.domain.user.entity.User;
+import com.dangdangsalon.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +38,7 @@ public class PaymentService {
     private final RedisTemplate<String, String> redisTemplate;
     private final WebClient webClient;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Value("${toss.api.key}")
     private String tossApiKey;
@@ -182,10 +185,15 @@ public class PaymentService {
 
     private void sendNotificationToUser(Orders orders) {
 
-        Long userId = orders.getUser().getId(); // 사용자 ID 가져오기
-        String fcmToken = notificationService.getFcmToken(userId); // Redis에서 FCM 토큰 조회
+        Long userId = orders.getUser().getId();
 
-        if (fcmToken != null) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId)
+        );
+        if (Boolean.FALSE.equals(user.getNotificationEnabled())) {
+            log.info("알림 비활성화: " + user.getId());
+        }else{
+            String fcmToken = notificationService.getFcmToken(userId);
             String title = "결제가 완료되었습니다";
             String body = "결제 내역을 확인해보세요.";
             notificationService.sendNotificationWithData(fcmToken, title, body,"결제", userId); // 알림 전송

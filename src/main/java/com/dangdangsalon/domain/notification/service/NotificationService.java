@@ -30,6 +30,16 @@ public class NotificationService {
     private final UserRepository userRepository;
 
     public void sendNotificationWithData(String token, String title, String body, String type, Long referenceId) {
+
+        FcmToken fcmToken = fcmTokenRepository.findByFcmToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("FCM 토큰을 찾을 수 없습니다: " + token));
+
+        User user = fcmToken.getUser();
+
+        if (Boolean.FALSE.equals(user.getNotificationEnabled())) {
+            log.info("알림 비활성화 상태로 알림 전송 건너뜀: " + user.getId());
+            return;
+        }
             // 메시지 구성
         Message message = Message.builder()
                 .setToken(token)
@@ -84,7 +94,6 @@ public class NotificationService {
         }
     }
 
-
     public String getFcmToken(Long userId) {
         return fcmTokenRepository.findByUserId(userId)
                 .map(FcmToken::getFcmToken)
@@ -108,38 +117,15 @@ public class NotificationService {
         fcmTokenRepository.deleteAll(inactiveTokens);
     }
 
-    @Scheduled(cron = "0 0 0 * * ?")
-    public void removeOldNotifications() {
-        Set<String> keys = redisTemplate.keys("notifications:*");
+    @Transactional
+    public void updateUserNotification(Long userId, boolean isEnabled) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId)
+        );
 
-        for (String key : keys) {
-            List<String> notificationList = redisTemplate.opsForList().range(key, 0, -1);
-
-            if (notificationList == null || notificationList.isEmpty()) {
-                continue;
-            }
-
-            for (String notificationJson : notificationList) {
-                try {
-                    // JSON 문자열을 Map으로 변환
-                    Map<String, Object> notificationData = objectMapper.readValue(notificationJson, new TypeReference<Map<String, Object>>() {});
-
-                    // createdAt 확인
-                    LocalDateTime createdAt = LocalDateTime.parse(notificationData.get("createdAt").toString());
-                    if (Duration.between(createdAt, LocalDateTime.now()).toDays() > 14) {
-                        // 만료된 알림 삭제
-                        redisTemplate.opsForList().remove(key, 1, notificationJson);
-                    }
-                } catch (JsonProcessingException e) {
-                    log.error("알림 데이터를 처리하는 중 오류 발생", e);
-                }
-            }
-        }
+        user.updateNotificationEnabled(isEnabled);
     }
 
-    /**
-     * 알림 저장 (Redis에 저장)
-     */
     public void saveNotificationToRedis(Long userId, String title, String body, String type, Long referenceId) {
         String key = "notifications:" + userId;
 
@@ -167,9 +153,6 @@ public class NotificationService {
         }
     }
 
-    /**
-     * 읽지 않은 알림 개수 가져오기
-     */
     public Long getUnreadNotificationCount(Long userId) {
         String key = "unread_count:" + userId;
         String count = redisTemplate.opsForValue().get(key);
@@ -180,9 +163,6 @@ public class NotificationService {
         }
     }
 
-    /**
-     * 읽지 않은 알림 리스트 가져오기
-     */
     public List<Map<String, Object>> getNotificationList(Long userId) {
         String key = "notifications:" + userId;
 
@@ -194,7 +174,6 @@ public class NotificationService {
             return Collections.emptyList();
         }
 
-        // JSON 데이터를 Map으로 변환하고 읽지 않은 알림만 필터링
         return notificationList.stream()
                 .map(notification -> {
                     try {
@@ -208,9 +187,6 @@ public class NotificationService {
                 .toList();
     }
 
-    /**
-     * 알림 읽음 처리
-     */
     public void updateNotificationAsRead(Long userId, String uuid) {
         String key = "notifications:" + userId;
 
@@ -219,7 +195,7 @@ public class NotificationService {
         try {
             for (int i = 0; i < notifications.size(); i++) {
                 String notification = notifications.get(i);
-                Map<String, Object> notificationData = objectMapper.readValue(notification, Map.class);
+                Map<String, Object> notificationData = objectMapper.readValue(notification, new TypeReference<Map<String, Object>>() {});
 
                 if (uuid.equals(notificationData.get("id"))) {
                     if (Boolean.FALSE.equals(notificationData.get("isRead"))) {
@@ -236,9 +212,6 @@ public class NotificationService {
         }
     }
 
-    /**
-     * 모든 알림 읽음 처리
-     */
     public void notificationsAsRead(Long userId) {
         String key = "notifications:" + userId;
 
@@ -254,8 +227,7 @@ public class NotificationService {
             for (int i = 0; i < notifications.size(); i++) {
                 String notification = notifications.get(i);
 
-                // JSON 데이터를 Map으로 변환
-                Map<String, Object> notificationData = objectMapper.readValue(notification, Map.class);
+                Map<String, Object> notificationData = objectMapper.readValue(notification, new TypeReference<Map<String, Object>>() {});
 
                 // 읽지 않은 알림만 읽음 처리
                 if (Boolean.FALSE.equals(notificationData.get("isRead"))) {

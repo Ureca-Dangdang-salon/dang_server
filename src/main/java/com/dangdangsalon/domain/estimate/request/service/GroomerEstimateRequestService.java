@@ -13,12 +13,16 @@ import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerRequestStat
 import com.dangdangsalon.domain.groomerprofile.request.repository.GroomerEstimateRequestRepository;
 import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.region.entity.District;
+import com.dangdangsalon.domain.user.entity.User;
+import com.dangdangsalon.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 // groomer 관련 서비스
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GroomerEstimateRequestService {
@@ -27,6 +31,7 @@ public class GroomerEstimateRequestService {
     private final GroomerCanServiceRepository groomerCanServiceRepository;
     private final GroomerEstimateRequestRepository groomerEstimateRequestRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Transactional
     public void insertGroomerEstimateRequests(EstimateRequest estimateRequest, District district, EstimateRequestDto estimateRequestDto) {
@@ -104,9 +109,15 @@ public class GroomerEstimateRequestService {
     private void sendNotificationToGroomer(EstimateRequest estimateRequest, GroomerProfile groomerProfile) {
 
         Long userId = groomerProfile.getUser().getId();
-        String fcmToken = notificationService.getFcmToken(userId);
 
-        if (fcmToken != null) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId)
+        );
+
+        if (Boolean.FALSE.equals(user.getNotificationEnabled())) {
+            log.info("알림 비활성화: " + user.getId());
+        }else{
+            String fcmToken = notificationService.getFcmToken(userId);
             String title = "새로운 견적 요청";
             String body = "새로운 견적 요청이 도착했습니다. 확인하세요.";
             // 알림 전송

@@ -69,7 +69,7 @@ class MyPageDogProfileControllerTest {
         when(myPageDogProfileService.getUserProfile(mockUserId)).thenReturn(mockResponse);
 
         // MockMvc를 사용하여 GET 요청
-        mockMvc.perform(get("/api/dogprofile")
+        mockMvc.perform(get("/api/userprofile")
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(csrf()) // CSRF 토큰 포함
                         .principal(authentication))

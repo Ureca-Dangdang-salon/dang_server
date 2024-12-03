@@ -99,8 +99,8 @@ class EstimateRequestControllerTest {
         );
 
         EstimateRequestDto mockRequest = new EstimateRequestDto(
-                "서울특별시", // 도시
-                "강남구", // 구
+                1L, // 미용사 아이디
+                1L, // 구 아이디
                 LocalDateTime.now(), // 날짜
                 "발톱 정리", // 서비스 타입
                 List.of(dogRequest1) // 강아지 견적 요청 목록

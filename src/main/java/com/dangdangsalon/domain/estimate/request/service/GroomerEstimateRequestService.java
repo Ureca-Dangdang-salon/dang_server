@@ -42,12 +42,22 @@ public class GroomerEstimateRequestService {
         }
     }
 
+    // 1대1요청 지역은 달라도 미용사가 가능한 서비스 타입이랑 할 수 있는 서비스는 일치해야 요청이 간다.
+    @Transactional
+    public void insertGroomerEstimateRequestForSpecificGroomer(EstimateRequest estimateRequest, GroomerProfile groomerProfile, EstimateRequestDto estimateRequestDto) {
+        if (canGroomerHandleRequest(estimateRequestDto, estimateRequest, groomerProfile)) {
+            saveGroomerEstimateRequest(estimateRequest, groomerProfile);
+        } else {
+            throw new IllegalArgumentException("미용사가 제공하는 서비스 타입과 필요한 서비스를 모두 제공할 수 없습니다.");
+        }
+    }
+
     // 미용사에게 온 견적 요청들 조회
     @Transactional(readOnly = true)
     public List<EstimateRequestResponseDto> getEstimateRequest(Long groomerProfileId) {
 
         List<GroomerEstimateRequest> groomerEstimateRequestList = groomerEstimateRequestRepository.findByGroomerProfileId(groomerProfileId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 지역에 대한 미용사 정보를 찾을 수 없습니다"));
+                .orElseThrow(() -> new IllegalArgumentException("해당 요청에 대한 미용사 정보를 찾을 수 없습니다"));
 
         return groomerEstimateRequestList.stream()
                 .map(EstimateRequestResponseDto::toDto)

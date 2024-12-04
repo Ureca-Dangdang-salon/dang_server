@@ -2,6 +2,7 @@ package com.dangdangsalon.domain.chat.dto;
 
 import com.dangdangsalon.domain.chat.entity.ChatMessageMongo;
 import com.dangdangsalon.util.UUIDUtil;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatMessageDto {
+public class ChatMessageDto implements Serializable {
 
     private Long sequence;
     private String messageId;

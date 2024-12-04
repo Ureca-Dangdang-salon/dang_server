@@ -114,6 +114,10 @@ public class ChatRedisUtil {
 
     public Object getLastMessage(Long roomId) {
         String key = redisConfig.getSaveMessageKey(roomId);
-        return redisTemplate.opsForList().index(key, -1);
+        Set<Object> lastMessage = redisTemplate.opsForZSet().reverseRange(key, 0, 0);
+        if (lastMessage == null || lastMessage.isEmpty()) {
+            return null;
+        }
+        return lastMessage.iterator().next();
     }
 }

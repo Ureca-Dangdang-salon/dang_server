@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.mypage.dto.req;
 
+import com.dangdangsalon.domain.groomerprofile.entity.ServiceType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,6 +16,8 @@ import java.util.List;
 public class GroomerProfileRequestDto {
     private String name;
     private String phone;
-    private List<Long> servicesOfferedId;
     private String contactHours;
+    private ServiceType serviceType;
+    private List<Long> servicesOfferedId;
+    private List<Long> servicesDistrictIds;
 }

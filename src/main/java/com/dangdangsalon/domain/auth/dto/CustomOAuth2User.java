@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.auth.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -19,7 +20,7 @@ public class CustomOAuth2User implements OAuth2User {
 
     @Override
     public String getName() {
-        return userDto.getName();
+        return userDto.getUsername();
     }
 
     @Override
@@ -47,5 +48,9 @@ public class CustomOAuth2User implements OAuth2User {
 
     public Long getUserId() {
         return userDto.getUserId();
+    }
+
+    public String getRole() {
+        return userDto.getRole();
     }
 }

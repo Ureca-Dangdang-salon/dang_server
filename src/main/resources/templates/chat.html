@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+</head>
+<body>
+<h1 id="chat-room-title">Chat Room</h1>
+<div>
+    <p id="groomer-profile"></p>
+    <p id="customer-profile"></p>
+</div>
+
+<div>
+    <h3>Messages</h3>
+    <ul id="messages" style="height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;"></ul>
+</div>
+
+<div style="margin-top: 10px;">
+    <label for="message-input">Message:</label>
+    <input type="text" id="message-input" placeholder="Type your message here..." style="width: 70%;"/>
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
+<script>
+    let stompClient;
+    let roomId = 1; // Basic test Room ID
+    let senderId = 1; // 테스트용 Sender ID
+    let senderRole = "CUSTOMER"; // 테스트용 Sender Role
+    let messagesContainer;
+    let isLoadingPreviousMessages = false; // 중복 요청 방지 플래그
+
+    // STOMP 연결 설정
+    function connect() {
+        const socket = new SockJS('http://localhost:8080/ws/chat', null, { withCredentials: true });
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, () => {
+            console.log('STOMP connected successfully');
+
+            // 채팅방 주제 구독
+            stompClient.subscribe(`/sub/chat/${roomId}`, (message) => {
+                const chatMessage = JSON.parse(message.body);
+                displayMessage(chatMessage);
+            });
+
+            // 채팅방 정보 가져오기
+            fetchChatRoomDetails();
+        }, (error) => {
+            console.error('STOMP connection failed:', error);
+        });
+    }
+
+    // 채팅방 정보 가져오기 API 호출
+    async function fetchChatRoomDetails() {
+        try {
+            const response = await fetch(`/api/chatrooms/${roomId}/enter`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include"
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch chat room details");
+            }
+
+            const data = await response.json();
+            const chatDetails = data.response;
+
+            // 채팅방 정보 표시
+            document.getElementById("chat-room-title").textContent = `Room ID: ${chatDetails.roomId}`;
+            document.getElementById("groomer-profile").textContent = `Groomer: ${chatDetails.groomerProfile.serviceName}`;
+            document.getElementById("customer-profile").textContent = `Customer: ${chatDetails.customer.customerName}`;
+
+            // 이전 메시지 로드
+            chatDetails.recentMessages.reverse().forEach((msg) => displayMessage(msg, true));
+        } catch (error) {
+            console.error("Error fetching chat room details:", error);
+        }
+    }
+
+    // 이전 메시지 조회 API 호출
+    async function fetchPreviousMessages() {
+        if (isLoadingPreviousMessages) return;
+
+        isLoadingPreviousMessages = true;
+
+        try {
+            const response = await fetch(`/api/chatrooms/${roomId}/messages/previous`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include"
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch previous messages");
+            }
+
+            const data = await response.json();
+            const messages = data.response;
+
+            if (messages.length > 0) {
+                const firstMessageElement = messagesContainer.firstChild;
+
+                // 이전 메시지 상단에 추가
+                messages.reverse().forEach((msg) => displayMessage(msg, true));
+
+                // 스크롤 위치 유지
+                if (firstMessageElement) {
+                    firstMessageElement.scrollIntoView();
+                }
+            }
+
+            isLoadingPreviousMessages = false;
+        } catch (error) {
+            console.error("Error fetching previous messages:", error);
+            isLoadingPreviousMessages = false;
+        }
+    }
+
+    // 메시지 전송
+    function sendMessage() {
+        const messageText = document.getElementById("message-input").value;
+
+        const message = {
+            roomId: roomId,
+            senderId: senderId,
+            senderRole: senderRole,
+            messageText: messageText,
+            sendAt: new Date().toISOString(),
+        };
+
+        stompClient.send(`/pub/chat/send/${roomId}`, {}, JSON.stringify(message));
+        document.getElementById("message-input").value = ""; // 입력창 초기화
+    }
+
+    // 메시지 표시
+    function displayMessage(message, insertAtTop = false) {
+        const newMessage = document.createElement("li");
+        newMessage.textContent = `${message.sequence || ''} [${message.senderRole}] ${message.senderId}: ${message.messageText}`;
+
+        if (insertAtTop) {
+            messagesContainer.insertBefore(newMessage, messagesContainer.firstChild);
+        } else {
+            messagesContainer.appendChild(newMessage);
+        }
+    }
+
+    // 스크롤 이벤트 핸들러
+    function handleScroll() {
+        if (messagesContainer.scrollTop === 0) {
+            fetchPreviousMessages();
+        }
+    }
+
+    // 페이지 로드 시 초기화
+    window.onload = () => {
+        messagesContainer = document.getElementById("messages");
+        connect();
+        messagesContainer.addEventListener("scroll", handleScroll);
+    };
+</script>
+
+</body>
+</html>

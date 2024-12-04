@@ -8,7 +8,6 @@ import com.dangdangsalon.domain.estimate.dto.*;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
-import com.dangdangsalon.domain.estimate.request.dto.EstimateDetailResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.FeatureResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.ServicePriceResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
@@ -22,6 +21,9 @@ import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.groomerprofile.repository.GroomerProfileRepository;
 import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
 import com.dangdangsalon.domain.groomerservice.repository.GroomerServiceRepository;
+import com.dangdangsalon.domain.notification.entity.FcmToken;
+import com.dangdangsalon.domain.notification.service.NotificationService;
+import com.dangdangsalon.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,11 +42,13 @@ public class EstimateService {
     private final EstimateRequestProfilesRepository estimateRequestProfilesRepository;
     private final EstimateRequestServiceRepository estimateRequestServiceRepository;
     private final DogProfileFeatureRepository dogProfileFeatureRepository;
+    private final EstimateNotificationService estimateNotificationService;
 
     // 견적서 등록
     @Transactional
-    public void insertEstimate(EstimateWriteRequestDto requestDto) {
+    public EstimateIdResponseDto insertEstimate(EstimateWriteRequestDto requestDto) {
 
+        // 견적 요청 검증 및 조회
         EstimateRequest estimateRequest = estimateRequestRepository.findById(requestDto.getRequestId())
                 .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다 : " + requestDto.getRequestId()));
 
@@ -52,9 +56,11 @@ public class EstimateService {
             throw new IllegalStateException("견적 요청 상태가 완료가 아닙니다. 요청 ID: " + requestDto.getRequestId());
         }
 
+        // 미용사 프로필 검증 및 조회
         GroomerProfile groomerProfile = groomerProfileRepository.findById(requestDto.getGroomerProfileId())
                 .orElseThrow(() -> new IllegalArgumentException("미용사 프로필을 찾을 수 없습니다 : " + requestDto.getGroomerProfileId()));
 
+        // Estimate 엔티티 생성 및 저장
         Estimate estimate = Estimate.builder()
                 .status(EstimateStatus.SEND)
                 .description(requestDto.getDescription())
@@ -67,7 +73,10 @@ public class EstimateService {
 
         estimateRepository.save(estimate);
 
-        // 강아지별 특이사항, 서비스 다 따로 저장하기는 로직....
+        // 푸쉬 알람
+        estimateNotificationService.sendNotificationToUser(estimateRequest, estimate, groomerProfile);
+
+        //강아지별 특이사항, 서비스 다 따로 저장하기는 로직...
         requestDto.getDogPriceList().forEach(dogPriceDto -> {
             EstimateRequestProfiles estimateRequestProfiles = estimateRequestProfilesRepository.findByDogProfileIdAndEstimateRequestId(
                     dogPriceDto.getDogProfileId(),
@@ -90,6 +99,10 @@ public class EstimateService {
                 estimateRequestService.updatePrice(serviceDto.getPrice());
             });
         });
+
+        return EstimateIdResponseDto.builder()
+                .estimateId(estimate.getId())
+                .build();
     }
 
     // 견적서 수정 조회
@@ -128,6 +141,7 @@ public class EstimateService {
                 .toList();
 
         return EstimateResponseDto.builder()
+                .imageKey(estimate.getImageKey())
                 .comment(estimate.getDescription())
                 .totalAmount(estimate.getTotalAmount())
                 .date(estimate.getDate())

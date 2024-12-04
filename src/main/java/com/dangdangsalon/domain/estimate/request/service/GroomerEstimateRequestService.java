@@ -1,5 +1,7 @@
 package com.dangdangsalon.domain.estimate.request.service;
 
+import com.dangdangsalon.domain.estimate.entity.Estimate;
+import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
@@ -27,6 +29,8 @@ public class GroomerEstimateRequestService {
     private final GroomerServiceAreaRepository groomerServiceAreaRepository;
     private final GroomerCanServiceRepository groomerCanServiceRepository;
     private final GroomerEstimateRequestRepository groomerEstimateRequestRepository;
+    private final GroomerEstimateRequestNotificationService groomerEstimateRequestNotificationService;
+    private final EstimateRepository estimateRepository;
 
     @Transactional
     public void insertGroomerEstimateRequests(EstimateRequest estimateRequest, District district, EstimateRequestDto estimateRequestDto) {
@@ -42,32 +46,47 @@ public class GroomerEstimateRequestService {
         }
     }
 
+    // 1대1요청 지역은 달라도 미용사가 가능한 서비스 타입이랑 할 수 있는 서비스는 일치해야 요청이 간다.
+    @Transactional
+    public void insertGroomerEstimateRequestForSpecificGroomer(EstimateRequest estimateRequest, GroomerProfile groomerProfile, EstimateRequestDto estimateRequestDto) {
+        if (canGroomerHandleRequest(estimateRequestDto, estimateRequest, groomerProfile)) {
+            saveGroomerEstimateRequest(estimateRequest, groomerProfile);
+        } else {
+            throw new IllegalArgumentException("미용사가 제공하는 서비스 타입과 필요한 서비스를 모두 제공할 수 없습니다.");
+        }
+    }
+
     // 미용사에게 온 견적 요청들 조회
     @Transactional(readOnly = true)
     public List<EstimateRequestResponseDto> getEstimateRequest(Long groomerProfileId) {
 
         List<GroomerEstimateRequest> groomerEstimateRequestList = groomerEstimateRequestRepository.findByGroomerProfileId(groomerProfileId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 지역에 대한 미용사 정보를 찾을 수 없습니다"));
+                .orElseThrow(() -> new IllegalArgumentException("해당 요청에 대한 미용사 정보를 찾을 수 없습니다"));
 
         return groomerEstimateRequestList.stream()
-                .map(EstimateRequestResponseDto::toDto)
+                .map(groomerEstimateRequest -> {
+                    Estimate estimate = estimateRepository.findByEstimateRequestId(groomerEstimateRequest.getEstimateRequest().getId())
+                            .orElse(null);
+                    return EstimateRequestResponseDto.toDto(groomerEstimateRequest, estimate);
+                })
                 .toList();
     }
 
     /**
-     *  미용사가 받은 견적 요청 상태를 CANCEL 로 변경
+     *  견적 요청 삭제(미용사)
      */
     @Transactional
-    public void cancelGroomerEstimateRequest(Long estimateRequestId) {
+    public void deleteGroomerEstimateRequest(Long estimateRequestId) {
 
         GroomerEstimateRequest request = groomerEstimateRequestRepository.findByEstimateRequestId(estimateRequestId)
                 .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다: " + estimateRequestId));
 
-        request.updateStatus(GroomerRequestStatus.CANCEL);
+        groomerEstimateRequestRepository.delete(request);
     }
 
     // 두가지 조건이 만족해야 요청이 간다.
     private boolean canGroomerHandleRequest(EstimateRequestDto estimateRequestDto, EstimateRequest estimateRequest, GroomerProfile groomerProfile) {
+
         boolean canProvideAllServices = isGroomerAllServices(estimateRequestDto, groomerProfile);
         boolean matchesServiceType = matchesServiceType(estimateRequest, groomerProfile);
 
@@ -76,6 +95,7 @@ public class GroomerEstimateRequestService {
 
     // 미용사가 가능한 서비스 안에 견적 신청한 서비스들이 모두 포함 되어야 견적 요청이 간다.
     private boolean isGroomerAllServices(EstimateRequestDto estimateRequestDto, GroomerProfile groomerProfile) {
+
         List<GroomerCanService> groomerCanServices = groomerCanServiceRepository.findByGroomerProfile(groomerProfile);
 
         return estimateRequestDto.getDogEstimateRequestList().stream()
@@ -86,12 +106,14 @@ public class GroomerEstimateRequestService {
 
     // 서비스 타입이 일치해야만 미용이 가능
     private boolean matchesServiceType(EstimateRequest estimateRequest, GroomerProfile groomerProfile) {
+
         return groomerProfile.getServiceType() == ServiceType.ANY ||
                 groomerProfile.getServiceType() == estimateRequest.getServiceType();
     }
 
     // 저장
     private void saveGroomerEstimateRequest(EstimateRequest estimateRequest, GroomerProfile groomerProfile) {
+
         GroomerEstimateRequest groomerEstimateRequest = GroomerEstimateRequest.builder()
                 .groomerRequestStatus(GroomerRequestStatus.COMPLETED)
                 .estimateRequest(estimateRequest)
@@ -99,5 +121,6 @@ public class GroomerEstimateRequestService {
                 .build();
 
         groomerEstimateRequestRepository.save(groomerEstimateRequest);
+        groomerEstimateRequestNotificationService.sendNotificationToGroomer(estimateRequest, groomerProfile);
     }
 }

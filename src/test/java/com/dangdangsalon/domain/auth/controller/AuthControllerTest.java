@@ -15,6 +15,7 @@ import com.dangdangsalon.domain.auth.dto.JoinAdditionalInfoDto;
 import com.dangdangsalon.domain.auth.service.AuthService;
 import com.dangdangsalon.util.CookieUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
@@ -60,18 +61,26 @@ class AuthControllerTest {
         );
 
         String mockRefreshToken = "mockRefreshToken";
-        Map<String, String> mockResponse = Map.of("accessToken", "newAccessToken");
+        String newAccessToken = "newAccessToken";
+        given(cookieUtil.getCookieValue(eq("Refresh-Token"), any(HttpServletRequest.class))).willReturn(mockRefreshToken);
 
-        given(cookieUtil.getCookieValue(eq("refreshToken"), any(HttpServletRequest.class))).willReturn(mockRefreshToken);
-        given(authService.refreshAccessToken(eq(mockRefreshToken))).willReturn(mockResponse);
+        doAnswer(invocation -> {
+            HttpServletResponse response = invocation.getArgument(1);
+            Cookie accessTokenCookie = new Cookie("Authorization", newAccessToken);
+            accessTokenCookie.setHttpOnly(true);
+            accessTokenCookie.setPath("/");
+            accessTokenCookie.setMaxAge(60 * 60 * 24 * 30);
+            response.addCookie(accessTokenCookie);
+            return null;
+        }).when(authService).refreshAccessToken(eq(mockRefreshToken), any(HttpServletResponse.class));
 
         mockMvc.perform(post("/api/auth/refresh")
                         .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.response.accessToken").value("newAccessToken"));
+                .andExpect(jsonPath("$.response").value("액세스 토큰 갱신에 성공했습니다."));
 
-        verify(cookieUtil, times(1)).getCookieValue(eq("refreshToken"), any(HttpServletRequest.class));
-        verify(authService, times(1)).refreshAccessToken(eq(mockRefreshToken));
+        verify(cookieUtil, times(1)).getCookieValue(eq("Refresh-Token"), any(HttpServletRequest.class));
+        verify(authService, times(1)).refreshAccessToken(eq(mockRefreshToken), any(HttpServletResponse.class));
     }
 
     @Test

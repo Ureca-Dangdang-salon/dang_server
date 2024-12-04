@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.auth.handler;
 
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
+import com.dangdangsalon.domain.user.entity.Role;
 import com.dangdangsalon.util.CookieUtil;
 import com.dangdangsalon.util.JwtUtil;
 import com.dangdangsalon.util.RedisUtil;
@@ -40,18 +41,18 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String refreshToken = jwtUtil.createRefreshToken(userId, username, role);
         redisUtil.saveRefreshToken(userId.toString(), refreshToken, 60 * 60 * 10000L);
 
-        response.addCookie(cookieUtil.createCookie("Authorization", accessToken));
         response.addCookie(cookieUtil.createCookie("Refresh-Token", refreshToken));
+        response.addCookie(cookieUtil.createCookie("Authorization", accessToken));
 
+//        response.addHeader("Authorization", "Bearer " + accessToken);
         log.info("Access Token: {}", accessToken);
         log.info("Refresh Token: {}", refreshToken);
 
-        if ("ROLE_PENDING".equals(role)) {
-            response.sendRedirect("http://localhost:5173/register");
-        } else {
-            //기존 회원은 메인 페이지로 리다이렉트
-            response.sendRedirect("http://localhost:5173/");
-        }
+        String redirectUrl = role.equals(Role.ROLE_PENDING.name())
+                ? "http://localhost:5173/survey"
+                : "http://localhost:5173/home";
+
+        response.sendRedirect(redirectUrl);
     }
 }
 

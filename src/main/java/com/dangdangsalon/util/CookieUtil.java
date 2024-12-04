@@ -21,6 +21,7 @@ public class CookieUtil {
                 .maxAge(60 * 60 * 24 * 30)
                 .httpOnly(true)
                 .secure(true)
+                .sameSite("None")
                 .build()
                 .toString();
     }

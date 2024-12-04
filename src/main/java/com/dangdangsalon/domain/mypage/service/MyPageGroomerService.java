@@ -41,8 +41,8 @@ public class MyPageGroomerService {
         List<DistrictResponseDto> serviceDistricts =
                 groomerProfileRepository.findServiceAreasWithDistricts(profileId);
 
-        List<GroomerServicesResponseDto> servicesOffered =
-                groomerProfileRepository.findGroomerServices(profileId);
+        List<String> servicesOffered =
+                groomerProfileRepository.findGroomerServiceDescriptions(profileId);
 
         // 뱃지
         List<BadgeResponseDto> badges = groomerProfileRepository.findBadgesByProfileId(profileId);
@@ -96,8 +96,8 @@ public class MyPageGroomerService {
         List<DistrictResponseDto> serviceDistricts =
                 groomerProfileRepository.findServiceAreasWithDistricts(profileId);
 
-        List<GroomerServicesResponseDto> servicesOffered =
-                groomerProfileRepository.findGroomerServices(profileId);
+        List<String> servicesOffered =
+                groomerProfileRepository.findGroomerServiceDescriptions(profileId);
 
         // 뱃지
         List<BadgeResponseDto> badges = groomerProfileRepository.findBadgesByProfileId(profileId);

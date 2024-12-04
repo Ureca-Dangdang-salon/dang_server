@@ -3,6 +3,7 @@ package com.dangdangsalon.domain.estimate.service;
 import com.dangdangsalon.domain.estimate.dto.EstimateIdResponseDto;
 import com.dangdangsalon.domain.estimate.dto.EstimateUpdateRequestDto;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
+import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestService;
@@ -58,5 +59,13 @@ public class EstimateUpdateService {
         }
 
         estimate.updateEstimate(requestDto.getDescription(), requestDto.getImageKey(), requestDto.getTotalAmount(), requestDto.getDate());
+    }
+
+    @Transactional
+    public void rejectedEstimate(Long estimateId) {
+        Estimate estimate = estimateRepository.findById(estimateId)
+                .orElseThrow(() -> new IllegalArgumentException("견적서를 찾을 수 없습니다: " + estimateId));
+
+        estimate.updateStatus(EstimateStatus.REJECTED);
     }
 }

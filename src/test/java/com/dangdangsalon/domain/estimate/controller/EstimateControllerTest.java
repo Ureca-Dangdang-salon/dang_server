@@ -8,6 +8,7 @@ import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.estimate.request.dto.FeatureResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.ServicePriceResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.ServiceResponseDto;
+import com.dangdangsalon.domain.estimate.service.EstimateNotificationService;
 import com.dangdangsalon.domain.estimate.service.EstimateService;
 import com.dangdangsalon.domain.estimate.service.EstimateWriteService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,6 +54,9 @@ class EstimateControllerTest {
 
     @MockBean
     private EstimateService estimateService;
+
+    @MockBean
+    private EstimateNotificationService estimateNotificationService;
 
     private ObjectMapper objectMapper;
 

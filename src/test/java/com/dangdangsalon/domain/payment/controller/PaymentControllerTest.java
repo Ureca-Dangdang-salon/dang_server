@@ -53,6 +53,14 @@ class PaymentControllerTest {
     @WithMockUser(username = "user", roles = {"USER"})
     @DisplayName("결제 승인 요청 테스트")
     void testApprovePayment() throws Exception {
+        // Mock 사용자 설정
+        CustomOAuth2User mockUser = Mockito.mock(CustomOAuth2User.class);
+        when(mockUser.getUserId()).thenReturn(1L);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockUser, null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))));
+
+        // 요청 및 응답 DTO
         PaymentApproveRequestDto requestDto = PaymentApproveRequestDto.builder()
                 .paymentKey("pay_123")
                 .orderId("order_456")
@@ -67,9 +75,11 @@ class PaymentControllerTest {
                 .method("간편 결제")
                 .build();
 
-        given(paymentService.approvePayment(any(PaymentApproveRequestDto.class), anyString()))
+        // Mock 설정
+        given(paymentService.approvePayment(any(PaymentApproveRequestDto.class), eq(1L)))
                 .willReturn(responseDto);
 
+        // API 호출 및 검증
         mockMvc.perform(post("/api/payments/approve")
                         .contentType("application/json")
                         .header("Idempotency-Key", "idempotency-key")
@@ -81,13 +91,21 @@ class PaymentControllerTest {
                 .andExpect(jsonPath("$.response.status").value("ACCEPTED"))
                 .andExpect(jsonPath("$.response.method").value("간편 결제"));
 
-        verify(paymentService, times(1)).approvePayment(any(PaymentApproveRequestDto.class), eq("idempotency-key"));
+        verify(paymentService, times(1)).approvePayment(any(PaymentApproveRequestDto.class), eq(1L));
     }
+
+
 
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
     @DisplayName("결제 취소 요청 테스트")
     void testCancelPayment() throws Exception {
+        CustomOAuth2User mockUser = Mockito.mock(CustomOAuth2User.class);
+        when(mockUser.getUserId()).thenReturn(1L);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockUser, null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))));
+
         PaymentCancelRequestDto requestDto = PaymentCancelRequestDto.builder()
                 .paymentKey("pay_123")
                 .cancelReason("User request")
@@ -99,7 +117,7 @@ class PaymentControllerTest {
                 .status("CANCELED")
                 .build();
 
-        given(paymentService.cancelPayment(any(PaymentCancelRequestDto.class), anyString()))
+        given(paymentService.cancelPayment(any(PaymentCancelRequestDto.class), eq(1L)))
                 .willReturn(responseDto);
 
         mockMvc.perform(post("/api/payments/cancel")
@@ -112,7 +130,7 @@ class PaymentControllerTest {
                 .andExpect(jsonPath("$.response.orderId").value("order_456"))
                 .andExpect(jsonPath("$.response.status").value("CANCELED"));
 
-        verify(paymentService, times(1)).cancelPayment(any(PaymentCancelRequestDto.class), eq("idempotency-key"));
+        verify(paymentService, times(1)).cancelPayment(any(PaymentCancelRequestDto.class), eq(1L));
     }
 
     @Test

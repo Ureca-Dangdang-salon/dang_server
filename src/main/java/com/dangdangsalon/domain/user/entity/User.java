@@ -61,13 +61,14 @@ public class User extends BaseEntity {
     private Boolean notificationEnabled = true;
 
     @Builder
-    public User(String username, String name, String email, String imageKey, Role role, District district) {
+    public User(String username, String name, String email, String imageKey, Role role, District district, Boolean notificationEnabled) {
         this.username = username;
         this.name = name;
         this.email = email;
         this.imageKey = imageKey;
         this.role = role;
         this.district = district;
+        this.notificationEnabled = notificationEnabled;
     }
 
     public void updateAdditionalInfo(Role role, District district) {

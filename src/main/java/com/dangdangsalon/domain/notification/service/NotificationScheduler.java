@@ -2,6 +2,7 @@ package com.dangdangsalon.domain.notification.service;
 
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
+import com.dangdangsalon.domain.notification.dto.NotificationDto;
 import com.dangdangsalon.domain.notification.dto.ReviewNotificationDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -79,17 +80,17 @@ public class NotificationScheduler {
 
             for (String notificationJson : notificationList) {
                 try {
-                    // JSON 문자열을 Map으로 변환
-                    Map<String, Object> notificationData = objectMapper.readValue(notificationJson, new TypeReference<>() {});
+                    // JSON 문자열을 NotificationDto로 변환
+                    NotificationDto notification = objectMapper.readValue(notificationJson, NotificationDto.class);
 
                     // createdAt 확인
-                    LocalDateTime createdAt = LocalDateTime.parse(notificationData.get("createdAt").toString());
-                    if (Duration.between(createdAt, LocalDateTime.now()).toDays() > 14) {
+                    if (notification.getCreatedAt() != null &&
+                            Duration.between(notification.getCreatedAt(), LocalDateTime.now()).toDays() > 14) {
                         // 만료된 알림 삭제
                         redisTemplate.opsForList().remove(key, 1, notificationJson);
                     }
                 } catch (JsonProcessingException e) {
-                    log.error("알림 데이터를 처리하는 중 오류 발생", e);
+                    log.error("알림 데이터를 처리하는 중 오류 발생: {}", notificationJson, e);
                 }
             }
         }

@@ -2,20 +2,28 @@ package com.dangdangsalon.util;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CookieUtil {
 
-    public Cookie createCookie(String key, String value) {
-        Cookie cookie = new Cookie(key, value);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(60 * 60 * 24 * 30);
-        cookie.setSecure(true);
-        cookie.setDomain("dangdangsalon.netlify.app");
+    public String createCookie(String key, String value) {
+//        Cookie cookie = new Cookie(key, value);
+//        cookie.setHttpOnly(true);
+//        cookie.setPath("/");
+//        cookie.setMaxAge(60 * 60 * 24 * 30);
+//        cookie.setSecure(true);
+//        cookie.setDomain("dangdangsalon.netlify.app");
 
-        return cookie;
+        return ResponseCookie.from(key, value)
+                .path("/")
+                .domain("dangdangsalon.netlify.app")
+                .maxAge(60 * 60 * 24 * 30)
+                .httpOnly(true)
+                .secure(true)
+                .build()
+                .toString();
     }
 
     public String getCookieValue(String cookieName, HttpServletRequest request) {

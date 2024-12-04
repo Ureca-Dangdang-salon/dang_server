@@ -54,7 +54,7 @@ public class AuthService {
         accessTokenCookie.setSecure(true);
         accessTokenCookie.setDomain("dangdangsalon.netlify.app");
 
-        response.addCookie(cookieUtil.createCookie("Authorization", newAccessToken));
+        response.addHeader("Set-Cookie", cookieUtil.createCookie("Authorization", newAccessToken));
     }
 
     @Transactional

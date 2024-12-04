@@ -1,5 +1,7 @@
 package com.dangdangsalon.domain.estimate.request.service;
 
+import com.dangdangsalon.domain.estimate.entity.Estimate;
+import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
@@ -12,17 +14,12 @@ import com.dangdangsalon.domain.groomerprofile.repository.GroomerServiceAreaRepo
 import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerEstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerRequestStatus;
 import com.dangdangsalon.domain.groomerprofile.request.repository.GroomerEstimateRequestRepository;
-import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.region.entity.District;
-import com.dangdangsalon.domain.user.entity.User;
-import com.dangdangsalon.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 // groomer 관련 서비스
 @Service
@@ -33,6 +30,7 @@ public class GroomerEstimateRequestService {
     private final GroomerCanServiceRepository groomerCanServiceRepository;
     private final GroomerEstimateRequestRepository groomerEstimateRequestRepository;
     private final GroomerEstimateRequestNotificationService groomerEstimateRequestNotificationService;
+    private final EstimateRepository estimateRepository;
 
     @Transactional
     public void insertGroomerEstimateRequests(EstimateRequest estimateRequest, District district, EstimateRequestDto estimateRequestDto) {
@@ -66,7 +64,11 @@ public class GroomerEstimateRequestService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 요청에 대한 미용사 정보를 찾을 수 없습니다"));
 
         return groomerEstimateRequestList.stream()
-                .map(EstimateRequestResponseDto::toDto)
+                .map(groomerEstimateRequest -> {
+                    Estimate estimate = estimateRepository.findByEstimateRequestId(groomerEstimateRequest.getEstimateRequest().getId())
+                            .orElse(null);
+                    return EstimateRequestResponseDto.toDto(groomerEstimateRequest, estimate);
+                })
                 .toList();
     }
 

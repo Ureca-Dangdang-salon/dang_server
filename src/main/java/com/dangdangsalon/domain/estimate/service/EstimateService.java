@@ -141,6 +141,7 @@ public class EstimateService {
                 .toList();
 
         return EstimateResponseDto.builder()
+                .imageKey(estimate.getImageKey())
                 .comment(estimate.getDescription())
                 .totalAmount(estimate.getTotalAmount())
                 .date(estimate.getDate())

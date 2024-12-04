@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.estimate.request.dto;
 
+import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerEstimateRequest;
 import com.dangdangsalon.domain.region.entity.City;
@@ -14,28 +15,28 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 public class EstimateRequestResponseDto {
-    private Long estimateId;
+    private Long requestId;
     private String name;
     private LocalDate date;
     private String serviceType;
     private String region;
     private String imageKey;
-    private String estimateRequestStatus;
+    private String estimateStatus;
     private String groomerEstimateRequestStatus;
 
     @Builder
-    public EstimateRequestResponseDto(Long estimateId , String name, LocalDate date, String serviceType, String region, String imageKey, String estimateRequestStatus, String groomerEstimateRequestStatus) {
-        this.estimateId = estimateId;
+    public EstimateRequestResponseDto(Long requestId, String name, LocalDate date, String serviceType, String region, String imageKey, String estimateStatus, String groomerEstimateRequestStatus) {
+        this.requestId = requestId;
         this.name = name;
         this.date = date;
         this.serviceType = serviceType;
         this.region = region;
         this.imageKey = imageKey;
-        this.estimateRequestStatus = estimateRequestStatus;
+        this.estimateStatus = estimateStatus;
         this.groomerEstimateRequestStatus = groomerEstimateRequestStatus;
     }
 
-    public static EstimateRequestResponseDto toDto(GroomerEstimateRequest groomerEstimateRequest) {
+    public static EstimateRequestResponseDto toDto(GroomerEstimateRequest groomerEstimateRequest, Estimate estimate) {
 
         EstimateRequest estimateRequest = groomerEstimateRequest.getEstimateRequest();
         User user = estimateRequest.getUser();
@@ -45,13 +46,13 @@ public class EstimateRequestResponseDto {
         String fullRegion = String.format("%s %s", city.getName(), district.getName());
 
         return EstimateRequestResponseDto.builder()
-                .estimateId(estimateRequest.getId())
+                .requestId(estimateRequest.getId())
                 .name(user.getName())
                 .date(estimateRequest.getRequestDate().toLocalDate())
                 .serviceType(estimateRequest.getServiceType().name())
                 .region(fullRegion)
                 .imageKey(user.getImageKey())
-                .estimateRequestStatus(estimateRequest.getRequestStatus().name())
+                .estimateStatus(estimate != null ? estimate.getStatus().name() : null)
                 .groomerEstimateRequestStatus(String.valueOf(groomerEstimateRequest.getGroomerRequestStatus()))
                 .build();
     }

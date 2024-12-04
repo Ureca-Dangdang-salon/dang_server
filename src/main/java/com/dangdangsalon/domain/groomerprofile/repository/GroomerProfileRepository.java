@@ -26,7 +26,7 @@ public interface GroomerProfileRepository extends JpaRepository<GroomerProfile, 
     Optional<GroomerProfile> findByUserIdWithDistrict(@Param("userId") Long userId);
 
     @Query("SELECT new com.dangdangsalon.domain.mypage.dto.res.DistrictResponseDto" +
-            "(d.name, c.name) " +
+            "(d.id, d.name, c.name) " +
             "FROM GroomerServiceArea gsa " +
             "JOIN gsa.district d " +
             "JOIN d.city c " +

@@ -151,23 +151,7 @@ public class MyPageGroomerService {
             }
             addCanService(services, groomerProfile);
         }
-    }
 
-
-    @Transactional
-    public void saveGroomerProfileDetails(GroomerProfileDetailsRequestDto requestDto, Long userId) {
-        GroomerProfile groomerProfile = groomerProfileRepository.findByUserIdWithDistrict(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 미용사를 찾을 수 없습니다."));
-
-        groomerProfile.updateProfileDetail(
-                requestDto.getServiceType(),
-                requestDto.getImageKey(),
-                GroomerDetails.createGroomerDetails(requestDto)
-        );
-
-        if (requestDto.getCertifications() != null && !requestDto.getCertifications().isEmpty()) {
-            addCertification(requestDto.getCertifications(), groomerProfile);
-        }
         // 요청에 포함된 서비스 ID로 GroomerService 리스트 조회
         if (requestDto.getServicesDistrictIds() != null && !requestDto.getServicesDistrictIds().isEmpty()) {
             List<District> districts = districtRepository.findAllById(requestDto.getServicesDistrictIds());
@@ -177,6 +161,23 @@ public class MyPageGroomerService {
                 throw new IllegalArgumentException("유효하지 않은 서비스 ID가 포함되어 있습니다.");
             }
             addDistrict(districts, groomerProfile);
+        }
+
+    }
+
+
+    @Transactional
+    public void saveGroomerProfileDetails(GroomerProfileDetailsRequestDto requestDto, Long userId) {
+        GroomerProfile groomerProfile = groomerProfileRepository.findByUserIdWithDistrict(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 미용사를 찾을 수 없습니다."));
+
+        groomerProfile.updateProfileDetail(
+                requestDto.getImageKey(),
+                GroomerDetails.createGroomerDetails(requestDto)
+        );
+
+        if (requestDto.getCertifications() != null && !requestDto.getCertifications().isEmpty()) {
+            addCertification(requestDto.getCertifications(), groomerProfile);
         }
     }
 

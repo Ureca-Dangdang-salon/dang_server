@@ -33,5 +33,7 @@ public class ChatController {
         Long senderId = user.getUserId();
         String senderRole = user.getRole();
         return chatService.createAndSaveMessage(message, roomId, senderId, senderRole);
+
+//        return chatService.createAndSaveMessage(message); // 테스트 용도
     }
 }

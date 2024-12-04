@@ -64,7 +64,7 @@ class EstimateRequestServicesTest {
     void testInsertEstimateRequest_Success() {
         // given
         Long userId = 1L;
-        Long groomerProfileId = 1L;
+        Long districtId = 1L;
         User mockUser = mock(User.class);
         District mockDistrict = mock(District.class);
         GroomerProfile mockGroomerProfile = mock(GroomerProfile.class);
@@ -72,7 +72,7 @@ class EstimateRequestServicesTest {
 
         EstimateRequestDto estimateRequestDto = new EstimateRequestDto(
                 1L,
-                groomerProfileId,
+                districtId,
                 LocalDateTime.now(),
                 "ANY",
                 Collections.emptyList()
@@ -80,7 +80,7 @@ class EstimateRequestServicesTest {
 
         given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
         given(districtRepository.findById(estimateRequestDto.getDistrictId())).willReturn(Optional.of(mockDistrict));
-        given(groomerProfileRepository.findById(groomerProfileId)).willReturn(Optional.of(mockGroomerProfile));
+        given(groomerProfileRepository.findById(districtId)).willReturn(Optional.of(mockGroomerProfile));
         given(estimateRequestInsertService.insertEstimateRequest(estimateRequestDto, mockUser, mockDistrict))
                 .willReturn(mockEstimateRequest);
 
@@ -90,7 +90,7 @@ class EstimateRequestServicesTest {
         // then
         verify(userRepository, times(1)).findById(userId);
         verify(districtRepository, times(1)).findById(estimateRequestDto.getDistrictId());
-        verify(groomerProfileRepository, times(1)).findById(groomerProfileId);
+        verify(groomerProfileRepository, times(1)).findById(districtId);
         verify(estimateRequestInsertService, times(1)).insertEstimateRequest(estimateRequestDto, mockUser, mockDistrict);
         verify(groomerEstimateRequestService, times(1))
                 .insertGroomerEstimateRequestForSpecificGroomer(mockEstimateRequest, mockGroomerProfile, estimateRequestDto);
@@ -208,5 +208,40 @@ class EstimateRequestServicesTest {
                 .hasMessage("견적 요청을 찾을 수 없습니다: " + requestId);
 
         verify(estimateRequestRepository, times(1)).findById(requestId);
+    }
+
+    @Test
+    @DisplayName("견적 요청 등록 성공 - GroomerProfileId 없음")
+    void testInsertEstimateRequest_SuccessWithoutGroomerProfileId() {
+        // given
+        Long userId = 1L;
+        Long districtId = 1L;
+        User mockUser = mock(User.class);
+        District mockDistrict = mock(District.class);
+        EstimateRequest mockEstimateRequest = mock(EstimateRequest.class);
+
+        EstimateRequestDto estimateRequestDto = new EstimateRequestDto(
+                null,
+                districtId,
+                LocalDateTime.now(),
+                "ANY",
+                Collections.emptyList()
+        );
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
+        given(districtRepository.findById(districtId)).willReturn(Optional.of(mockDistrict));
+        given(estimateRequestInsertService.insertEstimateRequest(estimateRequestDto, mockUser, mockDistrict))
+                .willReturn(mockEstimateRequest);
+
+        // when
+        estimateRequestServices.insertEstimateRequest(estimateRequestDto, userId);
+
+        // then
+        verify(userRepository).findById(userId);
+        verify(districtRepository).findById(districtId);
+        verify(estimateRequestInsertService).insertEstimateRequest(estimateRequestDto, mockUser, mockDistrict);
+        verify(groomerEstimateRequestService).insertGroomerEstimateRequests(mockEstimateRequest, mockDistrict, estimateRequestDto);
+
+        verifyNoInteractions(groomerProfileRepository);
     }
 }

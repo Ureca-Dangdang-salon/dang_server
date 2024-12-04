@@ -8,7 +8,9 @@ import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.estimate.request.dto.FeatureResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.ServicePriceResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.ServiceResponseDto;
+import com.dangdangsalon.domain.estimate.service.EstimateNotificationService;
 import com.dangdangsalon.domain.estimate.service.EstimateService;
+import com.dangdangsalon.domain.estimate.service.EstimateUpdateService;
 import com.dangdangsalon.domain.estimate.service.EstimateWriteService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -53,6 +55,13 @@ class EstimateControllerTest {
 
     @MockBean
     private EstimateService estimateService;
+
+    @MockBean
+    private EstimateNotificationService estimateNotificationService;
+
+    @MockBean
+    private EstimateUpdateService estimateUpdateService;
+
 
     private ObjectMapper objectMapper;
 
@@ -466,4 +475,18 @@ class EstimateControllerTest {
                 .andExpect(jsonPath("$.response", hasSize(0)));
     }
 
+    @Test
+    @DisplayName("견적서 상태 업데이트 - 성공")
+    void updateEstimateStatus_Success() throws Exception {
+        // Given
+        Long estimateId = 1L;
+
+        // When & Then
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/estimate/{estimateId}", estimateId)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(
+                                SecurityContextHolder.getContext().getAuthentication())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.response", is("견적서 상태 업데이트 완료")));
+    }
 }

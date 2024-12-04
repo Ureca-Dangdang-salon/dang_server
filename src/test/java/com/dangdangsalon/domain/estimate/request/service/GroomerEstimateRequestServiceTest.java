@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.estimate.request.service;
 
+import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.dto.DogEstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
@@ -46,6 +47,12 @@ class GroomerEstimateRequestServiceTest {
 
     @Mock
     private GroomerEstimateRequestRepository groomerEstimateRequestRepository;
+
+    @Mock
+    private GroomerEstimateRequestNotificationService groomerEstimateRequestNotificationService;
+
+    @Mock
+    private EstimateRepository estimateRepository;
 
     @BeforeEach
     void setUp() {
@@ -204,27 +211,27 @@ class GroomerEstimateRequestServiceTest {
     @Test
     @DisplayName("1대1 견적 요청 성공")
     void insertGroomerEstimateRequestForSpecificGroomer_Success() {
-        // given
+        // Given
         EstimateRequest estimateRequest = mock(EstimateRequest.class);
         GroomerProfile groomerProfile = mock(GroomerProfile.class);
 
         EstimateRequestDto estimateRequestDto = createEstimateRequestDto();
 
-        // 서비스 타입 ANY로 설정
+        // 미용사 서비스 및 타입 설정
         when(estimateRequest.getServiceType()).thenReturn(ServiceType.ANY);
         when(groomerProfile.getServiceType()).thenReturn(ServiceType.ANY);
 
-        // 가능한 서비스 설정
         List<GroomerCanService> canServices = createGroomerCanServices();
-        when(groomerCanServiceRepository.findByGroomerProfile(groomerProfile))
-                .thenReturn(canServices);
+        when(groomerCanServiceRepository.findByGroomerProfile(groomerProfile)).thenReturn(canServices);
 
-        // when
+        // When
         groomerEstimateRequestService.insertGroomerEstimateRequestForSpecificGroomer(
                 estimateRequest, groomerProfile, estimateRequestDto);
 
-        // then
-        verify(groomerEstimateRequestRepository, times(1)).save(any(GroomerEstimateRequest.class));
+        // Then
+        verify(groomerEstimateRequestRepository, times(1)).save(any());
+        verify(groomerEstimateRequestNotificationService, times(1))
+                .sendNotificationToGroomer(estimateRequest, groomerProfile);
     }
 
     @Test

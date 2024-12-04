@@ -4,7 +4,6 @@ import com.dangdangsalon.domain.groomerprofile.entity.*;
 import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
 import com.dangdangsalon.domain.mypage.dto.res.BadgeResponseDto;
 import com.dangdangsalon.domain.mypage.dto.res.DistrictResponseDto;
-import com.dangdangsalon.domain.mypage.dto.res.GroomerServicesResponseDto;
 import com.dangdangsalon.domain.region.entity.City;
 import com.dangdangsalon.domain.region.entity.District;
 import com.dangdangsalon.domain.user.entity.User;
@@ -155,11 +154,10 @@ class GroomerProfileRepositoryTest {
         entityManager.flush();
         entityManager.clear();
 
-        List<GroomerServicesResponseDto> services = groomerProfileRepository.findGroomerServices(groomerProfile.getId());
+        List<String> services = groomerProfileRepository.findGroomerServiceDescriptions(groomerProfile.getId());
 
         assertThat(services).hasSize(1);
-        assertThat(services.get(0).getDescription()).isEqualTo("Haircut");
-        assertThat(services.get(0).getIsCustom()).isFalse();
+        assertThat(services.get(0)).isEqualTo("Haircut");
     }
 
     @Test

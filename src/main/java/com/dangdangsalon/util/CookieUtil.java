@@ -22,7 +22,6 @@ public class CookieUtil {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain("dangdangsalon.netlify.app")
                 .build()
                 .toString();
     }

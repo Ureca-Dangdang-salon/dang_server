@@ -1,14 +1,13 @@
 package com.dangdangsalon.domain.estimate.controller;
 
 import com.dangdangsalon.domain.estimate.dto.*;
-import com.dangdangsalon.domain.estimate.request.dto.EstimateDetailResponseDto;
-import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
+import com.dangdangsalon.domain.estimate.service.EstimateNotificationService;
 import com.dangdangsalon.domain.estimate.service.EstimateService;
 import com.dangdangsalon.domain.estimate.service.EstimateWriteService;
 import com.dangdangsalon.util.ApiUtil;
+import com.dangdangsalon.util.ApiUtil.ApiSuccess;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import com.dangdangsalon.util.ApiUtil.ApiSuccess;
 
 import java.util.List;
 
@@ -19,6 +18,7 @@ public class EstimateController {
 
     private final EstimateWriteService estimateWriteService;
     private final EstimateService estimateService;
+    private final EstimateNotificationService estimateNotificationService;
 
     // 견적서 작성 반려견 요청 목록 조회
     @GetMapping("/dogrequest/{requestId}")
@@ -67,5 +67,12 @@ public class EstimateController {
     public ApiSuccess<?> getMyEstimate(@PathVariable Long requestId) {
         List<MyEstimateResponseDto> myEstimateResponseDtoList = estimateService.getMyEstimate(requestId);
         return ApiUtil.success(myEstimateResponseDtoList);
+    }
+
+    // 미용 완료 버튼 클릭시 견적서 상태 변화
+    @PutMapping("/{estimateId}")
+    public ApiSuccess<?> updateEstimateStatus(@PathVariable Long estimateId) {
+        estimateNotificationService.updateEstimateStatus(estimateId);
+        return ApiUtil.success("견적서 상태 업데이트 완료");
     }
 }

@@ -21,6 +21,9 @@ import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.groomerprofile.repository.GroomerProfileRepository;
 import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
 import com.dangdangsalon.domain.groomerservice.repository.GroomerServiceRepository;
+import com.dangdangsalon.domain.notification.entity.FcmToken;
+import com.dangdangsalon.domain.notification.service.NotificationService;
+import com.dangdangsalon.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +42,7 @@ public class EstimateService {
     private final EstimateRequestProfilesRepository estimateRequestProfilesRepository;
     private final EstimateRequestServiceRepository estimateRequestServiceRepository;
     private final DogProfileFeatureRepository dogProfileFeatureRepository;
+    private final EstimateNotificationService estimateNotificationService;
 
     // 견적서 등록
     @Transactional
@@ -69,6 +73,9 @@ public class EstimateService {
 
         estimateRepository.save(estimate);
 
+        // 푸쉬 알람
+        estimateNotificationService.sendNotificationToUser(estimateRequest, estimate, groomerProfile);
+
         //강아지별 특이사항, 서비스 다 따로 저장하기는 로직...
         requestDto.getDogPriceList().forEach(dogPriceDto -> {
             EstimateRequestProfiles estimateRequestProfiles = estimateRequestProfilesRepository.findByDogProfileIdAndEstimateRequestId(
@@ -97,7 +104,6 @@ public class EstimateService {
                 .estimateId(estimate.getId())
                 .build();
     }
-
 
     // 견적서 수정 조회
     @Transactional(readOnly = true)

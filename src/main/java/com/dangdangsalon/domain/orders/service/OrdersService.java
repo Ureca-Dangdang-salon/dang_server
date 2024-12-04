@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.orders.service;
 
 import com.dangdangsalon.domain.estimate.entity.Estimate;
+import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.orders.dto.OrdersRequestDto;
 import com.dangdangsalon.domain.orders.dto.OrdersResponseDto;
@@ -10,6 +11,7 @@ import com.dangdangsalon.domain.orders.repository.OrdersRepository;
 import com.dangdangsalon.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -20,6 +22,7 @@ public class OrdersService {
     private final OrdersRepository ordersRepository;
     private final EstimateRepository estimateRepository;
 
+    @Transactional
     public OrdersResponseDto insertOrders(Long estimateId, OrdersRequestDto ordersRequestDto) {
 
         Estimate estimate = estimateRepository.findById(estimateId)

@@ -57,6 +57,9 @@ public class User extends BaseEntity {
     @JoinColumn(name = "district_id")
     private District district;
 
+    @Column(name = "notification_enabled")
+    private Boolean notificationEnabled = true;
+
     @Builder
     public User(String username, String name, String email, String imageKey, Role role, District district) {
         this.username = username;
@@ -80,5 +83,9 @@ public class User extends BaseEntity {
         this.imageKey = imageKey;
         this.email = email;
         this.district = district;
+    }
+
+    public void updateNotificationEnabled(Boolean notificationEnabled) {
+        this.notificationEnabled = notificationEnabled;
     }
 }

@@ -228,7 +228,7 @@ public class MyPageApiTest {
                 .put("/api/groomerprofile/1")
                 .then()
                 .statusCode(200)
-                .body("response", equalTo("미용사 프로필 상세 정보 등록이 완료되었습니다."));
+                .body("response", equalTo("미용사 프로필 정보 수정이 완료되었습니다."));
     }
 
     @Test

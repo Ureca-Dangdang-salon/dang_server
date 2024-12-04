@@ -198,7 +198,7 @@ class MyPageGroomerControllerTest {
                         .with(csrf())
                         .principal(new UsernamePasswordAuthenticationToken(customOAuth2User, null)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.response").value("미용사 프로필 상세 정보 등록이 완료되었습니다."));
+                .andExpect(jsonPath("$.response").value("미용사 프로필 정보 수정이 완료되었습니다."));
     }
 
     @Test

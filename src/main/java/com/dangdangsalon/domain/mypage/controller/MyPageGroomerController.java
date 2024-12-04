@@ -42,7 +42,7 @@ public class MyPageGroomerController {
     }
 
     @PostMapping("/detail")
-    public ApiSuccess<?> saveGroomerProfileDetail(@RequestBody GroomerProfileDetailsRequestDto requestDto,
+    public ApiSuccess<?> saveGroomerProfile(@RequestBody GroomerProfileDetailsRequestDto requestDto,
                                             @AuthenticationPrincipal CustomOAuth2User user) {
         Long userId = user.getUserId();
         myPageGroomerService.saveGroomerProfileDetails(requestDto, userId);
@@ -55,7 +55,7 @@ public class MyPageGroomerController {
                                                   @PathVariable Long profileId) {
         Long userId = user.getUserId();
         myPageGroomerService.updateGroomerProfile(requestDto, userId, profileId);
-        return ApiUtil.success("미용사 프로필 상세 정보 등록이 완료되었습니다.");
+        return ApiUtil.success("미용사 프로필 정보 수정이 완료되었습니다.");
     }
 
     @DeleteMapping("/{profileId}")

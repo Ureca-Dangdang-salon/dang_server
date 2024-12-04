@@ -9,6 +9,7 @@ import lombok.Getter;
 @Builder
 // 미용사 서비스 지역 (응답)
 public class DistrictResponseDto {
+    private Long districtId;
     private String district;
     private String city;
 }

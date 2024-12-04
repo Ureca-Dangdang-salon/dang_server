@@ -168,31 +168,28 @@ class MyPageGroomerServiceTest {
     void testSaveGroomerProfileDetails_success() {
         // Given
         Long userId = 1L;
-        GroomerProfileDetailsRequestDto requestDto = createMockRequestDto();
+        GroomerProfileDetailsRequestDto requestDto = createMockDetailRequestDto();
         GroomerProfile mockProfile = createMockGroomerProfile();
         when(groomerProfileRepository.findByUserIdWithDistrict(userId)).thenReturn(Optional.of(mockProfile));
-        when(districtRepository.findAllById(requestDto.getServicesDistrictIds())).thenReturn(createMockDistricts());
 
         // When
         myPageGroomerService.saveGroomerProfileDetails(requestDto, userId);
 
         // Then
         verify(groomerProfileRepository).findByUserIdWithDistrict(userId);
-        verify(districtRepository).findAllById(requestDto.getServicesDistrictIds());
     }
 
     @Test
-    @DisplayName("미용사 프로필 상세 저장 실패 테스트 - 유효하지 않은 지역 ID")
+    @DisplayName("미용사 프로필 상세 저장 실패 테스트 - 프로필 없음")
     void testSaveGroomerProfileDetails_invalidDistrictIds() {
-        // Given
+        /// Given
         Long userId = 1L;
-        GroomerProfileDetailsRequestDto requestDto = createMockRequestDto();
-        when(groomerProfileRepository.findByUserIdWithDistrict(userId)).thenReturn(Optional.of(createMockGroomerProfile()));
-        when(districtRepository.findAllById(requestDto.getServicesDistrictIds())).thenReturn(List.of()); // Empty list
+        when(groomerProfileRepository.findByUserIdWithDistrict(userId)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(IllegalArgumentException.class,
-                () -> myPageGroomerService.saveGroomerProfileDetails(requestDto, userId));
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> myPageGroomerService.getGroomerProfilePage(userId));
+        assertEquals("해당 미용사를 찾을 수 없습니다.", exception.getMessage());
     }
 
     @Test
@@ -297,12 +294,27 @@ class MyPageGroomerServiceTest {
                 .build();
     }
 
-    private GroomerProfileDetailsRequestDto createMockRequestDto() {
-        return GroomerProfileDetailsRequestDto.builder()
+    private GroomerProfileRequestDto createMockRequestDto() {
+        return GroomerProfileRequestDto.builder()
+                .name("미용사")
+                .phone("phone")
+                .contactHours("10-18")
                 .serviceType(ServiceType.SHOP)
-                .imageKey("test_image.png")
                 .servicesDistrictIds(List.of(1L, 2L))
-                .certifications(List.of("Certification1", "Certification2"))
+                .servicesOfferedId(List.of(1L, 2L))
+                .build();
+    }
+
+    private GroomerProfileDetailsRequestDto createMockDetailRequestDto() {
+        return GroomerProfileDetailsRequestDto.builder()
+                .imageKey("image")
+                .businessNumber("number")
+                .address("address")
+                .experience("experience")
+                .description("description")
+                .startMessage("startMessage")
+                .faq("faq")
+                .certifications(List.of("자격증1", "자격증1"))
                 .build();
     }
 
@@ -319,7 +331,7 @@ class MyPageGroomerServiceTest {
     }
 
     private List<DistrictResponseDto> createMockDistrictResponse() {
-        return List.of(new DistrictResponseDto("District1", "city1"), new DistrictResponseDto("District2", "city2"));
+        return List.of(new DistrictResponseDto(1L, "District1", "city1"), new DistrictResponseDto(2L, "District2", "city2"));
     }
 
     private List<String> createMockServiceResponse() {

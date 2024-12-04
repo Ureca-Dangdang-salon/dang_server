@@ -18,8 +18,9 @@ public class UserProfileResponseDto {
     private String name;
     private String email;
     private String profileImage;
-    private String city;
+    private Long districtId;
     private String district;
+    private String city;
     private List<DogProfileResponseDto> dogProfiles;
     private long couponCount;
     private long reviewCount;
@@ -31,6 +32,7 @@ public class UserProfileResponseDto {
                 .name(user.getName())
                 .email(user.getEmail())
                 .profileImage(user.getImageKey())
+                .districtId(user.getDistrict().getId())
                 .city(user.getDistrict().getCity().getName())
                 .district(user.getDistrict().getName())
                 .dogProfiles(

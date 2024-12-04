@@ -18,7 +18,6 @@ public class CookieUtil {
 
         return ResponseCookie.from(key, value)
                 .path("/")
-                .domain("dangdangsalon.netlify.app")
                 .maxAge(60 * 60 * 24 * 30)
                 .httpOnly(true)
                 .secure(true)

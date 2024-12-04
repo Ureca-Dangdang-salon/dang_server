@@ -12,7 +12,8 @@ public class CookieUtil {
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 24 * 30);
-//        cookie.setSecure(true);
+        cookie.setSecure(true);
+        cookie.setDomain("dangdangsalon.netlify.app");
 
         return cookie;
     }

@@ -24,13 +24,11 @@ public class EstimateUpdateService {
     private final EstimateRequestServiceRepository estimateRequestServiceRepository;
 
     @Transactional
-    public EstimateIdResponseDto updateEstimate(EstimateUpdateRequestDto requestDto) {
+    public void updateEstimate(EstimateUpdateRequestDto requestDto) {
 
         // 기존 견적서 조회
         Estimate estimate = estimateRepository.findById(requestDto.getEstimateId())
                 .orElseThrow(() -> new IllegalArgumentException("견적서를 찾을 수 없습니다: " + requestDto.getEstimateId()));
-
-        estimate.updateEstimate(requestDto.getDescription(), requestDto.getImageKey(), requestDto.getTotalAmount(), requestDto.getDate());
 
         // 강아지 정보 수정 (Optional)
         if (requestDto.getDogPriceList() != null) {
@@ -59,10 +57,6 @@ public class EstimateUpdateService {
             });
         }
 
-        estimateRepository.save(estimate);
-
-        return EstimateIdResponseDto.builder()
-                .estimateId(estimate.getId())
-                .build();
+        estimate.updateEstimate(requestDto.getDescription(), requestDto.getImageKey(), requestDto.getTotalAmount(), requestDto.getDate());
     }
 }

@@ -29,4 +29,6 @@ public interface EstimateRepository extends JpaRepository<Estimate, Long> {
             "JOIN FETCH er.user u " +
             "WHERE e.id = :estimateId")
     Optional<Estimate> findWithEstimateById(@Param("estimateId") Long estimateId);
+
+    Optional<Estimate> findByEstimateRequestId(Long requestId);
 }

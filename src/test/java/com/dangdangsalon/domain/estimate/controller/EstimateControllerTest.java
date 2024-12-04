@@ -10,6 +10,7 @@ import com.dangdangsalon.domain.estimate.request.dto.ServicePriceResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.ServiceResponseDto;
 import com.dangdangsalon.domain.estimate.service.EstimateNotificationService;
 import com.dangdangsalon.domain.estimate.service.EstimateService;
+import com.dangdangsalon.domain.estimate.service.EstimateUpdateService;
 import com.dangdangsalon.domain.estimate.service.EstimateWriteService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -57,6 +58,10 @@ class EstimateControllerTest {
 
     @MockBean
     private EstimateNotificationService estimateNotificationService;
+
+    @MockBean
+    private EstimateUpdateService estimateUpdateService;
+
 
     private ObjectMapper objectMapper;
 

@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.estimate.request.service;
 
+import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.dto.DogEstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
@@ -49,6 +50,9 @@ class GroomerEstimateRequestServiceTest {
 
     @Mock
     private GroomerEstimateRequestNotificationService groomerEstimateRequestNotificationService;
+
+    @Mock
+    private EstimateRepository estimateRepository;
 
     @BeforeEach
     void setUp() {

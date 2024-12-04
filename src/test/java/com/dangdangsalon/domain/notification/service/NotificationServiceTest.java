@@ -342,4 +342,31 @@ class NotificationServiceTest {
         verify(fcmTokenRepository, times(1)).save(any(FcmToken.class));
     }
 
+    @Test
+    @DisplayName("FCM 알림 전송 실패 - UNREGISTERED 토큰")
+    void sendNotificationWithData_UnregisteredToken() throws FirebaseMessagingException {
+        // Given
+        String token = "unregistered-token";
+        String title = "알림 제목";
+        String body = "알림 내용";
+        String type = "TEST";
+        Long referenceId = 123L;
+
+        User mockUser = mock(User.class);
+        when(mockUser.getNotificationEnabled()).thenReturn(true);
+
+        FcmToken mockFcmToken = FcmToken.builder().fcmToken(token).user(mockUser).build();
+        when(fcmTokenRepository.findByFcmToken(token)).thenReturn(Optional.of(mockFcmToken));
+
+        FirebaseMessagingException unregisteredException = mock(FirebaseMessagingException.class);
+        when(unregisteredException.getMessagingErrorCode()).thenReturn(MessagingErrorCode.UNREGISTERED);
+        when(firebaseMessagingMock.send(any(Message.class))).thenThrow(unregisteredException);
+
+        // When
+        notificationService.sendNotificationWithData(token, title, body, type, referenceId);
+
+        // Then
+        verify(fcmTokenRepository, times(1)).deleteByFcmToken(token);
+        verify(firebaseMessagingMock, times(1)).send(any(Message.class));
+    }
 }

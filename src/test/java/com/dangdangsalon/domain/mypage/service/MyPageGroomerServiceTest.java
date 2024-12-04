@@ -71,7 +71,7 @@ class MyPageGroomerServiceTest {
 
         when(groomerProfileRepository.findByUserIdWithDistrict(userId)).thenReturn(Optional.of(groomerProfile));
         when(groomerProfileRepository.findServiceAreasWithDistricts(1L)).thenReturn(List.of());
-        when(groomerProfileRepository.findGroomerServices(1L)).thenReturn(List.of());
+        when(groomerProfileRepository.findGroomerServiceDescriptions(1L)).thenReturn(List.of());
         when(groomerProfileRepository.findBadgesByProfileId(1L)).thenReturn(List.of());
 
         // When
@@ -103,7 +103,7 @@ class MyPageGroomerServiceTest {
         GroomerProfile mockProfile = createMockGroomerProfile();
         when(groomerProfileRepository.findById(profileId)).thenReturn(Optional.of(mockProfile));
         when(groomerProfileRepository.findServiceAreasWithDistricts(profileId)).thenReturn(createMockDistrictResponse());
-        when(groomerProfileRepository.findGroomerServices(profileId)).thenReturn(createMockServiceResponse());
+        when(groomerProfileRepository.findGroomerServiceDescriptions(profileId)).thenReturn(createMockServiceResponse());
         when(groomerProfileRepository.findBadgesByProfileId(profileId)).thenReturn(createMockBadgeResponse());
 
         // When
@@ -322,8 +322,8 @@ class MyPageGroomerServiceTest {
         return List.of(new DistrictResponseDto("District1", "city1"), new DistrictResponseDto("District2", "city2"));
     }
 
-    private List<GroomerServicesResponseDto> createMockServiceResponse() {
-        return List.of(new GroomerServicesResponseDto("Service1", false), new GroomerServicesResponseDto("Service2", false));
+    private List<String> createMockServiceResponse() {
+        return List.of("Service1", "Service2");
     }
 
     private List<BadgeResponseDto> createMockBadgeResponse() {

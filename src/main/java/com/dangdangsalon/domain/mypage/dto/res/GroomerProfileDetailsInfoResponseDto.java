@@ -14,7 +14,7 @@ public class GroomerProfileDetailsInfoResponseDto {
     private long estimateRequestCount;
     private long reviewCount;
     private List<BadgeResponseDto> badges;
-    private List<GroomerServicesResponseDto> servicesOffered;
+    private List<String> servicesOffered;
     private List<DistrictResponseDto> servicesDistricts;
     private List<String> certifications;
 
@@ -23,7 +23,7 @@ public class GroomerProfileDetailsInfoResponseDto {
             long reviewCount,
             long estimateRequestCount,
             List<BadgeResponseDto> badges,
-            List<GroomerServicesResponseDto> servicesOffered,
+            List<String> servicesOffered,
             List<DistrictResponseDto> serviceDistricts,
             List<String> certifications) {
 

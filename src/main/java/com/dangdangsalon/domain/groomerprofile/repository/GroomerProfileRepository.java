@@ -4,7 +4,6 @@ import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import java.util.Optional;
 import com.dangdangsalon.domain.mypage.dto.res.BadgeResponseDto;
 import com.dangdangsalon.domain.mypage.dto.res.DistrictResponseDto;
-import com.dangdangsalon.domain.mypage.dto.res.GroomerServicesResponseDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.Query;
@@ -34,11 +33,10 @@ public interface GroomerProfileRepository extends JpaRepository<GroomerProfile, 
             "WHERE gsa.groomerProfile.id = :profileId")
     List<DistrictResponseDto> findServiceAreasWithDistricts(@Param("profileId") Long profileId);
 
-    @Query("SELECT new com.dangdangsalon.domain.mypage.dto.res.GroomerServicesResponseDto" +
-            "(gcs.groomerService.description, gcs.groomerService.isCustom) " +
+    @Query("SELECT gcs.groomerService.description " +
             "FROM GroomerCanService gcs " +
             "WHERE gcs.groomerProfile.id = :profileId")
-    List<GroomerServicesResponseDto> findGroomerServices(@Param("profileId") Long profileId);
+    List<String> findGroomerServiceDescriptions(@Param("profileId") Long profileId);
 
     @Query("SELECT new com.dangdangsalon.domain.mypage.dto.res.BadgeResponseDto" +
             "(b.id, b.name, b.imageKey) " +

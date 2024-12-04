@@ -49,8 +49,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         log.info("Refresh Token: {}", refreshToken);
 
         String redirectUrl = role.equals(Role.ROLE_PENDING.name())
-                ? "http://localhost:5173/survey"
-                : "http://localhost:5173/home";
+                ? "https://dangdangsalon.netlify.app/survey"
+                : "https://dangdangsalon.netlify.app/home";
 
         response.sendRedirect(redirectUrl);
     }

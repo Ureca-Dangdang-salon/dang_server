@@ -26,8 +26,8 @@ public class ContestPostService {
     private final ContestPostRepository contestPostRepository;
     private final GroomerProfileRepository groomerProfileRepository;
     private final UserRepository userRepository;
-
     private final ContestPostLikeService contestPostLikeService;
+    private final ContestTopicNotificationService contestTopicNotificationService;
 
     @Transactional(readOnly = true)
     public Page<PostInfoDto> getContestPosts(Long contestId, Long userId, Pageable pageable) {
@@ -64,6 +64,8 @@ public class ContestPostService {
                 .build();
 
         contestPostRepository.save(joinPost);
+
+        contestTopicNotificationService.sendContestJoinNotification();
     }
 
     @Transactional

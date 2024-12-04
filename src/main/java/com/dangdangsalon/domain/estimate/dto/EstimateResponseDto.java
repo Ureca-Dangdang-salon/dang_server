@@ -15,12 +15,14 @@ public class EstimateResponseDto {
     private int totalAmount;
     private LocalDateTime date;
     private List<EstimateDogResponseDto> estimateList;
+    private String imageKey;
 
     @Builder
-    public EstimateResponseDto(String comment, int totalAmount, LocalDateTime date, List<EstimateDogResponseDto> estimateList) {
+    public EstimateResponseDto(String comment, int totalAmount, LocalDateTime date, List<EstimateDogResponseDto> estimateList, String imageKey) {
         this.comment = comment;
         this.totalAmount = totalAmount;
         this.date = date;
         this.estimateList = estimateList;
+        this.imageKey = imageKey;
     }
 }

@@ -49,6 +49,9 @@ class PaymentServiceTest {
     private PaymentRepository paymentRepository;
 
     @Mock
+    private PaymentNotificationService paymentNotificationService;
+
+    @Mock
     private RedisTemplate<String, String> redisTemplate;
 
     @Mock
@@ -126,7 +129,7 @@ class PaymentServiceTest {
         given(ordersRepository.findByTossOrderId(anyString())).willReturn(Optional.of(mismatchOrder));
 
         // When & Then
-        assertThatThrownBy(() -> paymentService.approvePayment(approveRequestDto, "test-idempotency-key"))
+        assertThatThrownBy(() -> paymentService.approvePayment(approveRequestDto, 1L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("결제 금액이 주문 금액과 일치하지 않습니다.");
     }
@@ -142,7 +145,7 @@ class PaymentServiceTest {
                 .willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> paymentService.approvePayment(approveRequestDto, idempotencyKey))
+        assertThatThrownBy(() -> paymentService.approvePayment(approveRequestDto,1L))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("이미 동일한 결제 승인 요청이 처리 중입니다.");
 
@@ -159,7 +162,7 @@ class PaymentServiceTest {
                 .willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> paymentService.cancelPayment(cancelRequestDto, "test-idempotency-key"))
+        assertThatThrownBy(() -> paymentService.cancelPayment(cancelRequestDto, 1L))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("이미 동일한 결제 취소 요청이 처리 중입니다.");
     }
@@ -173,7 +176,7 @@ class PaymentServiceTest {
         given(paymentRepository.findByPaymentKey(anyString())).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paymentService.cancelPayment(cancelRequestDto, "test-idempotency-key"))
+        assertThatThrownBy(() -> paymentService.cancelPayment(cancelRequestDto, 1L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("결제 정보를 찾을 수 없습니다");
 
@@ -205,8 +208,10 @@ class PaymentServiceTest {
 
         given(ordersRepository.findByTossOrderId(anyString())).willReturn(Optional.of(mockOrder));
 
+        doNothing().when(paymentNotificationService).sendNotificationToUser(any(Orders.class));
+
         // When
-        PaymentApproveResponseDto result = paymentService.approvePayment(approveRequestDto, "test-idempotency-key");
+        PaymentApproveResponseDto result = paymentService.approvePayment(approveRequestDto, 1L);
 
         // Then
         assertThat(result.getStatus()).isEqualTo("APPROVED");
@@ -244,7 +249,7 @@ class PaymentServiceTest {
         given(paymentRepository.findByPaymentKey(anyString())).willReturn(Optional.of(mockPayment));
 
         // When
-        PaymentCancelResponseDto result = paymentService.cancelPayment(cancelRequestDto, "test-idempotency-key");
+        PaymentCancelResponseDto result = paymentService.cancelPayment(cancelRequestDto, 1L);
 
         // Then
         assertThat(result.getStatus()).isEqualTo("CANCELED");
@@ -270,7 +275,7 @@ class PaymentServiceTest {
                 .willThrow(new WebClientResponseException(400, "Bad Request", null, null, null));
 
         // When & Then
-        assertThatThrownBy(() -> paymentService.approvePayment(approveRequestDto, "test-idempotency-key"))
+        assertThatThrownBy(() -> paymentService.approvePayment(approveRequestDto, 1L))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("결제 승인 중 오류가 발생했습니다.");
 
@@ -302,7 +307,7 @@ class PaymentServiceTest {
                 .willThrow(new WebClientResponseException(400, "Bad Request", null, null, null));
 
         // When & Then
-        assertThatThrownBy(() -> paymentService.cancelPayment(cancelRequestDto, "test-idempotency-key"))
+        assertThatThrownBy(() -> paymentService.cancelPayment(cancelRequestDto, 1L))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("결제 취소 중 오류가 발생했습니다.");
 

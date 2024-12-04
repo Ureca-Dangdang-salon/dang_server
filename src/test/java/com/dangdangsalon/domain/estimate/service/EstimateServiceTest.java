@@ -57,6 +57,9 @@ class EstimateServiceTest {
     private GroomerServiceRepository groomerServiceRepository;
 
     @Mock
+    private EstimateNotificationService estimateNotificationService;
+
+    @Mock
     private EstimateRequestProfilesRepository estimateRequestProfilesRepository;
 
     @Mock
@@ -73,21 +76,31 @@ class EstimateServiceTest {
     @Test
     @DisplayName("견적서 등록 성공")
     void testInsertEstimate_Success() {
-        // given
+        // Given
         EstimateWriteRequestDto requestDto = mock(EstimateWriteRequestDto.class);
         EstimateRequest estimateRequest = mock(EstimateRequest.class);
         GroomerProfile groomerProfile = mock(GroomerProfile.class);
+        Estimate estimate = mock(Estimate.class);
 
         given(requestDto.getRequestId()).willReturn(1L);
-        given(estimateRequestRepository.findById(requestDto.getRequestId())).willReturn(Optional.of(estimateRequest));
-        given(estimateRequest.getRequestStatus()).willReturn(RequestStatus.COMPLETED);
-        given(groomerProfileRepository.findById(requestDto.getGroomerProfileId())).willReturn(Optional.of(groomerProfile));
+        given(requestDto.getGroomerProfileId()).willReturn(2L);
+        given(requestDto.getDescription()).willReturn("Test description");
+        given(requestDto.getImageKey()).willReturn("test-image-key");
+        given(requestDto.getTotalAmount()).willReturn(10000);
 
-        // when
+        given(estimateRequestRepository.findById(1L)).willReturn(Optional.of(estimateRequest));
+        given(estimateRequest.getRequestStatus()).willReturn(RequestStatus.COMPLETED);
+
+        given(groomerProfileRepository.findById(2L)).willReturn(Optional.of(groomerProfile));
+        given(estimateRepository.save(any(Estimate.class))).willReturn(estimate);
+
+        // When
         estimateService.insertEstimate(requestDto);
 
-        // then
+        // Then
         verify(estimateRepository, times(1)).save(any(Estimate.class));
+        verify(estimateNotificationService, times(1))
+                .sendNotificationToUser(eq(estimateRequest), any(Estimate.class), eq(groomerProfile));
     }
 
     @Test

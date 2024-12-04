@@ -88,13 +88,13 @@ public class EstimateRequestApiTest {
     @DisplayName("미용사에게 전달된 견적 요청 조회 테스트")
     void getEstimateRequests() {
         EstimateRequestResponseDto mockResponseDto = EstimateRequestResponseDto.builder()
-                .estimateId(1L)
+                .requestId(1L)
                 .name("이민수")
                 .date(LocalDate.of(2024, 11, 25))
                 .serviceType("VISIT")
                 .region("서울특별시 강남구")
                 .imageKey("image-key")
-                .estimateRequestStatus("PENDING")
+                .estimateStatus("PENDING")
                 .groomerEstimateRequestStatus("ACCEPTED")
                 .build();
 
@@ -111,13 +111,13 @@ public class EstimateRequestApiTest {
                 .then()
                 .statusCode(200)
                 .body("response", hasSize(1)) // 리스트 크기 확인
-                .body("response[0].estimateId", equalTo(1))
+                .body("response[0].requestId", equalTo(1))
                 .body("response[0].name", equalTo("이민수"))
                 .body("response[0].date", equalTo("2024-11-25"))
                 .body("response[0].serviceType", equalTo("VISIT"))
                 .body("response[0].region", equalTo("서울특별시 강남구"))
                 .body("response[0].imageKey", equalTo("image-key"))
-                .body("response[0].estimateRequestStatus", equalTo("PENDING"))
+                .body("response[0].estimateStatus", equalTo("PENDING"))
                 .body("response[0].groomerEstimateRequestStatus", equalTo("ACCEPTED"));
 
         verify(groomerEstimateRequestService).getEstimateRequest(anyLong());

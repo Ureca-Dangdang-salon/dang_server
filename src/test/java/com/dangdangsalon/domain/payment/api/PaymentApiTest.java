@@ -6,9 +6,11 @@ import static org.hamcrest.Matchers.hasSize;
 
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.estimate.request.dto.ServicePriceResponseDto;
+import com.dangdangsalon.domain.payment.controller.PaymentController;
 import com.dangdangsalon.domain.payment.dto.*;
 import com.dangdangsalon.domain.payment.service.PaymentGetService;
 import com.dangdangsalon.domain.payment.service.PaymentService;
+import com.dangdangsalon.util.JwtUtil;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
@@ -31,6 +33,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -49,16 +53,33 @@ public class PaymentApiTest {
     @MockBean
     private PaymentGetService paymentGetService;
 
+    @MockBean
+    private JwtUtil jwtUtil;
+
     @BeforeEach
     void setup() {
         RestAssured.port = port;
         RestAssuredMockMvc.mockMvc(mockMvc);
+
+        given(jwtUtil.isExpired(anyString())).willReturn(false);
+        given(jwtUtil.getUserId(anyString())).willReturn(1L);
+        given(jwtUtil.getUsername(anyString())).willReturn("testUser");
+        given(jwtUtil.getRole(anyString())).willReturn("ROLE_USER");
     }
 
     @Test
     @DisplayName("결제 승인 테스트")
     @WithMockUser(username = "testUser", roles = {"USER"})
     void approvePayment() {
+
+        CustomOAuth2User mockLoginUser = mock(CustomOAuth2User.class);
+        when(mockLoginUser.getUserId()).thenReturn(1L);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockLoginUser, null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))));
+
+        // 요청 및 응답 DTO 생성
         PaymentApproveRequestDto requestDto = PaymentApproveRequestDto.builder()
                 .paymentKey("paykey123")
                 .orderId("order123")
@@ -73,8 +94,10 @@ public class PaymentApiTest {
                 .method("간편 결제")
                 .build();
 
-        given(paymentService.approvePayment(any(PaymentApproveRequestDto.class), eq("test-idempotency-key"))).willReturn(responseDto);
+        // Mock 서비스 설정
+        given(paymentService.approvePayment(any(PaymentApproveRequestDto.class), eq(1L))).willReturn(responseDto);
 
+        // API 테스트 실행
         RestAssuredMockMvc
                 .given()
                 .contentType(ContentType.JSON)
@@ -90,10 +113,18 @@ public class PaymentApiTest {
                 .body("response.method", equalTo("간편 결제"));
     }
 
+
     @Test
     @DisplayName("결제 취소 테스트")
     @WithMockUser(username = "testUser", roles = {"USER"})
     void cancelPayment() {
+        CustomOAuth2User mockLoginUser = mock(CustomOAuth2User.class);
+        when(mockLoginUser.getUserId()).thenReturn(1L);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockLoginUser, null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))));
+
         PaymentCancelRequestDto requestDto = PaymentCancelRequestDto.builder()
                 .paymentKey("paykey123")
                 .cancelReason("맘에 안들어요")
@@ -105,7 +136,7 @@ public class PaymentApiTest {
                 .status("CANCELED")
                 .build();
 
-        given(paymentService.cancelPayment(any(PaymentCancelRequestDto.class), eq("test-idempotency-key"))).willReturn(responseDto);
+        given(paymentService.cancelPayment(any(PaymentCancelRequestDto.class), eq(1L))).willReturn(responseDto);
 
         RestAssuredMockMvc
                 .given()

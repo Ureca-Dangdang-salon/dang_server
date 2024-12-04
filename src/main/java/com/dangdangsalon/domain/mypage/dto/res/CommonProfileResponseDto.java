@@ -13,6 +13,7 @@ public class CommonProfileResponseDto {
     private String imageKey;
     private String name;
     private String email;
+    private Long districtId;
     private String district;
     private String city;
 
@@ -21,6 +22,7 @@ public class CommonProfileResponseDto {
                 .imageKey(user.getImageKey())
                 .name(user.getName())
                 .email(user.getEmail())
+                .districtId(user.getDistrict().getId())
                 .city(user.getDistrict().getCity().getName())
                 .district(user.getDistrict().getName())
                 .build();

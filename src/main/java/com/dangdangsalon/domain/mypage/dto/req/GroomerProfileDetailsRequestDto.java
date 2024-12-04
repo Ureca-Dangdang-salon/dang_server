@@ -15,7 +15,6 @@ import java.util.List;
 // 미용사 회원가입 설정 2 (요청)
 public class GroomerProfileDetailsRequestDto {
     private String imageKey;
-    private ServiceType serviceType;
     private String businessNumber;
     private String address;
     private String experience;
@@ -23,5 +22,4 @@ public class GroomerProfileDetailsRequestDto {
     private String startMessage;
     private String faq;
     private List<String> certifications;
-    private List<Long> servicesDistrictIds;
 }

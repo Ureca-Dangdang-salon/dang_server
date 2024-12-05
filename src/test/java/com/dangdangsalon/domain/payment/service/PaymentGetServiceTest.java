@@ -214,6 +214,7 @@ class PaymentGetServiceTest {
         Orders order = mock(Orders.class);
         Payment payment = mock(Payment.class);
         Estimate estimate = mock(Estimate.class);
+        EstimateRequest estimateRequest = mock(EstimateRequest.class);
         EstimateRequestProfiles profile = mock(EstimateRequestProfiles.class);
 
         given(ordersRepository.findAllByUserIdAndStatusAndContestDate(
@@ -223,6 +224,9 @@ class PaymentGetServiceTest {
         given(paymentRepository.findByOrders(order)).willReturn(Optional.of(payment));
 
         given(order.getEstimate()).willReturn(estimate);
+        given(estimate.getEstimateRequest()).willReturn(estimateRequest);
+        given(estimateRequest.getEstimateRequestProfiles()).willReturn(List.of(profile));
+
         given(estimate.getGroomerProfile()).willReturn(
                 GroomerProfile.builder().name("Groomer A").imageKey("image-key").build()
         );
@@ -230,17 +234,18 @@ class PaymentGetServiceTest {
         given(payment.getRequestedAt()).willReturn(LocalDateTime.of(2024, 12, 15, 14, 0));
         given(payment.getTotalAmount()).willReturn(100000);
 
-        List<Long> profileIds = List.of(1L, 2L);
-        given(order.getEstimate().getEstimateRequest().getEstimateRequestProfiles())
-                .willReturn(List.of(profile));
         given(profile.getId()).willReturn(1L);
 
         EstimateRequestService serviceA = EstimateRequestService.builder()
                 .groomerService(GroomerService.builder().description("Service A").build())
                 .build();
 
-        given(estimateRequestServiceRepository.findByEstimateRequestServicesProfilesIdIn(profileIds))
-                .willReturn(Optional.of(serviceA));
+        EstimateRequestService serviceB = EstimateRequestService.builder()
+                .groomerService(GroomerService.builder().description("Service B").build())
+                .build();
+
+        given(estimateRequestServiceRepository.findByEstimateRequestServicesProfilesIdIn(anyList()))
+                .willReturn(List.of(serviceA, serviceB));
 
         List<ContestPaymentDto> result = paymentGetService.getContestPayments(requestDto, userId);
 
@@ -248,6 +253,7 @@ class PaymentGetServiceTest {
         ContestPaymentDto dto = result.get(0);
         assertThat(dto.getGroomerName()).isEqualTo("Groomer A");
         assertThat(dto.getTotalAmount()).isEqualTo(100000);
-        assertThat(dto.getServiceList()).contains("Service A");
+        assertThat(dto.getServiceList()).contains("Service A", "Service B");
     }
+
 }

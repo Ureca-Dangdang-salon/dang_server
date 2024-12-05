@@ -3,13 +3,17 @@ package com.dangdangsalon.domain.contest.controller;
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.contest.dto.ContestDetailDto;
 import com.dangdangsalon.domain.contest.dto.ContestInfoDto;
+import com.dangdangsalon.domain.contest.dto.ContestPaymentDto;
+import com.dangdangsalon.domain.contest.dto.ContestPaymentRequestDto;
 import com.dangdangsalon.domain.contest.dto.LastContestWinnerDto;
 import com.dangdangsalon.domain.contest.dto.PostInfoDto;
 import com.dangdangsalon.domain.contest.dto.WinnerRankDto;
 import com.dangdangsalon.domain.contest.service.ContestPostService;
 import com.dangdangsalon.domain.contest.service.ContestService;
+import com.dangdangsalon.domain.payment.service.PaymentGetService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,7 +22,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,6 +34,7 @@ public class ContestController {
 
     private final ContestService contestService;
     private final ContestPostService contestPostService;
+    private final PaymentGetService paymentGetService;
 
     @GetMapping
     public ApiSuccess<?> getContest() {
@@ -73,5 +80,14 @@ public class ContestController {
         WinnerRankDto rankDto = contestService.getWinnerAndRankPost();
 
         return ApiUtil.success(rankDto);
+    }
+
+    @GetMapping("/payment")
+    public ApiSuccess<?> getPaymentBetweenContest(@RequestBody ContestPaymentRequestDto contestPaymentRequestDto,
+                                                  @AuthenticationPrincipal CustomOAuth2User user) {
+        Long userId = user.getUserId();
+
+        List<ContestPaymentDto> contestPayments = paymentGetService.getContestPayments(contestPaymentRequestDto, userId);
+        return ApiUtil.success(contestPayments);
     }
 }

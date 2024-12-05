@@ -1,5 +1,7 @@
 package com.dangdangsalon.domain.payment.service;
 
+import com.dangdangsalon.domain.contest.dto.ContestPaymentDto;
+import com.dangdangsalon.domain.contest.dto.ContestPaymentRequestDto;
 import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
@@ -32,8 +34,10 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -197,4 +201,53 @@ class PaymentGetServiceTest {
         verify(estimateRequestServiceRepository, times(0)).findByEstimateRequestProfilesId(anyLong());
     }
 
+
+    @Test
+    @DisplayName("콘테스트 결제 정보 조회 성공 테스트")
+    void testGetContestPayments() {
+        Long userId = 1L;
+        LocalDateTime startDate = LocalDateTime.of(2024, 12, 1, 0, 0);
+        LocalDateTime endDate = LocalDateTime.of(2024, 12, 31, 23, 59);
+
+        ContestPaymentRequestDto requestDto = new ContestPaymentRequestDto(startDate, endDate);
+
+        Orders order = mock(Orders.class);
+        Payment payment = mock(Payment.class);
+        Estimate estimate = mock(Estimate.class);
+        EstimateRequestProfiles profile = mock(EstimateRequestProfiles.class);
+
+        given(ordersRepository.findAllByUserIdAndStatusAndContestDate(
+                userId, OrderStatus.ACCEPTED, startDate, endDate)
+        ).willReturn(Optional.of(List.of(order)));
+
+        given(paymentRepository.findByOrders(order)).willReturn(Optional.of(payment));
+
+        given(order.getEstimate()).willReturn(estimate);
+        given(estimate.getGroomerProfile()).willReturn(
+                GroomerProfile.builder().name("Groomer A").imageKey("image-key").build()
+        );
+        given(estimate.getDate()).willReturn(LocalDateTime.of(2024, 12, 20, 10, 0));
+        given(payment.getRequestedAt()).willReturn(LocalDateTime.of(2024, 12, 15, 14, 0));
+        given(payment.getTotalAmount()).willReturn(100000);
+
+        List<Long> profileIds = List.of(1L, 2L);
+        given(order.getEstimate().getEstimateRequest().getEstimateRequestProfiles())
+                .willReturn(List.of(profile));
+        given(profile.getId()).willReturn(1L);
+
+        EstimateRequestService serviceA = EstimateRequestService.builder()
+                .groomerService(GroomerService.builder().description("Service A").build())
+                .build();
+
+        given(estimateRequestServiceRepository.findByEstimateRequestServicesProfilesIdIn(profileIds))
+                .willReturn(Optional.of(serviceA));
+
+        List<ContestPaymentDto> result = paymentGetService.getContestPayments(requestDto, userId);
+
+        assertThat(result).hasSize(1);
+        ContestPaymentDto dto = result.get(0);
+        assertThat(dto.getGroomerName()).isEqualTo("Groomer A");
+        assertThat(dto.getTotalAmount()).isEqualTo(100000);
+        assertThat(dto.getServiceList()).contains("Service A");
+    }
 }

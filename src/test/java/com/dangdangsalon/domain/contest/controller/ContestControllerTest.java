@@ -11,6 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.contest.dto.ContestDetailDto;
 import com.dangdangsalon.domain.contest.dto.ContestInfoDto;
+import com.dangdangsalon.domain.contest.dto.ContestPaymentDto;
+import com.dangdangsalon.domain.contest.dto.ContestPaymentRequestDto;
 import com.dangdangsalon.domain.contest.dto.LastContestWinnerDto;
 import com.dangdangsalon.domain.contest.dto.PostInfoDto;
 import com.dangdangsalon.domain.contest.dto.PostRankDto;
@@ -19,6 +21,10 @@ import com.dangdangsalon.domain.contest.dto.WinnerRankDto;
 import com.dangdangsalon.domain.contest.entity.Contest;
 import com.dangdangsalon.domain.contest.service.ContestPostService;
 import com.dangdangsalon.domain.contest.service.ContestService;
+import com.dangdangsalon.domain.payment.service.PaymentGetService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,11 +51,17 @@ class ContestControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @MockBean
     private ContestService contestService;
 
     @MockBean
     private ContestPostService contestPostService;
+
+    @MockBean
+    private PaymentGetService paymentGetService;
 
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
@@ -157,5 +170,49 @@ class ContestControllerTest {
                 .andExpect(jsonPath("$.response.rankPosts[0].dogName").value("Dog 2"));
 
         verify(contestService, times(1)).getWinnerAndRankPost();
+    }
+
+    @Test
+    @WithMockUser(username = "user", roles = {"USER"})
+    @DisplayName("콘테스트 결제 조회 성공 테스트")
+    void testGetPaymentBetweenContest() throws Exception {
+        Long userId = 1L;
+
+        CustomOAuth2User mockUser = mock(CustomOAuth2User.class);
+        given(mockUser.getUserId()).willReturn(1L);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockUser, null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER")))
+        );
+
+        ContestPaymentRequestDto requestDto = new ContestPaymentRequestDto(
+                LocalDateTime.of(2024, 12, 1, 0, 0),
+                LocalDateTime.of(2024, 12, 31, 23, 59)
+        );
+
+        List<ContestPaymentDto> responseDto = List.of(
+                ContestPaymentDto.builder()
+                        .groomerName("Groomer A")
+                        .groomerImage("image-key")
+                        .paymentDate(LocalDateTime.of(2024, 12, 15, 14, 0))
+                        .reservationDate(LocalDateTime.of(2024, 12, 20, 10, 0))
+                        .totalAmount(100000)
+                        .serviceList(List.of("Service A", "Service B"))
+                        .build()
+        );
+
+        given(paymentGetService.getContestPayments(any(ContestPaymentRequestDto.class), eq(userId)))
+                .willReturn(responseDto);
+
+        mockMvc.perform(get("/api/contests/payment")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.response[0].groomerName").value("Groomer A"))
+                .andExpect(jsonPath("$.response[0].totalAmount").value(100000));
+
+        verify(paymentGetService, times(1)).getContestPayments(any(ContestPaymentRequestDto.class), eq(userId));
     }
 }

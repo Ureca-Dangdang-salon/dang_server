@@ -21,4 +21,6 @@ public interface EstimateRequestServiceRepository extends JpaRepository<Estimate
 
     List<EstimateRequestService> findByEstimateRequestProfilesId(Long estimateRequestId);
 
+    @Query("SELECT s FROM EstimateRequestService s WHERE s.estimateRequestProfiles.id IN :profileIds")
+    Optional<EstimateRequestService> findByEstimateRequestServicesProfilesIdIn(List<Long> profileIds);
 }

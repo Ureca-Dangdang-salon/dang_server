@@ -3,6 +3,7 @@ package com.dangdangsalon.domain.user.entity;
 import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.coupon.entity.Coupon;
 import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.groomerprofile.review.entity.Review;
 import com.dangdangsalon.domain.orders.entity.Orders;
 import com.dangdangsalon.domain.region.entity.District;
@@ -56,6 +57,9 @@ public class User extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "district_id")
     private District district;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private GroomerProfile groomerProfile;
 
     @Column(name = "notification_enabled")
     private Boolean notificationEnabled = true;

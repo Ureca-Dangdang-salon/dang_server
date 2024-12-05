@@ -173,7 +173,6 @@ public class EstimateApiTest {
                 .description("견적 설명")
                 .imageKey("example-image-key")
                 .totalAmount(50000)
-                .date(LocalDateTime.now())
                 .dogPriceList(dogPriceList)
                 .build();
 

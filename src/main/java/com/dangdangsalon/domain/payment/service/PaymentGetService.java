@@ -43,6 +43,7 @@ public class PaymentGetService {
             return PaymentResponseDto.builder()
                     .groomerName(order.getEstimate().getGroomerProfile().getName())
                     .groomerImage(order.getEstimate().getGroomerProfile().getImageKey())
+                    .reservationDate(order.getEstimate().getDate())
                     .paymentDate(payment.getRequestedAt())
                     .dogProfileList(dogProfileList)
                     .totalAmount(payment.getTotalAmount())

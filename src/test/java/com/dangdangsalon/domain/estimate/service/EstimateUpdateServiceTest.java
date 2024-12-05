@@ -1,5 +1,8 @@
 package com.dangdangsalon.domain.estimate.service;
 
+import com.dangdangsalon.domain.chat.service.ChatMessageService;
+import com.dangdangsalon.domain.chat.service.ChatRoomService;
+import com.dangdangsalon.domain.chat.service.ChatService;
 import com.dangdangsalon.domain.estimate.dto.DogPriceRequestDto;
 import com.dangdangsalon.domain.estimate.dto.EstimateUpdateRequestDto;
 import com.dangdangsalon.domain.estimate.dto.ServiceRequestDto;
@@ -42,6 +45,12 @@ class EstimateUpdateServiceTest {
 
     @Mock
     private EstimateRequestServiceRepository estimateRequestServiceRepository;
+
+    @Mock
+    private ChatRoomService chatRoomService;
+
+    @Mock
+    private ChatMessageService chatMessageService;
 
     @InjectMocks
     private EstimateUpdateService estimateUpdateService;

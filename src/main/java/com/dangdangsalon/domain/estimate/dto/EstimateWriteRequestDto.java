@@ -21,7 +21,6 @@ public class EstimateWriteRequestDto {
     private String description;
     private String imageKey;
     private int totalAmount;
-    private LocalDateTime date;
     private List<DogPriceRequestDto> dogPriceList;
 
 }

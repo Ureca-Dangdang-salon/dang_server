@@ -17,6 +17,7 @@ public class PaymentResponseDto {
     private String groomerName;
     private String groomerImage;
     private LocalDateTime paymentDate;
+    private LocalDateTime reservationDate;
     private List<PaymentDogProfileResponseDto> dogProfileList;
     private int totalAmount;
     private String status;

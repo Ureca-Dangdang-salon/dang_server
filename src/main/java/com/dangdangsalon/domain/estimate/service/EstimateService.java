@@ -68,7 +68,7 @@ public class EstimateService {
                 .groomerProfile(groomerProfile)
                 .estimateRequest(estimateRequest)
                 .totalAmount(requestDto.getTotalAmount())
-                .date(requestDto.getDate())
+                .date(estimateRequest.getRequestDate())
                 .build();
 
         estimateRepository.save(estimate);

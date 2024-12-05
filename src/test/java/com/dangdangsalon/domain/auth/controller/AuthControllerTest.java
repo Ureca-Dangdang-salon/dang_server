@@ -107,9 +107,8 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.response").value("회원가입에 성공했습니다."));
 
-        MockHttpServletResponse response = new MockHttpServletResponse();
-
-        verify(authService, times(1)).completeRegister(response, eq(1L), any(JoinAdditionalInfoDto.class));
+        verify(authService, times(1))
+                .completeRegister(any(HttpServletResponse.class), eq(1L), any(JoinAdditionalInfoDto.class));
     }
 
     @Test

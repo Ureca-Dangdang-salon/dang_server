@@ -254,7 +254,6 @@ class EstimateControllerTest {
                 .description("테스트 견적 등록")
                 .imageKey("testImageKey123")
                 .totalAmount(150000)
-                .date(LocalDateTime.of(2024, 11, 25, 10, 0, 0))
                 .dogPriceList(List.of(dogPriceRequest))
                 .build();
 

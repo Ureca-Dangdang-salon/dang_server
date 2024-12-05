@@ -12,6 +12,7 @@ import com.dangdangsalon.domain.contest.entity.Contest;
 import com.dangdangsalon.domain.contest.service.ContestPostLikeService;
 import com.dangdangsalon.domain.contest.service.ContestPostService;
 import com.dangdangsalon.domain.contest.service.ContestService;
+import com.dangdangsalon.domain.payment.service.PaymentGetService;
 import com.dangdangsalon.util.JwtUtil;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -54,6 +55,9 @@ public class ContestApiTest {
 
     @MockBean
     private ContestPostLikeService contestPostLikeService;
+
+    @MockBean
+    private PaymentGetService paymentGetService;
 
     @MockBean
     private JwtUtil jwtUtil;
@@ -281,5 +285,49 @@ public class ContestApiTest {
                 .body("response", equalTo("좋아요를 취소했습니다."));
 
         verify(contestPostLikeService, times(1)).unlikePost(eq(1L), anyLong());
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", roles = {"USER"})
+    @DisplayName("콘테스트 결제 조회 성공 테스트")
+    void testGetPaymentBetweenContest() throws Exception {
+        Long userId = 1L;
+
+        ContestPaymentRequestDto requestDto = new ContestPaymentRequestDto(
+                LocalDateTime.of(2024, 12, 1, 0, 0),
+                LocalDateTime.of(2024, 12, 31, 23, 59)
+        );
+
+        List<ContestPaymentDto> responseDto = List.of(
+                ContestPaymentDto.builder()
+                        .groomerName("Groomer A")
+                        .groomerImage("image-key")
+                        .paymentDate(LocalDateTime.of(2024, 12, 15, 14, 0))
+                        .reservationDate(LocalDateTime.of(2024, 12, 20, 10, 0))
+                        .totalAmount(100000)
+                        .serviceList(List.of("Service A", "Service B"))
+                        .build()
+        );
+
+        given(paymentGetService.getContestPayments(any(ContestPaymentRequestDto.class), eq(userId)))
+                .willReturn(responseDto);
+
+        RestAssuredMockMvc
+                .given()
+                .cookie("Authorization", "mock.jwt.token")
+                .contentType(ContentType.JSON)
+                .body(requestDto)
+                .when()
+                .get("/api/contests/payment")
+                .then()
+                .statusCode(200)
+                .body("response", hasSize(1))
+                .body("response[0].groomerName", equalTo("Groomer A"))
+                .body("response[0].totalAmount", equalTo(100000))
+                .body("response[0].serviceList", hasSize(2))
+                .body("response[0].serviceList[0]", equalTo("Service A"))
+                .body("response[0].serviceList[1]", equalTo("Service B"));
+
+        verify(paymentGetService, times(1)).getContestPayments(any(ContestPaymentRequestDto.class), eq(userId));
     }
 }

@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.mypage.service;
 
+import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerDetails;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.groomerprofile.entity.ServiceType;
@@ -29,6 +30,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -275,6 +278,64 @@ class MyPageGroomerServiceTest {
                 () -> myPageGroomerService.deleteGroomerProfile(userId, 1L));
         assertEquals("프로필을 삭제할 권한이 없습니다. userId : 1", exception.getMessage());
     }
+
+    @Test
+    @DisplayName("getGroomerProfileMainPage - 성공적으로 상위 5명 지역/전국 반환")
+    void testGetGroomerProfileMainPage_Success() {
+        // Given
+
+        City city = City.builder().name("Seoul").build();
+        District district = District.builder().city(city).name("Gangnam").build();
+        User user = User.builder().district(district).build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        Pageable pageable = PageRequest.of(0, 5);
+
+        // Mock 지역 top 5
+        List<GroomerRecommendResponseDto> districtTop = List.of(
+                new GroomerRecommendResponseDto(1L, "LocalGroomer1", "img1", "Seoul", "Gangnam"),
+                new GroomerRecommendResponseDto(2L, "LocalGroomer2", "img2", "Seoul", "Gangnam")
+        );
+
+        // Mock 전국 top 5
+        List<GroomerRecommendResponseDto> nationalTop = List.of(
+                new GroomerRecommendResponseDto(10L, "NationalGroomer1", "nimg1", "Busan", "Haeundae"),
+                new GroomerRecommendResponseDto(11L, "NationalGroomer2", "nimg2", "Daegu", "Suseong")
+        );
+
+        when(groomerProfileRepository.findTop5ByAcceptedOrdersWithDto(EstimateStatus.ACCEPTED, pageable)).thenReturn(nationalTop);
+        when(groomerProfileRepository.findTop5GroomersInArea("Gangnam", pageable)).thenReturn(districtTop);
+
+        // When
+        GroomerMainResponseDto result = myPageGroomerService.getGroomerProfileMainPage(1L);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.getDistrictTopGroomers().size());
+        assertEquals(2, result.getNationalTopGroomers().size());
+
+        verify(userRepository, times(1)).findById(1L);
+        verify(groomerProfileRepository, times(1)).findTop5ByAcceptedOrdersWithDto(EstimateStatus.ACCEPTED, pageable);
+        verify(groomerProfileRepository, times(1)).findTop5GroomersInArea("Gangnam", pageable);
+    }
+
+    @Test
+    @DisplayName("getGroomerProfileMainPage - 결과 비어있어도 정상처리")
+    void testGetGroomerProfileMainPage_EmptyResults() {
+        City city = City.builder().name("Seoul").build();
+        District district = District.builder().city(city).name("Gangnam").build();
+        User user = User.builder().district(district).build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(groomerProfileRepository.findTop5ByAcceptedOrdersWithDto(EstimateStatus.ACCEPTED, PageRequest.of(0, 5))).thenReturn(List.of());
+        when(groomerProfileRepository.findTop5GroomersInArea("Gangnam", PageRequest.of(0, 5))).thenReturn(List.of());
+
+        GroomerMainResponseDto result = myPageGroomerService.getGroomerProfileMainPage(1L);
+
+        assertNotNull(result);
+        assertTrue(result.getDistrictTopGroomers().isEmpty());
+        assertTrue(result.getNationalTopGroomers().isEmpty());
+    }
+
     private GroomerProfile createMockGroomerProfile() {
         return GroomerProfile.builder()
                 .name("Test Groomer")

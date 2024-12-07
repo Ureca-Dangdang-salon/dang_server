@@ -318,7 +318,7 @@ public class ContestApiTest {
                 .contentType(ContentType.JSON)
                 .body(requestDto)
                 .when()
-                .get("/api/contests/payment")
+                .post("/api/contests/payment")
                 .then()
                 .statusCode(200)
                 .body("response", hasSize(1))

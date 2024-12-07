@@ -205,7 +205,7 @@ class ContestControllerTest {
         given(paymentGetService.getContestPayments(any(ContestPaymentRequestDto.class), eq(userId)))
                 .willReturn(responseDto);
 
-        mockMvc.perform(get("/api/contests/payment")
+        mockMvc.perform(post("/api/contests/payment")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto))
                         .with(csrf()))

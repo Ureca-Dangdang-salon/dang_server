@@ -75,6 +75,7 @@ public class PaymentGetService {
                     ));
 
             return ContestPaymentDto.builder()
+                    .groomerProfileId(order.getEstimate().getGroomerProfile().getId())
                     .groomerName(order.getEstimate().getGroomerProfile().getName())
                     .groomerImage(order.getEstimate().getGroomerProfile().getImageKey())
                     .paymentDate(payment.getRequestedAt())

@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ContestPaymentDto {
 
+    private Long groomerProfileId;
     private String groomerName;
     private String groomerImage;
     private LocalDateTime paymentDate;

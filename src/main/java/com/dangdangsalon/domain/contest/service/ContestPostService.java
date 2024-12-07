@@ -57,6 +57,7 @@ public class ContestPostService {
 
         ContestPost joinPost = ContestPost.builder()
                 .imageKey(requestDto.getImageUrl())
+                .dogName(requestDto.getDogName())
                 .description(requestDto.getDescription())
                 .contest(contest)
                 .groomerProfile(groomerProfile)

@@ -33,28 +33,27 @@ public class ChatGptService {
     private String apiUrl;
 
     public GenerateImageResponseDto generateDogStyleImage(String userPrompt, MultipartFile file) throws IOException {
-        // 1. Convert image to Base64
+        // 1. 사진 인코딩 작업
         String base64Image = encodeImageToBase64(file);
         String imageUrl = "data:image/jpeg;base64," + base64Image;
 
         log.info("Encoded image to Base64: {}", imageUrl);
 
-        // 2. Analyze image using OpenAI
+        // 2. 이미지 분석
         String analysisResult = analyzeImageWithOpenAI(imageUrl);
         log.info("Image analysis result: {}", analysisResult);
 
-        // 3. Translate user input to English
+        // 3. 사용자 입력 값 영어로 변경
         String translatedPrompt = translateKoToEng(userPrompt);
         log.info("Translated user prompt: {}", translatedPrompt);
 
-        // 4. Generate detailed prompt
+        // 4. 최종 프롬프트 완성
         String detailedPrompt = createFinalPrompt(translatedPrompt, analysisResult);
         log.info("Detailed prompt: {}", detailedPrompt);
 
-        // 5. Generate image from the prompt
+        // 5. 이미지 생성
         String generatedImageUrl = createImageFromDescription(detailedPrompt);
 
-        // 6. Return the response
         return GenerateImageResponseDto.builder()
                 .imageUrl(generatedImageUrl)
                 .build();

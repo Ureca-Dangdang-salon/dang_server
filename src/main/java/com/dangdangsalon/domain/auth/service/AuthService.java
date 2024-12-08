@@ -109,10 +109,15 @@ public class AuthService {
     }
 
     public CheckLoginDto checkLogin(CustomOAuth2User user) {
+
+        User users = userRepository.findById(user.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 ID입니다. userId: " + user.getUserId()));
+
         return CheckLoginDto.builder()
                 .isLogin(true)
                 .userId(user.getUserId())
                 .role(user.getRole())
+                .notificationEnabled(users.getNotificationEnabled())
                 .build();
     }
 }

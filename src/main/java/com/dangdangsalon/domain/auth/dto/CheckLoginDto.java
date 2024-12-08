@@ -14,4 +14,5 @@ public class CheckLoginDto {
     private boolean isLogin;
     private Long userId;
     private String role;
+    private boolean notificationEnabled;
 }

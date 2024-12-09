@@ -59,7 +59,15 @@ public class NotificationScheduler {
 
             // 이메일 알림
             if (email != null) {
-                notificationEmailService.sendEmail(email, title, body);
+                notificationEmailService.sendEmailWithTemplate(
+                        email,
+                        title,
+                        "/templates/email.html", // 템플릿 경로
+                        Map.of(
+                                "userName", estimate.getEstimateRequest().getUser().getName(),
+                                "reservationDateTime", estimate.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                        )
+                );
             }
 
             // Redis 알림 저장

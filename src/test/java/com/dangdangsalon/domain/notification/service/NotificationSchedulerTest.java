@@ -20,10 +20,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -86,6 +84,7 @@ class NotificationSchedulerTest {
         when(mockRequest.getUser()).thenReturn(mockUser);
         when(mockUser.getId()).thenReturn(1L);
         when(mockUser.getEmail()).thenReturn("test1234@naver.com");
+        when(mockUser.getName()).thenReturn("테스트 사용자"); // 이름 설정
 
         when(estimateRepository.findReservationsForTomorrow(any(), any())).thenReturn(List.of(mockEstimate));
         when(notificationService.getFcmToken(1L)).thenReturn(Optional.of("dummyFcmToken"));
@@ -101,8 +100,18 @@ class NotificationSchedulerTest {
                 eq("RESERVATION_REMINDER"),
                 eq(1L)
         );
-        verify(notificationEmailService, times(1)).sendEmail(eq("test1234@naver.com"), eq("예약일 알림"), anyString());
-        verify(redisNotificationService, times(1)).saveNotificationToRedis(eq(1L), eq("예약일 알림"), anyString(), eq("RESERVATION_REMINDER"), eq(1L));
+        verify(notificationEmailService, times(1)).sendEmailWithTemplate(
+                eq("test1234@naver.com"),
+                eq("예약일 알림"),
+                eq("/templates/email.html"),
+                eq(Map.of(
+                        "userName", "테스트 사용자", // Mock에서 설정한 값 확인
+                        "reservationDateTime", tomorrow.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                ))
+        );
+        verify(redisNotificationService, times(1)).saveNotificationToRedis(
+                eq(1L), eq("예약일 알림"), anyString(), eq("RESERVATION_REMINDER"), eq(1L)
+        );
     }
 
     @Test

@@ -100,14 +100,14 @@ public class AuthService {
         accessTokenCookie.setPath("/");
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
-        accessTokenCookie.setDomain(".dangdang-salon.com");
+        accessTokenCookie.setDomain("dangdang-salon.com");
 
         Cookie refreshTokenCookie = new Cookie("Refresh-Token", null);
         refreshTokenCookie.setMaxAge(0);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setDomain(".dangdang-salon.com");
+        refreshTokenCookie.setDomain("dangdang-salon.com");
 
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);

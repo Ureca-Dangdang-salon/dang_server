@@ -53,8 +53,9 @@ public class AuthService {
         accessTokenCookie.setMaxAge(0);
         accessTokenCookie.setPath("/");
         accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
 
-        response.addCookie(cookieUtil.createCookie("Authorization", newAccessToken));
+        response.addHeader("Set-Cookie", cookieUtil.createCookie("Authorization", newAccessToken));
     }
 
     @Transactional

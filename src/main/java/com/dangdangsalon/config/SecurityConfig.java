@@ -61,7 +61,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(
                 List.of("https://dangdangsalon.netlify.app", "http://localhost:5173", "http://localhost:8080",
-                        "https://dangdang-salon.com", "https://client.dangdang-salon.com")); // 허용할 Origin
+                        "https://dangdang-salon.com", "https://m.dangdang-salon.com")); // 허용할 Origin
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE")); // 허용할 HTTP 메서드
         configuration.setAllowedHeaders(List.of("*")); // 허용할 헤더
         configuration.setExposedHeaders(List.of("*")); // 노출할 헤더

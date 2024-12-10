@@ -1,5 +1,6 @@
 package com.dangdangsalon.config;
 
+import com.dangdangsalon.domain.coupon.listener.CouponEventListener;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,5 +61,23 @@ public class RedisConfig {
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(cacheConfig)
                 .build();
+    }
+    @Bean
+    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
+                                                        MessageListenerAdapter listenerAdapter) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.addMessageListener(listenerAdapter, queueTopic());
+        return container;
+    }
+
+    @Bean
+    public MessageListenerAdapter listenerAdapter(CouponEventListener listener) {
+        return new MessageListenerAdapter(listener);
+    }
+
+    @Bean
+    public ChannelTopic queueTopic() {
+        return new ChannelTopic("coupon-queue");
     }
 }

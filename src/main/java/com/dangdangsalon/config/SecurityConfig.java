@@ -1,5 +1,7 @@
 package com.dangdangsalon.config;
 
+import com.dangdangsalon.domain.auth.handler.CustomAccessDeniedHandler;
+import com.dangdangsalon.domain.auth.handler.CustomAuthenticationEntryPoint;
 import com.dangdangsalon.domain.auth.handler.CustomSuccessHandler;
 import com.dangdangsalon.domain.auth.service.CustomOAuth2UserService;
 import com.dangdangsalon.filter.JwtFilter;
@@ -35,14 +37,19 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // CSRF 비활성화
                 .formLogin(AbstractHttpConfigurer::disable) // Form 로그인 방식 disable
                 .httpBasic(AbstractHttpConfigurer::disable) // HTTP Basic 인증 방식 disable
-                .oauth2Login((oauth2) -> oauth2.userInfoEndpoint(
+                .oauth2Login((oauth2) -> oauth2
+                        .loginPage("/custom/login")
+                        .userInfoEndpoint(
                                 (userInfoEndpointConfig) -> userInfoEndpointConfig.userService(customOAuth2UserService))
                         .successHandler(customSuccessHandler))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint()) // 인증 실패 시 동작
+                        .accessDeniedHandler(new CustomAccessDeniedHandler())) //권한 부족 시 동작
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/oauth2/authorization/**", "/api/test", "/actuator/**",
                                 "/api/contests/winner/**", "/api/images/**", "/api/groomerprofile/{groomerProfileId}",
-                                "/api/auth/check/login", "/api/auth/refresh", "/ws/chat/**")
+                                "/api/auth/check/login", "/api/auth/refresh", "/ws/chat/**", "/custom/login", "/oauth2/**")
                         .permitAll()
                         .requestMatchers("/api/auth/join").hasRole("PENDING")
                         .anyRequest().hasAnyRole("USER", "SALON", "ADMIN") // 나머지 경로는 인증 필요

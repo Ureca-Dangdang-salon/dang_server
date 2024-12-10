@@ -85,7 +85,7 @@ public class EstimateController {
     }
 
     @PutMapping("/rejected/{estimateId}")
-    public ApiSuccess<?> updateEstimate(@PathVariable Long estimateId) {
+    public ApiSuccess<?> rejectedEstimate(@PathVariable Long estimateId) {
         estimateUpdateService.rejectedEstimate(estimateId);
         return ApiUtil.success("견적서 거절에 성공하였습니다.");
     }

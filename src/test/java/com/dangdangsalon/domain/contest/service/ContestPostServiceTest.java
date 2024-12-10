@@ -54,6 +54,9 @@ class ContestPostServiceTest {
     @Mock
     private ContestPostLikeService contestPostLikeService;
 
+    @Mock
+    private ContestTopicNotificationService contestTopicNotificationService;
+
     @InjectMocks
     private ContestPostService contestPostService;
 

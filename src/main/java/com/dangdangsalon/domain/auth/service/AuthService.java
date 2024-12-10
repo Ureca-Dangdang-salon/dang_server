@@ -17,8 +17,10 @@ import jakarta.transaction.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -57,7 +59,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void completeRegister(Long userId, JoinAdditionalInfoDto requestDto) {
+    public void completeRegister(HttpServletResponse response, Long userId, JoinAdditionalInfoDto requestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 ID입니다. userId: " + userId));
 
@@ -67,6 +69,18 @@ public class AuthService {
                         .orElseThrow(() -> new IllegalArgumentException(
                                 "존재하지 않는 지역입니다. districtId: " + requestDto.getDistrictId())
         ));
+
+        String username = user.getUsername();
+        String role = requestDto.getRole();
+        String accessToken = jwtUtil.createAccessToken(userId, username, role);
+        String refreshToken = jwtUtil.createRefreshToken(userId, username, role);
+
+        redisUtil.saveRefreshToken(userId.toString(), refreshToken, 60 * 60 * 10000L);
+
+        response.addCookie(cookieUtil.createCookie("Refresh-Token", refreshToken));
+        response.addCookie(cookieUtil.createCookie("Authorization", accessToken));
+
+        log.info("User Role Updated. Access Token: {}", accessToken);
     }
 
     @Transactional
@@ -96,10 +110,15 @@ public class AuthService {
     }
 
     public CheckLoginDto checkLogin(CustomOAuth2User user) {
+
+        User users = userRepository.findById(user.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 ID입니다. userId: " + user.getUserId()));
+
         return CheckLoginDto.builder()
                 .isLogin(true)
                 .userId(user.getUserId())
                 .role(user.getRole())
+                .notificationEnabled(users.getNotificationEnabled())
                 .build();
     }
 }

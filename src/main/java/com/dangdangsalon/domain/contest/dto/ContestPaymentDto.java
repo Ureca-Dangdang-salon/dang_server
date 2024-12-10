@@ -1,24 +1,24 @@
-package com.dangdangsalon.domain.payment.dto;
+package com.dangdangsalon.domain.contest.dto;
 
+import com.dangdangsalon.domain.payment.dto.PaymentDogProfileResponseDto;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentResponseDto {
+public class ContestPaymentDto {
 
+    private Long groomerProfileId;
     private String groomerName;
     private String groomerImage;
     private LocalDateTime paymentDate;
     private LocalDateTime reservationDate;
-    private List<PaymentDogProfileResponseDto> dogProfileList;
+    private List<String> serviceList;
     private int totalAmount;
-    private String status;
 }

@@ -1,5 +1,8 @@
 package com.dangdangsalon.domain.estimate.service;
 
+import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
+import com.dangdangsalon.domain.chat.service.ChatMessageService;
+import com.dangdangsalon.domain.chat.service.ChatRoomService;
 import com.dangdangsalon.domain.estimate.dto.EstimateIdResponseDto;
 import com.dangdangsalon.domain.estimate.dto.EstimateUpdateRequestDto;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
@@ -23,6 +26,9 @@ public class EstimateUpdateService {
     private final GroomerServiceRepository groomerServiceRepository;
     private final EstimateRequestProfilesRepository estimateRequestProfilesRepository;
     private final EstimateRequestServiceRepository estimateRequestServiceRepository;
+
+    private final ChatMessageService chatMessageService;
+    private final ChatRoomService chatRoomService;
 
     @Transactional
     public void updateEstimate(EstimateUpdateRequestDto requestDto) {
@@ -59,6 +65,9 @@ public class EstimateUpdateService {
         }
 
         estimate.updateEstimate(requestDto.getDescription(), requestDto.getImageKey(), requestDto.getTotalAmount(), requestDto.getDate());
+
+        ChatMessageDto updateEstimateMessage = chatRoomService.createUpdateEstimateMessage(estimate);
+        chatMessageService.saveMessageRedis(updateEstimateMessage);
     }
 
     @Transactional

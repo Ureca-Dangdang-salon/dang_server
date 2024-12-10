@@ -27,7 +27,7 @@ public class ReviewUserResponseDto {
                 .reviewId(review.getId())
                 .profileId(review.getGroomerProfile().getId())
                 .groomerName(review.getGroomerProfile().getName())
-                .groomerImageKey(review.getGroomerProfile().getName())
+                .groomerImageKey(review.getGroomerProfile().getImageKey())
                 .text(review.getText())
                 .starScore(review.getStarScore())
                 .address(review.getGroomerProfile().getDetails().getAddress())

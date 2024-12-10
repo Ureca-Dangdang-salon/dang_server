@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.mypage.service;
 
+import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.groomerprofile.entity.*;
 import com.dangdangsalon.domain.groomerprofile.repository.GroomerProfileRepository;
 import com.dangdangsalon.domain.groomerprofile.request.entity.GroomerRequestStatus;
@@ -8,12 +9,15 @@ import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
 import com.dangdangsalon.domain.groomerservice.repository.GroomerServiceRepository;
 import com.dangdangsalon.domain.mypage.dto.req.*;
 import com.dangdangsalon.domain.mypage.dto.res.*;
+import com.dangdangsalon.domain.orders.entity.OrderStatus;
 import com.dangdangsalon.domain.region.entity.District;
 import com.dangdangsalon.domain.region.repository.DistrictRepository;
 import com.dangdangsalon.domain.user.entity.Role;
 import com.dangdangsalon.domain.user.entity.User;
 import com.dangdangsalon.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,15 +70,13 @@ public class MyPageGroomerService {
                 .sum() / reviewCount : 0;
 
         GroomerProfileDetailsResponseDto groomerProfileDetailsResponseDto =
-                groomerProfile.getDetails() != null ?
-                        GroomerProfileDetailsResponseDto.create(
-                                groomerProfile,
-                                GroomerProfileDetailsInfoResponseDto.create(
-                                        totalScore, reviewCount, estimateRequestCount, badges,
-                                        servicesOffered, serviceDistricts, certifications
-                                )
+                GroomerProfileDetailsResponseDto.create(
+                        groomerProfile,
+                        GroomerProfileDetailsInfoResponseDto.create(
+                                totalScore, reviewCount, estimateRequestCount, badges,
+                                servicesOffered, serviceDistricts, certifications
                         )
-                        : null;
+                );
         // 응답 DTO 생성
         return GroomerProfileResponseDto.createGroomerProfileResponseDto(
                 groomerProfile,
@@ -107,9 +109,9 @@ public class MyPageGroomerService {
                 .map(GroomerCertification::getCertification)
                 .toList();
 
-        // 견적 요청 완료 개수
-        long estimateRequestCount = groomerProfile.getGroomerEstimateRequests().stream()
-                .filter(request -> request.getGroomerRequestStatus() == GroomerRequestStatus.COMPLETED)
+        // 견적 완료 개수
+        long estimateCount = groomerProfile.getEstimates().stream()
+                .filter(request -> request.getStatus() == EstimateStatus.ACCEPTED)
                 .count();
 
         // 리뷰 개수
@@ -124,7 +126,7 @@ public class MyPageGroomerService {
         return GroomerProfileDetailsResponseDto.create(
                 groomerProfile,
                 GroomerProfileDetailsInfoResponseDto.create(
-                        totalScore, reviewCount, estimateRequestCount, badges,
+                        totalScore, reviewCount, estimateCount, badges,
                         servicesOffered, serviceDistricts, certifications
                 )
         );
@@ -239,6 +241,24 @@ public class MyPageGroomerService {
         }
 
         groomerProfileRepository.delete(groomerProfile);
+    }
+
+    @Transactional(readOnly = true)
+    public GroomerMainResponseDto getGroomerProfileMainPage(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new IllegalArgumentException("유저 아이디를 찾을 수 없습니다. userId : " + userId));
+
+        Pageable pageable = PageRequest.of(0, 5);
+        List<GroomerRecommendResponseDto> nationalTopGroomers = groomerProfileRepository
+                .findTop5ByAcceptedOrdersWithDto(EstimateStatus.ACCEPTED, pageable);
+
+        List<GroomerRecommendResponseDto> districtTopGroomers = groomerProfileRepository
+                .findTop5GroomersInArea(user.getDistrict().getName(), pageable);
+
+        return GroomerMainResponseDto.builder()
+                .districtTopGroomers(districtTopGroomers)
+                .nationalTopGroomers(nationalTopGroomers)
+                .build();
     }
 
     private void addCertification(List<String> certifications,

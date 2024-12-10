@@ -135,6 +135,24 @@ public class ChatRoomService {
         }
     }
 
+    @Transactional
+    public ChatMessageDto createUpdateEstimateMessage(Estimate estimate) {
+        ChatRoom chatRoom = chatRoomRepository.findByEstimateId(estimate.getId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 견적서에 해당되는 채팅방이 없습니다. EstimateId= " + estimate.getId()));
+
+        Long currentSequence = chatRedisUtil.getCurrentSequence(chatRoom.getId());
+
+        return ChatMessageDto.builder()
+                .sequence(++currentSequence)
+                .messageId(UUID.randomUUID().toString())
+                .roomId(chatRoom.getId())
+                .senderId(chatRoom.getGroomer().getId())
+                .senderRole(Role.ROLE_SALON.name())
+                .sendAt(LocalDateTime.now())
+                .estimateInfo(createEstimateMessage(estimate))
+                .build();
+    }
+
     private ChatRoomListDto convertToChatRoomListDto(ChatRoom chatRoom, Role userRole) {
         String lastMessage = chatMessageService.getLastMessage(chatRoom.getId());
         int unreadCount = 0;

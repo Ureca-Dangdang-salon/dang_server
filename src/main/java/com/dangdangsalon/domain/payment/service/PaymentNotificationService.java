@@ -5,6 +5,7 @@ import com.dangdangsalon.domain.notification.service.RedisNotificationService;
 import com.dangdangsalon.domain.orders.entity.Orders;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class PaymentNotificationService {
     private final NotificationService notificationService;
     private final RedisNotificationService redisNotificationService;
 
+    @Async
     public void sendNotificationToUser(Orders orders) {
 
         Long userId = orders.getUser().getId();

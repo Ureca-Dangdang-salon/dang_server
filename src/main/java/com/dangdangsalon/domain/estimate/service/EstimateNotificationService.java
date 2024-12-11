@@ -9,6 +9,7 @@ import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.notification.service.RedisNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,7 @@ public class EstimateNotificationService {
     private final EstimateRepository estimateRepository;
     private final RedisNotificationService redisNotificationService;
 
-    @Transactional
+    @Async
     public void sendNotificationToUser(EstimateRequest estimateRequest, Estimate estimate, GroomerProfile groomerProfile) {
 
         Long userId = estimateRequest.getUser().getId();

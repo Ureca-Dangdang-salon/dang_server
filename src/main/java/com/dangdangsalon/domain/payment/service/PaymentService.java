@@ -1,6 +1,8 @@
 package com.dangdangsalon.domain.payment.service;
 
-import com.dangdangsalon.domain.notification.service.NotificationService;
+import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
+import com.dangdangsalon.domain.estimate.request.entity.RequestStatus;
+import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
 import com.dangdangsalon.domain.orders.entity.OrderStatus;
 import com.dangdangsalon.domain.orders.entity.Orders;
 import com.dangdangsalon.domain.orders.repository.OrdersRepository;
@@ -11,8 +13,6 @@ import com.dangdangsalon.domain.payment.dto.PaymentCancelResponseDto;
 import com.dangdangsalon.domain.payment.entity.Payment;
 import com.dangdangsalon.domain.payment.entity.PaymentStatus;
 import com.dangdangsalon.domain.payment.repository.PaymentRepository;
-import com.dangdangsalon.domain.user.entity.User;
-import com.dangdangsalon.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +27,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -40,6 +39,7 @@ public class PaymentService {
     private final RedisTemplate<String, String> redisTemplate;
     private final WebClient webClient;
     private final PaymentNotificationService paymentNotificationService;
+    private final EstimateRequestRepository estimateRequestRepository;
 
     @Value("${toss.api.key}")
     private String tossApiKey;
@@ -89,6 +89,11 @@ public class PaymentService {
 
             paymentRepository.save(payment);
             order.updateOrderStatus(OrderStatus.ACCEPTED);
+
+            EstimateRequest estimateRequest = estimateRequestRepository.findById(payment.getOrders().getEstimate().getEstimateRequest().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다 : " + payment.getOrders().getEstimate().getEstimateRequest().getId()));
+
+            estimateRequest.updateRequestStatus(RequestStatus.PAID);
 
             paymentNotificationService.sendNotificationToUser(order);
 

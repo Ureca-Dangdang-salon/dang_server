@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -56,8 +57,14 @@ class PaymentNotificationServiceTest {
     @DisplayName("알림 전송 - 성공")
     void sendNotificationToUser_Success() {
         // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
         when(notificationService.getFcmToken(1L)).thenReturn(Optional.of("dummyFcmToken"));
+        when(notificationService.sendNotificationWithData(
+                eq("dummyFcmToken"),
+                eq("결제가 완료되었습니다"),
+                eq("결제 내역을 확인해보세요."),
+                eq("결제"),
+                eq(1L)
+        )).thenReturn(true); // 알림 전송 성공 시 true 반환
 
         // When
         paymentNotificationService.sendNotificationToUser(mockOrders);
@@ -84,13 +91,12 @@ class PaymentNotificationServiceTest {
     void sendNotificationToUser_NotificationDisabled() {
         // Given
         mockUser.updateNotificationEnabled(false); // 알림 비활성화
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
+        when(notificationService.getFcmToken(1L)).thenReturn(Optional.empty());
 
         // When
         paymentNotificationService.sendNotificationToUser(mockOrders);
 
         // Then
-        verify(notificationService, never()).getFcmToken(anyLong());
         verify(notificationService, never()).sendNotificationWithData(any(), any(), any(), any(), any());
         verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
     }
@@ -99,14 +105,13 @@ class PaymentNotificationServiceTest {
     @DisplayName("알림 전송 - 사용자 없음 예외")
     void sendNotificationToUser_UserNotFound() {
         // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(notificationService.getFcmToken(1L)).thenThrow(new IllegalArgumentException("사용자를 찾을 수 없습니다: 1"));
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () ->
                 paymentNotificationService.sendNotificationToUser(mockOrders)
         );
 
-        verify(notificationService, never()).getFcmToken(anyLong());
         verify(notificationService, never()).sendNotificationWithData(any(), any(), any(), any(), any());
         verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
     }
@@ -115,7 +120,6 @@ class PaymentNotificationServiceTest {
     @DisplayName("알림 전송 - FCM 토큰 없음")
     void sendNotificationToUser_NoFcmToken() {
         // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
         when(notificationService.getFcmToken(1L)).thenReturn(Optional.empty());
 
         // When
@@ -124,6 +128,33 @@ class PaymentNotificationServiceTest {
         // Then
         verify(notificationService, times(1)).getFcmToken(1L);
         verify(notificationService, never()).sendNotificationWithData(any(), any(), any(), any(), any());
+        verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("알림 전송 - FCM 전송 실패")
+    void sendNotificationToUser_FcmSendFailed() {
+        // Given
+        when(notificationService.getFcmToken(1L)).thenReturn(Optional.of("dummyFcmToken"));
+        when(notificationService.sendNotificationWithData(
+                eq("dummyFcmToken"),
+                eq("결제가 완료되었습니다"),
+                eq("결제 내역을 확인해보세요."),
+                eq("결제"),
+                eq(1L)
+        )).thenReturn(false); // 알림 전송 실패 시 false 반환
+
+        // When
+        paymentNotificationService.sendNotificationToUser(mockOrders);
+
+        // Then
+        verify(notificationService, times(1)).sendNotificationWithData(
+                eq("dummyFcmToken"),
+                eq("결제가 완료되었습니다"),
+                eq("결제 내역을 확인해보세요."),
+                eq("결제"),
+                eq(1L)
+        );
         verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
     }
 }

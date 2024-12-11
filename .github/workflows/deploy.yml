@@ -37,6 +37,9 @@ jobs:
           MONGODB_HOST: ${{ secrets.MONGODB_HOST }}
           MONGODB_PORT: ${{ secrets.MONGODB_PORT }}
           MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
+          TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+          FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         run: |
           chmod +x ./gradlew
           ./gradlew clean test -Dspring.profiles.active=test
@@ -71,6 +74,9 @@ jobs:
           MONGODB_HOST: ${{ secrets.MONGODB_HOST }}
           MONGODB_PORT: ${{ secrets.MONGODB_PORT }}
           MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
+          TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+          FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         run: |
           chmod +x ./gradlew
           ./gradlew clean build -Dspring.profiles.active=test

@@ -74,7 +74,6 @@ public class NotificationService {
         }
     }
 
-
     @Transactional
     public void saveOrUpdateFcmToken(Long userId, String token) {
         User user = userRepository.findById(userId)
@@ -105,9 +104,10 @@ public class NotificationService {
     }
 
 
-    public Optional<String> getFcmToken(Long userId) {
-        return fcmTokenRepository.findByUserId(userId)
-                .map(FcmToken::getFcmToken);
+    public List<String> getFcmTokens(Long userId) {
+        return fcmTokenRepository.findByUserId(userId).stream()
+                .map(FcmToken::getFcmToken)
+                .toList();
     }
 
     public void deleteFcmToken(String token) {

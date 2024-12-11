@@ -5,7 +5,6 @@ import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.notification.service.RedisNotificationService;
 import com.dangdangsalon.domain.user.entity.User;
-import com.dangdangsalon.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,7 +13,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Optional;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -59,26 +60,33 @@ class GroomerEstimateRequestNotificationServiceTest {
     @DisplayName("알림 전송 - 성공")
     void sendNotificationToGroomer_Success() {
         // Given
-        when(notificationService.getFcmToken(1L)).thenReturn(Optional.of("dummyFcmToken"));
-        when(notificationService.sendNotificationWithData(
-                eq("dummyFcmToken"),
-                eq("새로운 견적 요청"),
-                eq("새로운 견적 요청이 도착했습니다. 확인하세요."),
-                eq("견적 요청"),
-                eq(2L)
-        )).thenReturn(true); // 성공 시 true 반환
+        List<String> fcmTokens = Arrays.asList("token1", "token2");
+        when(notificationService.getFcmTokens(1L)).thenReturn(fcmTokens);
+
+        for (String token : fcmTokens) {
+            when(notificationService.sendNotificationWithData(
+                    eq(token),
+                    eq("새로운 견적 요청"),
+                    eq("새로운 견적 요청이 도착했습니다. 확인하세요."),
+                    eq("견적 요청"),
+                    eq(2L)
+            )).thenReturn(true);
+        }
 
         // When
         groomerEstimateRequestNotificationService.sendNotificationToGroomer(mockEstimateRequest, mockGroomerProfile);
 
         // Then
-        verify(notificationService, times(1)).sendNotificationWithData(
-                eq("dummyFcmToken"),
-                eq("새로운 견적 요청"),
-                eq("새로운 견적 요청이 도착했습니다. 확인하세요."),
-                eq("견적 요청"),
-                eq(2L)
-        );
+        for (String token : fcmTokens) {
+            verify(notificationService, times(1)).sendNotificationWithData(
+                    eq(token),
+                    eq("새로운 견적 요청"),
+                    eq("새로운 견적 요청이 도착했습니다. 확인하세요."),
+                    eq("견적 요청"),
+                    eq(2L)
+            );
+        }
+
         verify(redisNotificationService, times(1)).saveNotificationToRedis(
                 eq(1L),
                 eq("새로운 견적 요청"),
@@ -92,9 +100,11 @@ class GroomerEstimateRequestNotificationServiceTest {
     @DisplayName("알림 전송 - FCM 실패로 Redis 저장 안됨")
     void sendNotificationToGroomer_FcmSendFailed() {
         // Given
-        when(notificationService.getFcmToken(1L)).thenReturn(Optional.of("dummyFcmToken"));
+        List<String> fcmTokens = Collections.singletonList("token1");
+        when(notificationService.getFcmTokens(1L)).thenReturn(fcmTokens);
+
         when(notificationService.sendNotificationWithData(
-                eq("dummyFcmToken"),
+                eq("token1"),
                 eq("새로운 견적 요청"),
                 eq("새로운 견적 요청이 도착했습니다. 확인하세요."),
                 eq("견적 요청"),
@@ -106,7 +116,7 @@ class GroomerEstimateRequestNotificationServiceTest {
 
         // Then
         verify(notificationService, times(1)).sendNotificationWithData(
-                eq("dummyFcmToken"),
+                eq("token1"),
                 eq("새로운 견적 요청"),
                 eq("새로운 견적 요청이 도착했습니다. 확인하세요."),
                 eq("견적 요청"),
@@ -125,7 +135,7 @@ class GroomerEstimateRequestNotificationServiceTest {
     @DisplayName("알림 전송 - FCM 토큰 없음")
     void sendNotificationToGroomer_FcmTokenNotFound() {
         // Given
-        when(notificationService.getFcmToken(1L)).thenReturn(Optional.empty()); // FCM 토큰 없음
+        when(notificationService.getFcmTokens(1L)).thenReturn(Collections.emptyList()); // FCM 토큰 없음
 
         // When
         groomerEstimateRequestNotificationService.sendNotificationToGroomer(mockEstimateRequest, mockGroomerProfile);
@@ -139,7 +149,7 @@ class GroomerEstimateRequestNotificationServiceTest {
     @DisplayName("알림 전송 - 사용자 없음 예외")
     void sendNotificationToGroomer_UserNotFound() {
         // Given
-        when(notificationService.getFcmToken(1L)).thenThrow(new IllegalArgumentException("사용자를 찾을 수 없습니다: 1"));
+        when(notificationService.getFcmTokens(1L)).thenThrow(new IllegalArgumentException("사용자를 찾을 수 없습니다: 1"));
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () ->
@@ -149,5 +159,4 @@ class GroomerEstimateRequestNotificationServiceTest {
         verify(notificationService, never()).sendNotificationWithData(any(), any(), any(), any(), any());
         verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
     }
-
 }

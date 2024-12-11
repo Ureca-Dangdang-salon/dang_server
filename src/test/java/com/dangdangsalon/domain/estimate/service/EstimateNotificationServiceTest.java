@@ -16,6 +16,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,26 +73,33 @@ class EstimateNotificationServiceTest {
     @DisplayName("알림 전송 - 성공")
     void sendNotificationToUser_Success() {
         // Given
-        when(notificationService.getFcmToken(1L)).thenReturn(Optional.of("dummyFcmToken"));
-        when(notificationService.sendNotificationWithData(
-                eq("dummyFcmToken"),
-                eq("테스트 미용사님이 견적을 보냈습니다."),
-                eq("견적 내용을 확인해보세요."),
-                eq("견적서"),
-                eq(1L)
-        )).thenReturn(true); // 성공 시 true 반환
+        List<String> fcmTokens = Arrays.asList("token1", "token2");
+        when(notificationService.getFcmTokens(1L)).thenReturn(fcmTokens);
+
+        for (String token : fcmTokens) {
+            when(notificationService.sendNotificationWithData(
+                    eq(token),
+                    eq("테스트 미용사님이 견적을 보냈습니다."),
+                    eq("견적 내용을 확인해보세요."),
+                    eq("견적서"),
+                    eq(1L)
+            )).thenReturn(true);
+        }
 
         // When
         estimateNotificationService.sendNotificationToUser(mockEstimateRequest, mockEstimate, mockGroomerProfile);
 
         // Then
-        verify(notificationService, times(1)).sendNotificationWithData(
-                eq("dummyFcmToken"),
-                eq("테스트 미용사님이 견적을 보냈습니다."),
-                eq("견적 내용을 확인해보세요."),
-                eq("견적서"),
-                eq(1L)
-        );
+        for (String token : fcmTokens) {
+            verify(notificationService, times(1)).sendNotificationWithData(
+                    eq(token),
+                    eq("테스트 미용사님이 견적을 보냈습니다."),
+                    eq("견적 내용을 확인해보세요."),
+                    eq("견적서"),
+                    eq(1L)
+            );
+        }
+
         verify(redisNotificationService, times(1)).saveNotificationToRedis(
                 eq(1L),
                 eq("테스트 미용사님이 견적을 보냈습니다."),
@@ -103,21 +113,23 @@ class EstimateNotificationServiceTest {
     @DisplayName("알림 전송 - FCM 실패로 Redis 저장 안됨")
     void sendNotificationToUser_FcmSendFailed() {
         // Given
-        when(notificationService.getFcmToken(1L)).thenReturn(Optional.of("dummyFcmToken"));
+        List<String> fcmTokens = Collections.singletonList("token1");
+        when(notificationService.getFcmTokens(1L)).thenReturn(fcmTokens);
+
         when(notificationService.sendNotificationWithData(
-                eq("dummyFcmToken"),
+                eq("token1"),
                 eq("테스트 미용사님이 견적을 보냈습니다."),
                 eq("견적 내용을 확인해보세요."),
                 eq("견적서"),
                 eq(1L)
-        )).thenReturn(false); // 실패 시 false 반환
+        )).thenReturn(false);
 
         // When
         estimateNotificationService.sendNotificationToUser(mockEstimateRequest, mockEstimate, mockGroomerProfile);
 
         // Then
         verify(notificationService, times(1)).sendNotificationWithData(
-                eq("dummyFcmToken"),
+                eq("token1"),
                 eq("테스트 미용사님이 견적을 보냈습니다."),
                 eq("견적 내용을 확인해보세요."),
                 eq("견적서"),
@@ -130,13 +142,13 @@ class EstimateNotificationServiceTest {
     @DisplayName("알림 전송 - 사용자 없음 예외")
     void sendNotificationToUser_UserNotFound() {
         // Given
-        when(notificationService.getFcmToken(1L)).thenReturn(Optional.empty());
+        when(notificationService.getFcmTokens(1L)).thenReturn(Collections.emptyList());
 
         // When
         estimateNotificationService.sendNotificationToUser(mockEstimateRequest, mockEstimate, mockGroomerProfile);
 
         // Then
-        verify(notificationService, times(1)).getFcmToken(1L);
+        verify(notificationService, times(1)).getFcmTokens(1L);
         verify(notificationService, never()).sendNotificationWithData(any(), any(), any(), any(), any());
         verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
     }

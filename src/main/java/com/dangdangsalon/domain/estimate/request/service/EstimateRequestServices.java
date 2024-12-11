@@ -84,7 +84,7 @@ public class EstimateRequestServices {
                 .toList();
     }
 
-    // 견적 그만 받기( 견적 요청을 CANCEL 로 바꾸면 미용사들이 견적서를 보내지 못한다.
+    // 견적 그만 받기( 견적 요청을 CANCEL 로 바꾸면 미용사들이 견적서를 보내지 못한다. )
     @Transactional
     public void stopEstimate(Long requestId) {
 

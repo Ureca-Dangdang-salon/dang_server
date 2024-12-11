@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,12 +63,13 @@ class FcmTokenRepositoryTest {
         em.persist(token);
 
         // When
-        Optional<FcmToken> foundToken = fcmTokenRepository.findByUserId(user.getId());
+        List<FcmToken> foundTokens = fcmTokenRepository.findByUserId(user.getId());
 
         // Then
-        assertThat(foundToken).isPresent();
-        assertThat(foundToken.get().getFcmToken()).isEqualTo("user-token");
+        assertThat(foundTokens).isNotEmpty(); // List가 비어있지 않은지 확인
+        assertThat(foundTokens.get(0).getFcmToken()).isEqualTo("user-token"); // 첫 번째 FCM 토큰의 값을 검증
     }
+
 
     @Test
     @DisplayName("FCM 토큰 삭제 테스트")

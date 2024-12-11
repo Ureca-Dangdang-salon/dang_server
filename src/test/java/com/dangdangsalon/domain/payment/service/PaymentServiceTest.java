@@ -1,5 +1,8 @@
 package com.dangdangsalon.domain.payment.service;
 
+import com.dangdangsalon.domain.estimate.entity.Estimate;
+import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
+import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
 import com.dangdangsalon.domain.orders.entity.OrderStatus;
 import com.dangdangsalon.domain.orders.entity.Orders;
 import com.dangdangsalon.domain.orders.repository.OrdersRepository;
@@ -49,6 +52,9 @@ class PaymentServiceTest {
     private PaymentRepository paymentRepository;
 
     @Mock
+    private EstimateRequestRepository estimateRequestRepository;
+
+    @Mock
     private PaymentNotificationService paymentNotificationService;
 
     @Mock
@@ -89,6 +95,17 @@ class PaymentServiceTest {
         ReflectionTestUtils.setField(paymentService, "tossCancelUrl", "https://api.tosspayments.com/v1/payments/{paymentKey}/cancel");
         ReflectionTestUtils.setField(paymentService, "tossApproveUrl", "https://api.tosspayments.com/v1/payments/confirm");
 
+        ReflectionTestUtils.setField(paymentService, "tossApiKey", "test-api-key");
+        ReflectionTestUtils.setField(paymentService, "tossCancelUrl", TEST_CANCEL_URL);
+        ReflectionTestUtils.setField(paymentService, "tossApproveUrl", TEST_APPROVE_URL);
+
+        EstimateRequest mockEstimateRequest = EstimateRequest.builder().build();
+        ReflectionTestUtils.setField(mockEstimateRequest,"id",1L);
+
+        Estimate mockEstimate = Estimate.builder()
+                .estimateRequest(mockEstimateRequest)
+                .build();
+
         mockUser = User.builder()
                 .name("이민수")
                 .build();
@@ -98,6 +115,7 @@ class PaymentServiceTest {
                 .amountValue(10000)
                 .status(OrderStatus.PENDING)
                 .tossOrderId("TOSS_ORDER_123")
+                .estimate(mockEstimate) // 여기에 Estimate 설정
                 .build();
 
         approveRequestDto = PaymentApproveRequestDto.builder()
@@ -208,6 +226,10 @@ class PaymentServiceTest {
 
         given(ordersRepository.findByTossOrderId(anyString())).willReturn(Optional.of(mockOrder));
 
+        EstimateRequest mockEstimateRequest = mockOrder.getEstimate().getEstimateRequest();
+        given(estimateRequestRepository.findById(mockEstimateRequest.getId()))
+                .willReturn(Optional.of(mockEstimateRequest));
+
         doNothing().when(paymentNotificationService).sendNotificationToUser(any(Orders.class));
 
         // When
@@ -216,8 +238,10 @@ class PaymentServiceTest {
         // Then
         assertThat(result.getStatus()).isEqualTo("APPROVED");
         verify(ordersRepository).findByTossOrderId(anyString());
+        verify(estimateRequestRepository).findById(mockEstimateRequest.getId());
         verify(redisTemplate).delete(anyString());
     }
+
 
     @Test
     @DisplayName("결제 취소 - 요청 성공")

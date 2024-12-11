@@ -9,6 +9,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mail.javamail.JavaMailSender;
+import static org.assertj.core.api.Assertions.assertThatCode;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -63,6 +66,49 @@ class NotificationEmailServiceTest {
 
         // When
         notificationEmailService.sendEmail(userEmail, subject, body);
+
+        // Then
+        verify(javaMailSender, never()).send(any(MimeMessage.class));
+    }
+
+    @Test
+    @DisplayName("템플릿 로드 성공")
+    void sendEmailWithTemplate_TemplateLoadSuccess() {
+        // Given
+        String userEmail = "test1234@naver.com";
+        String subject = "템플릿 로드 성공 제목";
+        String templatePath = "/templates/email.html";
+        Map<String, String> placeholders = Map.of(
+                "name", "홍길동",
+                "date", "2024-12-13"
+        );
+
+        MimeMessage mimeMessage = mock(MimeMessage.class);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        doNothing().when(javaMailSender).send(any(MimeMessage.class));
+
+        assertThatCode(() -> {
+            notificationEmailService.sendEmailWithTemplate(userEmail, subject, templatePath, placeholders);
+        }).doesNotThrowAnyException();
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    @DisplayName("템플릿 로드 실패")
+    void sendEmailWithTemplate_TemplateLoadFailure() {
+        // Given
+        String userEmail = "test1234@naver.com";
+        String subject = "템플릿 로드 실패 제목";
+        String templatePath = "/invalid/template/path.html";
+        Map<String, String> placeholders = Map.of(
+                "name", "홍길동",
+                "date", "2024-12-13"
+        );
+
+        // When
+        notificationEmailService.sendEmailWithTemplate(userEmail, subject, templatePath, placeholders);
 
         // Then
         verify(javaMailSender, never()).send(any(MimeMessage.class));

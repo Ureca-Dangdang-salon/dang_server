@@ -90,12 +90,12 @@
             const response = await fetch(`/api/coupon-events/register?userId=${userId}&eventName=${eventName}`, {
                 method: "POST"
             });
-            const resultMessage = await response.text();
-
-            if (!response.ok || !resultMessage.includes("대기열 등록이 완료되었습니다.")) {
-                alert(resultMessage);
-                return;
-            }
+            // const resultMessage = await response.text();
+            //
+            // if (!response.ok || !resultMessage.includes("대기열 등록이 완료되었습니다.")) {
+            //     alert(resultMessage);
+            //     return;
+            // }
 
             // 상태 창 표시
             document.getElementById("queue-status").style.display = "block";

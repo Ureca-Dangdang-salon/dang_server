@@ -1,43 +1,38 @@
 package com.dangdangsalon.domain.coupon.controller;
 
-import com.dangdangsalon.domain.coupon.service.CouponEventManageService;
-import com.dangdangsalon.domain.coupon.service.CouponQueueService;
-import com.dangdangsalon.domain.coupon.sse.SseEmitterRegistry;
+import com.dangdangsalon.domain.coupon.entity.CouponEvent;
+import com.dangdangsalon.domain.coupon.repository.CouponEventRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/couponevent")
+@Slf4j
 public class CouponEventController {
 
-    private final CouponEventManageService couponEventManageService;
-    private final CouponQueueService couponQueueService;
-    private final SseEmitterRegistry sseEmitterRegistry;
-    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final CouponEventRepository couponEventRepository;
 
-    // 사용자가 이벤트 대기열 등록
-    @PostMapping("/coupon-events/register")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<String> registerQueue(@RequestParam Long userId, @RequestParam("eventName") String eventName) {
-        String resultMessage = couponEventManageService.registerUserForEvent(eventName, userId);
-        return ResponseEntity.ok(resultMessage);
-    }
+    @PostMapping("/start")
+    public String startEvent(@RequestParam Long eventId) {
+        CouponEvent event = couponEventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이벤트를 찾을 수 없습니다. Id: " + eventId));
 
-    // 싫시간 대기열
-    @GetMapping(value = "/coupon-events/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter stream(@RequestParam String eventName, @RequestParam Long userId) {
-        // SSE 연결 등록
-        SseEmitter emitter = sseEmitterRegistry.register(userId);
-        executor.submit(() -> couponQueueService.streamQueueStatus(eventName, userId));
-        return emitter;
+        String couponRemainingKey = "coupon_remaining:" + eventId;
+        String couponQueueKey = "coupon_queue:" + eventId;
+        String issuedUsersKey = "issued_users:" + eventId;
+
+        redisTemplate.opsForValue().set(couponRemainingKey, event.getTotalQuantity());
+        redisTemplate.delete(couponQueueKey);
+        redisTemplate.delete(issuedUsersKey);
+
+        log.info("이벤트 시작 - ID: {}, 쿠폰 수량: {}", eventId, event.getTotalQuantity());
+        return "이벤트가 시작되었습니다. ID: " + eventId;
     }
 }

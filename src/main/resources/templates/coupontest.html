@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>쿠폰 이벤트 테스트</title>
+    <script>
+        // SSE 연결 설정
+        let eventSource;
+        function connectSSE() {
+            eventSource = new EventSource('/api/coupons/queue/updates');
+            eventSource.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+                document.getElementById("queueLength").innerText = data.queueLength;
+                document.getElementById("remainingCoupons").innerText = data.remainingCoupons;
+            };
+            eventSource.onerror = function () {
+                console.error("SSE 연결 오류 발생");
+                eventSource.close();
+            };
+        }
+
+        // 쿠폰 발급 요청
+        async function issueCoupon() {
+            const userId = 1;
+            const eventId = 1;
+
+            try {
+                const response = await fetch(`/api/coupons/issued?userId=${userId}&eventId=${eventId}`, {
+                    method: "POST"
+                });
+                const result = await response.json();
+                alert(result.message || "요청 성공");
+            } catch (error) {
+                alert("요청 중 오류 발생");
+                console.error(error);
+            }
+        }
+
+        // 초기화 작업
+        window.onload = function () {
+            connectSSE();
+        };
+    </script>
+</head>
+<body>
+<h1>쿠폰 이벤트 테스트</h1>
+
+<!-- 쿠폰 발급 요청 -->
+<div>
+    <h2>쿠폰 발급 요청</h2>
+    <label for="userId">사용자 ID:</label>
+    <input type="number" id="userId" placeholder="사용자 ID 입력">
+    <br>
+    <label for="eventId">이벤트 ID:</label>
+    <input type="number" id="eventId" value="1" readonly>
+    <br>
+    <button onclick="issueCoupon()">쿠폰 요청</button>
+</div>
+
+<hr>
+
+<!-- 실시간 대기열 상태 -->
+<div>
+    <h2>실시간 대기열 상태</h2>
+    <p>대기열 길이: <span id="queueLength">0</span></p>
+    <p>남은 쿠폰 수량: <span id="remainingCoupons">0</span></p>
+</div>
+</body>
+</html>

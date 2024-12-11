@@ -1,6 +1,6 @@
 package com.dangdangsalon.config;
 
-import com.dangdangsalon.domain.coupon.listener.CouponEventListener;
+import com.dangdangsalon.domain.coupon.listener.RedisMessageSubscriber;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,22 +62,33 @@ public class RedisConfig {
                 .cacheDefaults(cacheConfig)
                 .build();
     }
+
+    /*
+      Pub/Sub 설정
+      queue_status 채널에서 수신한 메시지를 MessageListenerAdapter에 전달.
+     */
     @Bean
-    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
-                                                        MessageListenerAdapter listenerAdapter) {
+    public RedisMessageListenerContainer redisMessageListenerContainer(
+            RedisConnectionFactory connectionFactory,
+            MessageListenerAdapter messageListenerAdapter,
+            ChannelTopic channelTopic
+    ) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.addMessageListener(listenerAdapter, queueTopic());
+        container.addMessageListener(messageListenerAdapter, channelTopic);
         return container;
     }
 
+    /*
+      메시지를 처리하도록 하는 어댑터 클래스 구현체를 등록한다.
+     */
     @Bean
-    public MessageListenerAdapter listenerAdapter(CouponEventListener listener) {
-        return new MessageListenerAdapter(listener);
+    public MessageListenerAdapter messageListenerAdapter(RedisMessageSubscriber subscriber) {
+        return new MessageListenerAdapter(subscriber);
     }
 
     @Bean
-    public ChannelTopic queueTopic() {
-        return new ChannelTopic("coupon-queue");
+    public ChannelTopic channelTopic() {
+        return new ChannelTopic("queue_status");
     }
 }

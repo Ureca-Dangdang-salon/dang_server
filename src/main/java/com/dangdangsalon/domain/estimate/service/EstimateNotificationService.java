@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -27,18 +27,22 @@ public class EstimateNotificationService {
     public void sendNotificationToUser(EstimateRequest estimateRequest, Estimate estimate, GroomerProfile groomerProfile) {
 
         Long userId = estimateRequest.getUser().getId();
+        List<String> fcmTokens = notificationService.getFcmTokens(userId);
 
-        Optional<String> optionalFcmToken = notificationService.getFcmToken(userId);
+        String title = groomerProfile.getName() + "님이 견적을 보냈습니다.";
+        String body = "견적 내용을 확인해보세요.";
 
-        if (optionalFcmToken.isPresent()) {
-            String fcmToken = optionalFcmToken.get();
+        boolean isNotificationSent = false;
 
-            String title = groomerProfile.getName() + "님이 견적을 보냈습니다.";
-            String body = "견적 내용을 확인해보세요.";
-            if(notificationService.sendNotificationWithData(fcmToken, title, body, "견적서", estimate.getId())){
-                // Redis 에 알림 내용 저장
-                redisNotificationService.saveNotificationToRedis(userId, title, body, "견적서", estimate.getId());
-            };
+        for (String fcmToken : fcmTokens) {
+            if (notificationService.sendNotificationWithData(fcmToken, title, body, "견적서", estimate.getId())) {
+                isNotificationSent = true;
+            }
+        }
+
+        // Redis에는 한 번만 저장
+        if (isNotificationSent) {
+            redisNotificationService.saveNotificationToRedis(userId, title, body, "견적서", estimate.getId());
         }
     }
 

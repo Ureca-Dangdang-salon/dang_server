@@ -85,7 +85,7 @@ public class CouponService {
         String issuedUsersKey = "issued_users:" + eventId;
 
         while (true) {
-            String userId = (String) redisTemplate.opsForList().leftPop(couponQueueKey);
+            Integer userId = (Integer) redisTemplate.opsForList().leftPop(couponQueueKey);
             if (userId == null) {
                 break;
             }

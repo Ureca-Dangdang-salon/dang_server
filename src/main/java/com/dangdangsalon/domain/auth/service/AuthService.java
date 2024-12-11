@@ -53,8 +53,9 @@ public class AuthService {
         accessTokenCookie.setMaxAge(0);
         accessTokenCookie.setPath("/");
         accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
 
-        response.addCookie(cookieUtil.createCookie("Authorization", newAccessToken));
+        response.addHeader("Set-Cookie", cookieUtil.createCookie("Authorization", newAccessToken));
     }
 
     @Transactional
@@ -76,8 +77,8 @@ public class AuthService {
 
         redisUtil.saveRefreshToken(userId.toString(), refreshToken, 60 * 60 * 10000L);
 
-        response.addCookie(cookieUtil.createCookie("Refresh-Token", refreshToken));
-        response.addCookie(cookieUtil.createCookie("Authorization", accessToken));
+        response.addHeader("Set-Cookie", cookieUtil.createCookie("Refresh-Token", refreshToken));
+        response.addHeader("Set-Cookie", cookieUtil.createCookie("Authorization", accessToken));
 
         log.info("User Role Updated. Access Token: {}", accessToken);
     }

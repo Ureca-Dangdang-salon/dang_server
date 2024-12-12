@@ -2,6 +2,7 @@ package com.dangdangsalon.domain.coupon.listener;
 
 import com.dangdangsalon.config.RedisPublisher;
 import com.dangdangsalon.domain.coupon.dto.QueueStatusDto;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,16 +24,26 @@ public class RedisMessageSubscriber implements MessageListener {
         try {
             String messageBody = new String(message.getBody());
             String actualJson = objectMapper.readValue(messageBody, String.class);
-            log.info("Redis Pub/Sub 메시지 수신: {}", messageBody);
 
-            QueueStatusDto queueStatus = objectMapper.convertValue(
-                    objectMapper.readTree(actualJson), QueueStatusDto.class
-            );
+            String channel = new String(message.getChannel());
 
-            // 수신한 모든 메시지를 SSE에 전달해 클라이언트에 실시간으로 알림이 가능
-            redisPublisher.sendToEmitters(queueStatus);
+            log.info("channel: " + channel + " " + "actualJson: " + actualJson);
+
+            if ("queue_status".equals(channel)) {
+                log.info("queue message process");
+                processQueueStatusMessage(actualJson);
+            }
         } catch (Exception e) {
             log.error("Redis 수신 메시지 처리 중 오류 발생", e);
         }
+    }
+
+    private void processQueueStatusMessage(String actualJson) throws JsonProcessingException {
+        QueueStatusDto queueStatus = objectMapper.convertValue(
+                objectMapper.readTree(actualJson), QueueStatusDto.class
+        );
+
+        log.info("queue message process msg= " + queueStatus.getQueueLength());
+        redisPublisher.broadcast(queueStatus, "queueStatus");
     }
 }

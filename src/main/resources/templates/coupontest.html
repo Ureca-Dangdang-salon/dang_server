@@ -14,39 +14,33 @@
                 console.log("SSE 연결 성공");
             };
 
-            eventSource.addEventListener("queueStatus", function (event) {
+            eventSource.addEventListener("queue_status", function (event) {
                 try {
                     const data = JSON.parse(event.data);
                     console.log("수신된 SSE 데이터:", data);
 
-                    if (data.queueLength !== undefined) {
-                        document.getElementById("queueLengthModal").innerText = data.queueLength;
-                    }
-                    if (data.remainingCoupons !== undefined) {
-                        document.getElementById("remainingCouponsModal").innerText = data.remainingCoupons;
-                    }
-                    if (data.aheadCount !== undefined) {
-                        document.getElementById("aheadCountModal").innerText = data.aheadCount;
-                    }
-                    if (data.behindCount !== undefined) {
-                        document.getElementById("behindCountModal").innerText = data.behindCount;
-                    }
-                    if (data.estimatedTime !== undefined) {
-                        document.getElementById("estimatedTimeModal").innerText = formatTime(data.estimatedTime);
-                    }
-                    if (data.queueLength !== undefined && data.aheadCount !== undefined) {
-                        const progress = ((data.queueLength - data.aheadCount) / data.queueLength) * 100;
-                        document.getElementById("progressBar").value = progress;
-                    }
+                    updateModalData(data);
 
-                    // 쿠폰 발급 완료 처리
-                    if (data.remainingCoupons === 0 && data.aheadCount === 0) {
-                        closeModal();
-                        eventSource.close();
-                        alert("쿠폰이 발급되었습니다!");
-                    }
                 } catch (e) {
                     console.error("SSE 데이터 파싱 오류:", e);
+                }
+            });
+
+            eventSource.addEventListener("couponIssueResult", function (event) {
+                try {
+                    const result = JSON.parse(event.data);
+                    console.log("쿠폰 발급 결과 수신:", result);
+
+                    if (result) {
+                        alert("쿠폰이 발급되었습니다!");
+                    } else {
+                        alert("쿠폰 발급에 실패했습니다.");
+                    }
+
+                    closeModal();
+                    eventSource.close();
+                } catch (e) {
+                    console.error("쿠폰 발급 결과 처리 중 오류:", e);
                 }
             });
 
@@ -65,14 +59,18 @@
                 const response = await fetch(`/api/coupons/issued?userId=${userId}&eventId=${eventId}`, {
                     method: "POST"
                 });
+
                 if (!response.ok) {
                     throw new Error(`HTTP 에러! 상태 코드: ${response.status}`);
                 }
+
                 const result = await response.json();
 
-                if (result.response && result.response.includes("대기열에 성공적으로 참여했습니다.")) {
+                if (result.response && result.response.includes("대기열에 참여했습니다.")) {
                     showModal();
                     connectSSE(userId, eventId);
+                } else if (result.response && result.response.includes("쿠폰이 소진되었습니다. 다음 기회에 도전해주세요")) {
+                    alert(result.response);
                 } else {
                     alert(result.response || "쿠폰 요청 성공!");
                 }
@@ -80,6 +78,47 @@
                 alert("요청 중 오류 발생: " + error.message);
                 console.error(error);
             }
+        }
+
+        function updateModalData(data) {
+            // 데이터가 올바른지 확인
+            if (!data || typeof data !== "object") {
+                console.error("잘못된 데이터:", data);
+                return;
+            }
+
+            console.log("Updating DOM with data:", data);
+
+            // DOM 요소 가져오기
+            const queueLengthModal = document.getElementById("queueLengthModal");
+            const remainingCouponsModal = document.getElementById("remainingCouponsModal");
+            const aheadCountModal = document.getElementById("aheadCountModal");
+            const behindCountModal = document.getElementById("behindCountModal");
+            const estimatedTimeModal = document.getElementById("estimatedTimeModal");
+            const progressBar = document.getElementById("progressBar");
+
+            // 요소가 제대로 선택되었는지 확인
+            if (!queueLengthModal || !remainingCouponsModal || !aheadCountModal || !behindCountModal || !estimatedTimeModal || !progressBar) {
+                console.error("DOM 요소 선택 실패");
+                return;
+            }
+
+            // 데이터 업데이트
+            queueLengthModal.innerText = data.queueLength || 0;
+            remainingCouponsModal.innerText = data.remainingCoupons || 0;
+            aheadCountModal.innerText = data.aheadCount || 0;
+            behindCountModal.innerText = data.behindCount || 0;
+            estimatedTimeModal.innerText = formatTime(data.estimatedTime || 0);
+
+            // Progress Bar 업데이트
+            if (data.queueLength && data.aheadCount !== undefined) {
+                const progress = ((data.queueLength - data.aheadCount) / data.queueLength) * 100;
+                progressBar.value = progress.toFixed(2);
+            } else {
+                progressBar.value = 0;
+            }
+
+            console.log("DOM 업데이트 완료");
         }
 
         function showModal() {

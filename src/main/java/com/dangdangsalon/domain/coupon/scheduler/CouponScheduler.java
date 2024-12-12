@@ -20,10 +20,13 @@ public class CouponScheduler {
 //    @Value("${coupon.event.id}")
 //    private Long eventId;
 
-    @Scheduled(fixedRate = 2000)
+    private static final int BATCH_SIZE = 100;
+    private static final Long EVENT_ID = 1L;
+
+    @Scheduled(fixedRate = 20000)
     public void processQueueEvent() {
-        String queueKey = "coupon_queue:" + 1L;
-        String couponRemainingKey = "coupon_remaining:" + 1L;
+        String queueKey = "coupon_queue:" + EVENT_ID;
+        String couponRemainingKey = "coupon_remaining:" + EVENT_ID;
 
         Integer remainingCoupons = (Integer) redisTemplate.opsForValue().get(couponRemainingKey);
 
@@ -32,17 +35,14 @@ public class CouponScheduler {
             return;
         }
 
-        Set<Object> firstUserSet = redisTemplate.opsForZSet().range(queueKey, 0, 0);
+        for (int i = 0; i < BATCH_SIZE; i++) {
+            Set<Object> firstUserSet = redisTemplate.opsForZSet().range(queueKey, 0, 0);
 
-        if (firstUserSet != null && !firstUserSet.isEmpty()) {
-            String userIdString = (String) firstUserSet.iterator().next();
-            Long userId = Long.valueOf(userIdString);
+            if (firstUserSet == null || firstUserSet.isEmpty()) {
+                break;
+            }
 
-            log.info("대기열의 첫 번째 사용자 처리 중: userId={}", userId);
-
-            couponService.processQueue(1L);
-        } else {
-            log.info("대기열이 비어 있어 처리할 작업이 없습니다.");
+            couponService.processQueue(EVENT_ID);
         }
     }
 }

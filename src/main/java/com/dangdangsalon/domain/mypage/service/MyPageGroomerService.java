@@ -58,7 +58,7 @@ public class MyPageGroomerService {
 
         // 견적 요청 대기 개수
         long estimateRequestCount = groomerProfile.getGroomerEstimateRequests().stream()
-                .filter(request -> request.getGroomerRequestStatus() == GroomerRequestStatus.PENDING)
+                .filter(request -> request.getGroomerRequestStatus() == GroomerRequestStatus.COMPLETED)
                 .count();
 
         // 리뷰 개수

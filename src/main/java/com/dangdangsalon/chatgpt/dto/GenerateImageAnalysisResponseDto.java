@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GenerateImageResponseDto {
+public class GenerateImageAnalysisResponseDto {
     private String imageUrl;
+    private String translatedAnalysis;
 }

@@ -1,6 +1,6 @@
 package com.dangdangsalon.chatgpt.controller;
 
-import com.dangdangsalon.chatgpt.dto.GenerateImageResponseDto;
+import com.dangdangsalon.chatgpt.dto.GenerateImageAnalysisResponseDto;
 import com.dangdangsalon.chatgpt.service.ChatGptService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
@@ -22,7 +22,7 @@ public class ChatGptController {
 
     @PostMapping("/generate")
     public ApiSuccess<?> generateImage(@RequestParam("prompt") String prompt, @RequestParam("file") MultipartFile file) throws IOException{
-        GenerateImageResponseDto responseDto = chatGptService.generateDogStyleImage(prompt, file);
+        GenerateImageAnalysisResponseDto responseDto = chatGptService.generateDogStyleImage(prompt, file);
         return ApiUtil.success(responseDto);
     }
 }

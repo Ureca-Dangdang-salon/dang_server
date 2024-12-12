@@ -18,8 +18,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
+import static com.mongodb.assertions.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -191,5 +194,76 @@ class NotificationServiceTest {
 
         // Then
         verify(valueOperations, times(1)).set(eq("review_notification:" + estimateId), anyString());
+    }
+
+    @Test
+    @DisplayName("deleteFcmToken 테스트 - FCM 토큰 삭제")
+    void deleteFcmToken_Success() {
+        // Given
+        String token = "test-token";
+
+        // When
+        notificationService.deleteFcmToken(token);
+
+        // Then
+        verify(fcmTokenRepository, times(1)).deleteByFcmToken(token);
+    }
+
+    @Test
+    @DisplayName("getFcmTokens 테스트 - 사용자의 FCM 토큰 리스트 가져오기")
+    void getFcmTokens_Success() {
+        // Given
+        Long userId = 1L;
+        FcmToken token1 = FcmToken.builder().fcmToken("token1").build();
+        FcmToken token2 = FcmToken.builder().fcmToken("token2").build();
+
+        when(fcmTokenRepository.findByUserId(userId)).thenReturn(List.of(token1, token2));
+
+        // When
+        List<String> tokens = notificationService.getFcmTokens(userId);
+
+        // Then
+        assertEquals(2, tokens.size());
+        assertTrue(tokens.contains("token1"));
+        assertTrue(tokens.contains("token2"));
+    }
+
+    @Test
+    @DisplayName("removeInactiveTokens 테스트 - 비활성 토큰 삭제")
+    void removeInactiveTokens_Success() {
+        // Given
+        FcmToken oldToken = FcmToken.builder()
+                .fcmToken("inactive-token")
+                .lastUserAt(LocalDateTime.now().minusDays(61))
+                .build();
+        FcmToken activeToken = FcmToken.builder()
+                .fcmToken("active-token")
+                .lastUserAt(LocalDateTime.now().minusDays(30))
+                .build();
+
+        when(fcmTokenRepository.findAll()).thenReturn(List.of(oldToken, activeToken));
+
+        // When
+        notificationService.removeInactiveTokens();
+
+        // Then
+        verify(fcmTokenRepository, times(1)).deleteAll(List.of(oldToken));
+    }
+
+    @Test
+    @DisplayName("updateUserNotification 테스트 - 알림 상태 업데이트")
+    void updateUserNotification_Success() {
+        // Given
+        Long userId = 1L;
+        boolean isEnabled = true;
+
+        User mockUser = mock(User.class);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+
+        // When
+        notificationService.updateUserNotification(userId, isEnabled);
+
+        // Then
+        verify(mockUser, times(1)).updateNotificationEnabled(isEnabled);
     }
 }

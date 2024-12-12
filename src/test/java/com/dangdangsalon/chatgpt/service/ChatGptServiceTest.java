@@ -84,7 +84,7 @@ class ChatGptServiceTest {
                 .thenReturn(ResponseEntity.ok(imageResponse));
 
         // When
-        GenerateImageResponseDto result = chatGptService.generateDogStyleImage("강아지 스타일 요청", mockFile);
+        GenerateImageAnalysisResponseDto result = chatGptService.generateDogStyleImage("강아지 스타일 요청", mockFile);
 
         // Then
         assertThat(result.getImageUrl()).isEqualTo("http://mock-generated-image.com");

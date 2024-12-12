@@ -1,6 +1,6 @@
 package com.dangdangsalon.chatgpt.api;
 
-import com.dangdangsalon.chatgpt.dto.GenerateImageResponseDto;
+import com.dangdangsalon.chatgpt.dto.GenerateImageAnalysisResponseDto;
 import com.dangdangsalon.chatgpt.service.ChatGptService;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ class ChatGptApiTest {
     @DisplayName("이미지 생성 요청 테스트")
     @WithMockUser(username = "testUser", roles = {"USER"})
     void generateImageTest() throws Exception {
-        GenerateImageResponseDto mockResponse = new GenerateImageResponseDto("generated-image-url");
+        GenerateImageAnalysisResponseDto mockResponse = new GenerateImageAnalysisResponseDto("generated-image-url","강아지는 행복해보여요");
         when(chatGptService.generateDogStyleImage(anyString(), any())).thenReturn(mockResponse);
 
         MockMultipartFile mockFile = new MockMultipartFile(

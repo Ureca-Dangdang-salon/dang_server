@@ -32,30 +32,31 @@ public class ChatGptService {
     @Value("${openai.url}")
     private String apiUrl;
 
-    public GenerateImageResponseDto generateDogStyleImage(String userPrompt, MultipartFile file) throws IOException {
+    public GenerateImageAnalysisResponseDto generateDogStyleImage(String userPrompt, MultipartFile file) throws IOException {
         // 1. 사진 인코딩 작업
         String base64Image = encodeImageToBase64(file);
         String imageUrl = "data:image/jpeg;base64," + base64Image;
 
         log.info("Encoded image to Base64: {}", imageUrl);
 
-        // 2. 이미지 분석
+        // 2. 이미지 분석 (영어로)
         String analysisResult = analyzeImageWithOpenAI(imageUrl);
         log.info("Image analysis result: {}", analysisResult);
 
-        // 3. 사용자 입력 값 영어로 변경
-        String translatedPrompt = translateKoToEng(userPrompt);
-        log.info("Translated user prompt: {}", translatedPrompt);
+        // 3. 분석 결과 한글로 번역
+        String translatedAnalysisResult = translateEngToKo(analysisResult);
+        log.info("Translated image analysis result: {}", translatedAnalysisResult);
 
-        // 4. 최종 프롬프트 완성
-        String detailedPrompt = createFinalPrompt(translatedPrompt, analysisResult);
+        // 4. 최종 프롬프트 완성 (사용자 입력 그대로 사용)
+        String detailedPrompt = createFinalPrompt(userPrompt, translatedAnalysisResult);
         log.info("Detailed prompt: {}", detailedPrompt);
 
         // 5. 이미지 생성
         String generatedImageUrl = createImageFromDescription(detailedPrompt);
 
-        return GenerateImageResponseDto.builder()
+        return GenerateImageAnalysisResponseDto.builder()
                 .imageUrl(generatedImageUrl)
+                .translatedAnalysis(translatedAnalysisResult)
                 .build();
     }
 
@@ -63,29 +64,22 @@ public class ChatGptService {
         return Base64.encodeBase64String(file.getBytes());
     }
 
-    private String createFinalPrompt(String translatedPrompt, String analysisResult) {
+    private String createFinalPrompt(String userPrompt, String analysisResult) {
         return String.format(
-                "The image shows %s. Please style the dog as follows: %s. Ensure the result emphasizes cleanliness and stylishness while maintaining the dog's natural features.",
+                "사진에는 %s이/가 있습니다. 사진 속 강아지를 %s 강아지로 만들어주세요",
                 analysisResult,
-                translatedPrompt
+                userPrompt
         );
     }
 
-//    private String createFinalPrompt(String translatedPrompt, String analysisResult) {
-//        return String.format(
-//                "The uploaded image shows %s. Based on the provided style request: %s. Please ensure the result maintains the dog's natural features and creates a clean, stylish look that matches the given description.",
-//                analysisResult,
-//                translatedPrompt
-//        );
-//    }
-
-    private String translateKoToEng(String prompt) {
+    // 영어를 한글로 번역
+    private String translateEngToKo(String englishText) {
         TranslateRequestDto requestDto = TranslateRequestDto.builder()
                 .model("gpt-4o")
                 .messages(List.of(
                         MessageResponseDto.builder()
                                 .role("user")
-                                .content("Translate the following Korean text to English: " + prompt)
+                                .content("Translate the following English text to Korean: " + englishText)
                                 .build()
                 ))
                 .build();
@@ -97,7 +91,7 @@ public class ChatGptService {
             ChoiceResponseDto choice = response.getBody().getChoices().get(0);
             return choice.getMessage().getContent().trim();
         }
-        throw new RuntimeException("Failed to translate text.");
+        throw new RuntimeException("Failed to translate text to Korean.");
     }
 
     private String createImageFromDescription(String prompt) {

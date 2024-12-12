@@ -1,6 +1,6 @@
 package com.dangdangsalon.chatgpt.controller;
 
-import com.dangdangsalon.chatgpt.dto.GenerateImageResponseDto;
+import com.dangdangsalon.chatgpt.dto.GenerateImageAnalysisResponseDto;
 import com.dangdangsalon.chatgpt.service.ChatGptService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class ChatGptControllerTest {
     void testGenerateImageSuccess() throws Exception {
         // Given
         String expectedImageUrl = "http://mock-generated-image.com";
-        GenerateImageResponseDto responseDto = GenerateImageResponseDto.builder()
+        GenerateImageAnalysisResponseDto responseDto = GenerateImageAnalysisResponseDto.builder()
                 .imageUrl(expectedImageUrl)
                 .build();
 

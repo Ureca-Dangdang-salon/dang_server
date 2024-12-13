@@ -8,17 +8,13 @@ import com.dangdangsalon.domain.coupon.dto.QueueStatusDto;
 import com.dangdangsalon.domain.coupon.entity.Coupon;
 import com.dangdangsalon.domain.coupon.entity.CouponEvent;
 import com.dangdangsalon.domain.coupon.entity.CouponStatus;
-import com.dangdangsalon.domain.coupon.entity.DiscountType;
 import com.dangdangsalon.domain.coupon.repository.CouponEventRepository;
 import com.dangdangsalon.domain.coupon.repository.CouponRepository;
 import com.dangdangsalon.domain.user.entity.User;
 import com.dangdangsalon.domain.user.repository.UserRepository;
-import java.io.IOException;
+
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -139,13 +135,12 @@ public class CouponService {
          따라서 실시간으로 대기열 상태를 수신할 수 있다.
          */
 
-        log.info("SSE 연결 userId= " + userId);
         String queueKey = "coupon_queue:" + eventId;
         Boolean isAlreadyInQueue = redisTemplate.opsForZSet().rank(queueKey, userId.toString()) != null;
 
-//        if (!isAlreadyInQueue) {
-//            throw new IllegalStateException("대기열에 참여하지 않은 사용자는 SSE 연결을 할 수 없습니다.");
-//        }
+        if (!isAlreadyInQueue) {
+            throw new IllegalStateException("대기열에 참여하지 않은 사용자는 SSE 연결을 할 수 없습니다.");
+        }
 
         SseEmitter emitter = new SseEmitter(-1L);
         redisPublisher.registerEmitter(userId, emitter);
@@ -223,16 +218,16 @@ public class CouponService {
         redisPublisher.sendToEmitterAndClose(userId, result, "couponIssueResult");
     }
 
+    @Transactional(readOnly = true)
     public List<CouponMainResponseDto> getCouponValidMainPage() {
-        List<CouponEvent> activeEvent = couponEventRepository.findActiveEvent(LocalDateTime.now());
+        List<CouponEvent> activeEvent = couponEventRepository.findActiveEvents(LocalDateTime.now());
 
         return activeEvent.stream()
                 .map(CouponMainResponseDto::create)
                 .collect(Collectors.toList());
     }
 
-
-
+    @Transactional(readOnly = true)
     public List<CouponUserResponseDto> getUserCoupon(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new IllegalArgumentException("유저 아이디를 찾을 수 없습니다. userId : " + userId));
@@ -242,11 +237,27 @@ public class CouponService {
                 .collect(Collectors.toList());
     }
 
-
+    @Transactional(readOnly = true)
     public CouponInfoResponseDto getCouponInfo(Long eventId) {
         CouponEvent couponEvent = couponEventRepository.findById(eventId).orElseThrow(() ->
                 new IllegalArgumentException("쿠폰 이벤트를 찾을 수 없습니다. couponEventId : " + eventId));
 
         return CouponInfoResponseDto.create(couponEvent);
     }
+
+    public void initializeEvents() {
+        List<CouponEvent> activeEvents = couponEventRepository.findActiveEvents(LocalDateTime.now());
+
+        for (CouponEvent event : activeEvents) {
+            String couponRemainingKey = "coupon_remaining:" + event.getId();
+            String couponQueueKey = "coupon_queue:" + event.getId();
+            String issuedUsersKey = "issued_users:" + event.getId();
+
+            // Redis 초기화
+            redisTemplate.opsForValue().set(couponRemainingKey, event.getTotalQuantity());
+            redisTemplate.delete(couponQueueKey);
+            redisTemplate.delete(issuedUsersKey);
+        }
+    }
+
 }

@@ -23,7 +23,8 @@ public class CouponController {
     private final CouponService couponService;
 
     @PostMapping("/issued")
-    public ApiSuccess<?> issueCoupon(@RequestParam Long userId, @RequestParam Long eventId) {
+    public ApiSuccess<?> issueCoupon(@AuthenticationPrincipal CustomOAuth2User user, @RequestParam Long eventId) {
+        Long userId = user.getUserId();
         String result = couponService.joinQueue(userId, eventId);
 
         return ApiUtil.success(result);
@@ -35,7 +36,8 @@ public class CouponController {
      React에서는 EventSource 객체가 이 스트림을 처리한다.
      */
     @GetMapping(value = "/queue/updates", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribeQueueUpdates(@RequestParam Long userId, @RequestParam Long eventId) {
+    public SseEmitter subscribeQueueUpdates(@AuthenticationPrincipal CustomOAuth2User user, @RequestParam Long eventId) {
+        Long userId = user.getUserId();
         return couponService.subscribeQueueUpdates(userId, eventId);
     }
 

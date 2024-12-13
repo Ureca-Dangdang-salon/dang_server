@@ -7,9 +7,8 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public interface CouponEventRepository extends JpaRepository<CouponEvent, Long> {
     @Query("SELECT e FROM CouponEvent e WHERE e.startedAt <= :now AND e.endedAt >= :now")
-    List<CouponEvent> findActiveEvent(@Param("now") LocalDateTime now);
+    List<CouponEvent> findActiveEvents(@Param("now") LocalDateTime now);
 }

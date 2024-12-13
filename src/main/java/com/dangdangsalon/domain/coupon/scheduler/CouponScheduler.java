@@ -4,7 +4,6 @@ import com.dangdangsalon.domain.coupon.service.CouponService;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -16,14 +15,13 @@ public class CouponScheduler {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final CouponService couponService;
-
 //    @Value("${coupon.event.id}")
 //    private Long eventId;
 
     private static final int BATCH_SIZE = 100;
     private static final Long EVENT_ID = 1L;
 
-    @Scheduled(fixedRate = 20000)
+    @Scheduled(fixedRate = 10000) // 10초
     public void processQueueEvent() {
         String queueKey = "coupon_queue:" + EVENT_ID;
         String couponRemainingKey = "coupon_remaining:" + EVENT_ID;
@@ -44,5 +42,10 @@ public class CouponScheduler {
 
             couponService.processQueue(EVENT_ID);
         }
+    }
+
+    @Scheduled(cron = "0 0 0 15 * ?") // 매월 15일 자정에 실행
+    public void startEventAutomatically() {
+        couponService.initializeEvents();
     }
 }

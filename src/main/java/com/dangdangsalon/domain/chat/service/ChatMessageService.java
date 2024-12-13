@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.chat.service;
 
+import com.dangdangsalon.domain.chat.dto.ChatEstimateInfo;
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
 import com.dangdangsalon.domain.chat.util.ChatConst;
 import com.dangdangsalon.domain.chat.util.ChatRedisUtil;
@@ -38,9 +39,21 @@ public class ChatMessageService {
     public String getLastMessage(Long roomId) {
         Object lastMessage = chatRedisUtil.getLastMessage(roomId);
 
-        if (lastMessage instanceof ChatMessageDto) {
-            String messageText = ((ChatMessageDto) lastMessage).getMessageText();
-            return (messageText == null) ? "사진을 보냈습니다." : messageText;
+        log.info("lastMessage=" + lastMessage.getClass());
+
+        if (lastMessage instanceof LinkedHashMap) {
+            ChatMessageDto chatMessage = objectMapper.convertValue(lastMessage, ChatMessageDto.class);
+            String messageText = chatMessage.getMessageText();
+            String imageUrl = chatMessage.getImageUrl();
+            ChatEstimateInfo estimateInfo = chatMessage.getEstimateInfo();
+
+            if (messageText != null) {
+                return messageText;
+            } else if (imageUrl != null) {
+                return "사진을 보냈습니다.";
+            } else if (estimateInfo != null) {
+                return "견적서를 보냈습니다.";
+            }
         }
 
         if (lastMessage == null) {

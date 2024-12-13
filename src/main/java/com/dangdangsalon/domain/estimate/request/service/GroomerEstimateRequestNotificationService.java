@@ -6,6 +6,7 @@ import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.notification.service.RedisNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +19,7 @@ public class GroomerEstimateRequestNotificationService {
     private final NotificationService notificationService;
     private final RedisNotificationService redisNotificationService;
 
+    @Async
     public void sendNotificationToGroomer(EstimateRequest estimateRequest, GroomerProfile groomerProfile) {
 
         Long userId = groomerProfile.getUser().getId();

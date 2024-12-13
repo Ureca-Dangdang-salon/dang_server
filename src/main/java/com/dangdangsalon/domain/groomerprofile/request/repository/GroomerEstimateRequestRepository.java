@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface GroomerEstimateRequestRepository extends JpaRepository<GroomerEstimateRequest, Long> {
     Optional<List<GroomerEstimateRequest>> findByGroomerProfileId(Long groomerProfileId);
 
-    Optional<GroomerEstimateRequest> findByEstimateRequestId(Long estimateRequestId);
+    Optional<GroomerEstimateRequest> findByEstimateRequestIdAndGroomerProfileId(Long estimateRequestId, Long groomerProfileId);
 }

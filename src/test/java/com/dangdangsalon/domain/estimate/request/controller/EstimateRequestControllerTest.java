@@ -328,12 +328,12 @@ class EstimateRequestControllerTest {
     void deleteEstimateRequest_Success() throws Exception {
         // Given
         Long requestId = 1L;
-
+        Long groomerProfileId = 1L;
         // 서비스 계층의 메서드 모킹
-        doNothing().when(groomerEstimateRequestService).deleteGroomerEstimateRequest(requestId);
+        doNothing().when(groomerEstimateRequestService).deleteGroomerEstimateRequest(requestId,groomerProfileId);
 
         // When & Then
-        mockMvc.perform(delete("/api/estimaterequest/{requestId}", requestId)
+        mockMvc.perform(delete("/api/estimaterequest/{requestId}/{groomerProfileId}", requestId, groomerProfileId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(csrf())
                         .with(SecurityMockMvcRequestPostProcessors.authentication(

@@ -197,12 +197,12 @@ public class EstimateRequestApiTest {
         RestAssuredMockMvc
                 .given()
                 .when()
-                .delete("/api/estimaterequest/1")
+                .delete("/api/estimaterequest/1/1")
                 .then()
                 .statusCode(200)
                 .body("response", equalTo("견적 요청 삭제에 성공하였습니다."));
 
-        verify(groomerEstimateRequestService).deleteGroomerEstimateRequest(anyLong());
+        verify(groomerEstimateRequestService).deleteGroomerEstimateRequest(anyLong(),anyLong());
     }
 
 

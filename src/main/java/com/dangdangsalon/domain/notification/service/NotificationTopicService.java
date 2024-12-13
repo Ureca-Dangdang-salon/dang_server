@@ -20,10 +20,8 @@ public class NotificationTopicService {
 
         Message message = Message.builder()
                 .setTopic(topic)
-                .setNotification(Notification.builder()
-                        .setTitle(title)  // 알림 제목
-                        .setBody(body)    // 알림 내용
-                        .build())
+                .putData("title", title)  // 알림 제목
+                .putData("body", body)    // 알림 내용
                 .build();
 
         try {

@@ -39,8 +39,6 @@ public class ChatMessageService {
     public String getLastMessage(Long roomId) {
         Object lastMessage = chatRedisUtil.getLastMessage(roomId);
 
-        log.info("lastMessage=" + lastMessage.getClass());
-
         if (lastMessage instanceof LinkedHashMap) {
             ChatMessageDto chatMessage = objectMapper.convertValue(lastMessage, ChatMessageDto.class);
             String messageText = chatMessage.getMessageText();

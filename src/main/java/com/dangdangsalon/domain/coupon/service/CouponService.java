@@ -1,6 +1,9 @@
 package com.dangdangsalon.domain.coupon.service;
 
 import com.dangdangsalon.config.RedisPublisher;
+import com.dangdangsalon.domain.coupon.dto.CouponInfoResponseDto;
+import com.dangdangsalon.domain.coupon.dto.CouponMainResponseDto;
+import com.dangdangsalon.domain.coupon.dto.CouponUserResponseDto;
 import com.dangdangsalon.domain.coupon.dto.QueueStatusDto;
 import com.dangdangsalon.domain.coupon.entity.Coupon;
 import com.dangdangsalon.domain.coupon.entity.CouponEvent;
@@ -12,12 +15,12 @@ import com.dangdangsalon.domain.user.entity.User;
 import com.dangdangsalon.domain.user.repository.UserRepository;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -218,5 +221,32 @@ public class CouponService {
 
     private void publishCouponIssueResult(Boolean result, Long userId) {
         redisPublisher.sendToEmitterAndClose(userId, result, "couponIssueResult");
+    }
+
+    public List<CouponMainResponseDto> getCouponValidMainPage() {
+        List<CouponEvent> activeEvent = couponEventRepository.findActiveEvent(LocalDateTime.now());
+
+        return activeEvent.stream()
+                .map(CouponMainResponseDto::create)
+                .collect(Collectors.toList());
+    }
+
+
+
+    public List<CouponUserResponseDto> getUserCoupon(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new IllegalArgumentException("유저 아이디를 찾을 수 없습니다. userId : " + userId));
+
+        return user.getCoupons().stream()
+                .map(CouponUserResponseDto::create)
+                .collect(Collectors.toList());
+    }
+
+
+    public CouponInfoResponseDto getCouponInfo(Long eventId) {
+        CouponEvent couponEvent = couponEventRepository.findById(eventId).orElseThrow(() ->
+                new IllegalArgumentException("쿠폰 이벤트를 찾을 수 없습니다. couponEventId : " + eventId));
+
+        return CouponInfoResponseDto.create(couponEvent);
     }
 }

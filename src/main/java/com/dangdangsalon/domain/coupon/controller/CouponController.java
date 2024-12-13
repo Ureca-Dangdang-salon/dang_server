@@ -1,16 +1,19 @@
 package com.dangdangsalon.domain.coupon.controller;
 
+import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
+import com.dangdangsalon.domain.coupon.dto.CouponInfoResponseDto;
+import com.dangdangsalon.domain.coupon.dto.CouponMainResponseDto;
+import com.dangdangsalon.domain.coupon.dto.CouponUserResponseDto;
 import com.dangdangsalon.domain.coupon.service.CouponService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,5 +37,26 @@ public class CouponController {
     @GetMapping(value = "/queue/updates", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribeQueueUpdates(@RequestParam Long userId, @RequestParam Long eventId) {
         return couponService.subscribeQueueUpdates(userId, eventId);
+    }
+
+    @GetMapping("/main")
+    public ApiSuccess<?> getCouponValidMainPage() {
+        List<CouponMainResponseDto> result = couponService.getCouponValidMainPage();
+        return ApiUtil.success(result);
+    }
+
+    @GetMapping("/{eventId}")
+    public ApiSuccess<?> getCouponInfo(@AuthenticationPrincipal CustomOAuth2User user,
+                                       @PathVariable Long eventId) {
+        Long userId = user.getUserId();
+        CouponInfoResponseDto result = couponService.getCouponInfo(eventId);
+        return ApiUtil.success(result);
+    }
+
+    @GetMapping("/users")
+    public ApiSuccess<?> getUserCoupon(@AuthenticationPrincipal CustomOAuth2User user) {
+        Long userId = user.getUserId();
+        List<CouponUserResponseDto> result = couponService.getUserCoupon(userId);
+        return ApiUtil.success(result);
     }
 }

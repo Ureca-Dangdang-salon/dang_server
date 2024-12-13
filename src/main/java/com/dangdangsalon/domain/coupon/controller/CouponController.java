@@ -46,9 +46,7 @@ public class CouponController {
     }
 
     @GetMapping("/{eventId}")
-    public ApiSuccess<?> getCouponInfo(@AuthenticationPrincipal CustomOAuth2User user,
-                                       @PathVariable Long eventId) {
-        Long userId = user.getUserId();
+    public ApiSuccess<?> getCouponInfo(@PathVariable Long eventId) {
         CouponInfoResponseDto result = couponService.getCouponInfo(eventId);
         return ApiUtil.success(result);
     }

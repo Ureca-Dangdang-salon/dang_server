@@ -4,6 +4,7 @@ import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.coupon.dto.CouponInfoResponseDto;
 import com.dangdangsalon.domain.coupon.dto.CouponMainResponseDto;
 import com.dangdangsalon.domain.coupon.dto.CouponUserResponseDto;
+import com.dangdangsalon.domain.coupon.service.CouponIssueService;
 import com.dangdangsalon.domain.coupon.service.CouponService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
@@ -20,12 +21,13 @@ import java.util.List;
 @RequestMapping("/api/coupons")
 public class CouponController {
 
+    private final CouponIssueService couponIssueService;
     private final CouponService couponService;
 
     @PostMapping("/issued")
     public ApiSuccess<?> issueCoupon(@AuthenticationPrincipal CustomOAuth2User user, @RequestParam Long eventId) {
         Long userId = user.getUserId();
-        String result = couponService.joinQueue(userId, eventId);
+        String result = couponIssueService.joinQueue(userId, eventId);
 
         return ApiUtil.success(result);
     }
@@ -38,7 +40,7 @@ public class CouponController {
     @GetMapping(value = "/queue/updates", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribeQueueUpdates(@AuthenticationPrincipal CustomOAuth2User user, @RequestParam Long eventId) {
         Long userId = user.getUserId();
-        return couponService.subscribeQueueUpdates(userId, eventId);
+        return couponIssueService.subscribeQueueUpdates(userId, eventId);
     }
 
     @GetMapping("/main")

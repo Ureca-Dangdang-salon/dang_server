@@ -49,8 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/oauth2/authorization/**", "/api/test", "/actuator/**",
                                 "/api/contests/winner/**", "/api/images/**", "/api/groomerprofile/{groomerProfileId}",
-                                "/api/auth/check/login", "/api/auth/refresh", "/ws/chat/**", "/custom/login", "/oauth2/**",
-                                "/api/couponevent/**", "/api/coupons/**", "/test/coupon", "/queue/updates")
+                                "/api/auth/check/login", "/api/auth/refresh", "/ws/chat/**", "/custom/login", "/oauth2/**")
                         .permitAll()
                         .requestMatchers("/api/auth/join").hasRole("PENDING")
                         .anyRequest().hasAnyRole("USER", "SALON", "ADMIN") // 나머지 경로는 인증 필요

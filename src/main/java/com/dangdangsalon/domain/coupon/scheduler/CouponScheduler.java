@@ -1,6 +1,6 @@
 package com.dangdangsalon.domain.coupon.scheduler;
 
-import com.dangdangsalon.domain.coupon.service.CouponService;
+import com.dangdangsalon.domain.coupon.service.CouponIssueService;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 public class CouponScheduler {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final CouponService couponService;
+    private final CouponIssueService couponIssueService;
 //    @Value("${coupon.event.id}")
 //    private Long eventId;
 
@@ -40,12 +40,12 @@ public class CouponScheduler {
                 break;
             }
 
-            couponService.processQueue(EVENT_ID);
+            couponIssueService.processQueue(EVENT_ID);
         }
     }
 
     @Scheduled(cron = "0 0 0 15 * ?") // 매월 15일 자정에 실행
     public void startEventAutomatically() {
-        couponService.initializeEvents();
+        couponIssueService.initializeEvents();
     }
 }

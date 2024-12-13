@@ -29,7 +29,8 @@ public class NotificationService {
     private final FcmTokenRepository fcmTokenRepository;
     private final UserRepository userRepository;
 
-    public void sendNotificationWithData(String token, String title, String body, String type, Long referenceId) {
+    @Transactional
+    public boolean sendNotificationWithData(String token, String title, String body, String type, Long referenceId) {
 
         FcmToken fcmToken = fcmTokenRepository.findByFcmToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("FCM 토큰을 찾을 수 없습니다: " + token));
@@ -38,16 +39,14 @@ public class NotificationService {
 
         if (Boolean.FALSE.equals(user.getNotificationEnabled())) {
             log.info("알림 비활성화 상태로 알림 전송 건너뜀: " + user.getId());
-            return;
+            return false; // 알림 비활성화 시 false 반환
         }
 
-        // 메시지 구성
+        // 메시지 구성 (data 전용)
         Message message = Message.builder()
                 .setToken(token)
-                .setNotification(Notification.builder()
-                        .setTitle(title)  // 알림 제목
-                        .setBody(body)    // 알림 내용
-                        .build())
+                .putData("title", title)  // 알림 제목
+                .putData("body", body)    // 알림 내용
                 .putData("type", type)
                 .putData("referenceId", String.valueOf(referenceId))
                 .build();
@@ -56,18 +55,20 @@ public class NotificationService {
             // 메시지 전송
             String response = FirebaseMessaging.getInstance().send(message);
             log.info("FCM 알림 전송 성공: " + response);
+            return true;
 
         } catch (FirebaseMessagingException e) {
+            // 오류에 따라 FCM 토큰 삭제 처리
             if (e.getMessagingErrorCode().equals(MessagingErrorCode.INVALID_ARGUMENT)) {
                 log.error("FCM 토큰이 유효하지 않습니다.", e);
                 deleteFcmToken(token);
             } else if (e.getMessagingErrorCode().equals(MessagingErrorCode.UNREGISTERED)) {
                 log.error("FCM 토큰이 재발급 이전 토큰입니다.", e);
                 deleteFcmToken(token);
+            } else {
+                log.error("알림 전송 중 오류 발생", e);
             }
-            else {
-                throw new RuntimeException(e);
-            }
+            return false;
         }
     }
 
@@ -101,9 +102,10 @@ public class NotificationService {
     }
 
 
-    public Optional<String> getFcmToken(Long userId) {
-        return fcmTokenRepository.findByUserId(userId)
-                .map(FcmToken::getFcmToken);
+    public List<String> getFcmTokens(Long userId) {
+        return fcmTokenRepository.findByUserId(userId).stream()
+                .map(FcmToken::getFcmToken)
+                .toList();
     }
 
     public void deleteFcmToken(String token) {

@@ -76,9 +76,9 @@ public class GroomerEstimateRequestService {
      *  견적 요청 삭제(미용사)
      */
     @Transactional
-    public void deleteGroomerEstimateRequest(Long estimateRequestId) {
+    public void deleteGroomerEstimateRequest(Long estimateRequestId, Long groomerProfileId) {
 
-        GroomerEstimateRequest request = groomerEstimateRequestRepository.findByEstimateRequestId(estimateRequestId)
+        GroomerEstimateRequest request = groomerEstimateRequestRepository.findByEstimateRequestIdAndGroomerProfileId(estimateRequestId, groomerProfileId)
                 .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다: " + estimateRequestId));
 
         groomerEstimateRequestRepository.delete(request);

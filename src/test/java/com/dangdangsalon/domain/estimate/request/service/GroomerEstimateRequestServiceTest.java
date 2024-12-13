@@ -177,16 +177,17 @@ class GroomerEstimateRequestServiceTest {
     void deleteGroomerEstimateRequest_Success() {
         // given
         Long estimateRequestId = 1L;
+        Long groomerProfileId = 1L;
         GroomerEstimateRequest groomerEstimateRequest = mock(GroomerEstimateRequest.class);
 
-        when(groomerEstimateRequestRepository.findByEstimateRequestId(estimateRequestId))
+        when(groomerEstimateRequestRepository.findByEstimateRequestIdAndGroomerProfileId(estimateRequestId,groomerProfileId))
                 .thenReturn(Optional.of(groomerEstimateRequest));
 
         // when
-        groomerEstimateRequestService.deleteGroomerEstimateRequest(estimateRequestId);
+        groomerEstimateRequestService.deleteGroomerEstimateRequest(estimateRequestId,groomerProfileId);
 
         // then
-        verify(groomerEstimateRequestRepository, times(1)).findByEstimateRequestId(estimateRequestId);
+        verify(groomerEstimateRequestRepository, times(1)).findByEstimateRequestIdAndGroomerProfileId(estimateRequestId, groomerProfileId);
 
     }
 
@@ -195,17 +196,18 @@ class GroomerEstimateRequestServiceTest {
     void deleteGroomerEstimateRequest_NotFound() {
         // given
         Long estimateRequestId = 1L;
+        Long groomerProfileId = 1L;
 
-        when(groomerEstimateRequestRepository.findByEstimateRequestId(estimateRequestId))
+        when(groomerEstimateRequestRepository.findByEstimateRequestIdAndGroomerProfileId(estimateRequestId, groomerProfileId))
                 .thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> groomerEstimateRequestService.deleteGroomerEstimateRequest(estimateRequestId))
+        assertThatThrownBy(() -> groomerEstimateRequestService.deleteGroomerEstimateRequest(estimateRequestId, groomerProfileId))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("견적 요청을 찾을 수 없습니다: " + estimateRequestId);
 
         // verify that the repository method was called once
-        verify(groomerEstimateRequestRepository, times(1)).findByEstimateRequestId(estimateRequestId);
+        verify(groomerEstimateRequestRepository, times(1)).findByEstimateRequestIdAndGroomerProfileId(estimateRequestId, groomerProfileId);
     }
 
     @Test

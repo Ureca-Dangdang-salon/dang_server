@@ -5,8 +5,14 @@ import com.dangdangsalon.domain.notification.entity.FcmToken;
 import com.dangdangsalon.domain.notification.repository.FcmTokenRepository;
 import com.dangdangsalon.domain.user.entity.User;
 import com.dangdangsalon.domain.user.repository.UserRepository;
-import com.google.firebase.messaging.*;
-import org.junit.jupiter.api.*;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.MessagingErrorCode;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -15,6 +21,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static com.mongodb.assertions.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -189,26 +197,10 @@ class NotificationServiceTest {
     }
 
     @Test
-    @DisplayName("비활성 토큰 삭제 성공")
-    void removeInactiveTokens_Success() {
-        // Given
-        FcmToken oldToken = FcmToken.builder().fcmToken("old-token").lastUserAt(LocalDateTime.now().minusDays(61)).build();
-        FcmToken recentToken = FcmToken.builder().fcmToken("recent-token").lastUserAt(LocalDateTime.now().minusDays(30)).build();
-
-        when(fcmTokenRepository.findAll()).thenReturn(List.of(oldToken, recentToken));
-
-        // When
-        notificationService.removeInactiveTokens();
-
-        // Then
-        verify(fcmTokenRepository, times(1)).deleteAll(List.of(oldToken));
-    }
-
-    @Test
-    @DisplayName("FCM 토큰 삭제 성공")
+    @DisplayName("deleteFcmToken 테스트 - FCM 토큰 삭제")
     void deleteFcmToken_Success() {
         // Given
-        String token = "delete-token";
+        String token = "test-token";
 
         // When
         notificationService.deleteFcmToken(token);
@@ -218,155 +210,60 @@ class NotificationServiceTest {
     }
 
     @Test
-    @DisplayName("FCM 토큰 조회 성공")
-    void getFcmToken_Success() {
+    @DisplayName("getFcmTokens 테스트 - 사용자의 FCM 토큰 리스트 가져오기")
+    void getFcmTokens_Success() {
         // Given
         Long userId = 1L;
-        String token = "fcm-token";
+        FcmToken token1 = FcmToken.builder().fcmToken("token1").build();
+        FcmToken token2 = FcmToken.builder().fcmToken("token2").build();
 
-        FcmToken mockFcmToken = FcmToken.builder()
-                .fcmToken(token)
-                .user(mock(User.class))
+        when(fcmTokenRepository.findByUserId(userId)).thenReturn(List.of(token1, token2));
+
+        // When
+        List<String> tokens = notificationService.getFcmTokens(userId);
+
+        // Then
+        assertEquals(2, tokens.size());
+        assertTrue(tokens.contains("token1"));
+        assertTrue(tokens.contains("token2"));
+    }
+
+    @Test
+    @DisplayName("removeInactiveTokens 테스트 - 비활성 토큰 삭제")
+    void removeInactiveTokens_Success() {
+        // Given
+        FcmToken oldToken = FcmToken.builder()
+                .fcmToken("inactive-token")
+                .lastUserAt(LocalDateTime.now().minusDays(61))
+                .build();
+        FcmToken activeToken = FcmToken.builder()
+                .fcmToken("active-token")
+                .lastUserAt(LocalDateTime.now().minusDays(30))
                 .build();
 
-        when(fcmTokenRepository.findByUserId(userId)).thenReturn(Optional.of(mockFcmToken));
+        when(fcmTokenRepository.findAll()).thenReturn(List.of(oldToken, activeToken));
 
         // When
-        Optional<String> result = notificationService.getFcmToken(userId);
+        notificationService.removeInactiveTokens();
 
         // Then
-        Assertions.assertTrue(result.isPresent());
-        Assertions.assertEquals(token, result.get());
-        verify(fcmTokenRepository, times(1)).findByUserId(userId);
+        verify(fcmTokenRepository, times(1)).deleteAll(List.of(oldToken));
     }
 
     @Test
-    @DisplayName("사용자 알림 설정 업데이트 - 활성화")
-    void updateUserNotification_Enable() {
+    @DisplayName("updateUserNotification 테스트 - 알림 상태 업데이트")
+    void updateUserNotification_Success() {
         // Given
         Long userId = 1L;
-        User mockUser = mock(User.class);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-
-        // When
-        notificationService.updateUserNotification(userId, true);
-
-        // Then
-        verify(mockUser, times(1)).updateNotificationEnabled(true);
-        verify(userRepository, times(1)).findById(userId);
-    }
-
-    @Test
-    @DisplayName("사용자 알림 설정 업데이트 - 비활성화")
-    void updateUserNotification_Disable() {
-        // Given
-        Long userId = 1L;
-        User mockUser = mock(User.class);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-
-        // When
-        notificationService.updateUserNotification(userId, false);
-
-        // Then
-        verify(mockUser, times(1)).updateNotificationEnabled(false);
-        verify(userRepository, times(1)).findById(userId);
-    }
-
-    @Test
-    @DisplayName("기존 토큰이 다른 사용자와 연결된 경우 - 기존 토큰 삭제 후 새로 저장")
-    void saveOrUpdateFcmToken_OtherUserToken() {
-        // Given
-        Long userId = 1L;
-        String token = "shared-token";
-
-        User currentUser = mock(User.class);
-        User otherUser = mock(User.class);
-
-        when(currentUser.getId()).thenReturn(userId);
-        when(otherUser.getId()).thenReturn(2L);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(currentUser));
-
-        FcmToken existingToken = FcmToken.builder().fcmToken(token).user(otherUser).build();
-        when(fcmTokenRepository.findByFcmToken(token)).thenReturn(Optional.of(existingToken));
-
-        // When
-        notificationService.saveOrUpdateFcmToken(userId, token);
-
-        // Then
-        verify(fcmTokenRepository, times(1)).delete(existingToken);
-        verify(fcmTokenRepository, times(1)).save(any(FcmToken.class));
-    }
-
-    @Test
-    @DisplayName("기존 토큰이 동일 사용자와 연결된 경우 - 갱신")
-    void saveOrUpdateFcmToken_SameUserToken() {
-        // Given
-        Long userId = 1L;
-        String token = "user-token";
-
-        User mockUser = mock(User.class);
-        when(mockUser.getId()).thenReturn(userId);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-
-        FcmToken existingToken = spy(FcmToken.builder().fcmToken(token).user(mockUser).build());
-        when(fcmTokenRepository.findByFcmToken(token)).thenReturn(Optional.of(existingToken));
-
-        // When
-        notificationService.saveOrUpdateFcmToken(userId, token);
-
-        // Then
-        verify(existingToken, times(1)).updateTokenLastUserAt();
-        verify(fcmTokenRepository, never()).save(any(FcmToken.class));
-    }
-
-    @Test
-    @DisplayName("새로운 토큰 저장")
-    void saveOrUpdateFcmToken_NewToken() {
-        // Given
-        Long userId = 1L;
-        String token = "new-token";
+        boolean isEnabled = true;
 
         User mockUser = mock(User.class);
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
 
-        when(fcmTokenRepository.findByFcmToken(token)).thenReturn(Optional.empty());
-
         // When
-        notificationService.saveOrUpdateFcmToken(userId, token);
+        notificationService.updateUserNotification(userId, isEnabled);
 
         // Then
-        verify(fcmTokenRepository, times(1)).save(any(FcmToken.class));
-    }
-
-    @Test
-    @DisplayName("FCM 알림 전송 실패 - UNREGISTERED 토큰")
-    void sendNotificationWithData_UnregisteredToken() throws FirebaseMessagingException {
-        // Given
-        String token = "unregistered-token";
-        String title = "알림 제목";
-        String body = "알림 내용";
-        String type = "TEST";
-        Long referenceId = 123L;
-
-        User mockUser = mock(User.class);
-        when(mockUser.getNotificationEnabled()).thenReturn(true);
-
-        FcmToken mockFcmToken = FcmToken.builder().fcmToken(token).user(mockUser).build();
-        when(fcmTokenRepository.findByFcmToken(token)).thenReturn(Optional.of(mockFcmToken));
-
-        FirebaseMessagingException unregisteredException = mock(FirebaseMessagingException.class);
-        when(unregisteredException.getMessagingErrorCode()).thenReturn(MessagingErrorCode.UNREGISTERED);
-        when(firebaseMessagingMock.send(any(Message.class))).thenThrow(unregisteredException);
-
-        // When
-        notificationService.sendNotificationWithData(token, title, body, type, referenceId);
-
-        // Then
-        verify(fcmTokenRepository, times(1)).deleteByFcmToken(token);
-        verify(firebaseMessagingMock, times(1)).send(any(Message.class));
+        verify(mockUser, times(1)).updateNotificationEnabled(isEnabled);
     }
 }

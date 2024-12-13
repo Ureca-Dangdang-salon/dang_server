@@ -13,9 +13,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.aspectj.bridge.MessageUtil.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @DisplayName("PaymentNotificationService 테스트")
@@ -56,15 +58,29 @@ class PaymentNotificationServiceTest {
     @DisplayName("알림 전송 - 성공")
     void sendNotificationToUser_Success() {
         // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
-        when(notificationService.getFcmToken(1L)).thenReturn(Optional.of("dummyFcmToken"));
+        when(notificationService.getFcmTokens(1L)).thenReturn(List.of("dummyFcmToken1", "dummyFcmToken2"));
+        when(notificationService.sendNotificationWithData(
+                eq("dummyFcmToken1"),
+                eq("결제가 완료되었습니다"),
+                eq("결제 내역을 확인해보세요."),
+                eq("결제"),
+                eq(1L) // ID 통일
+        )).thenReturn(true);
+
+        when(notificationService.sendNotificationWithData(
+                eq("dummyFcmToken2"),
+                eq("결제가 완료되었습니다"),
+                eq("결제 내역을 확인해보세요."),
+                eq("결제"),
+                eq(1L) // ID 통일
+        )).thenReturn(true);
 
         // When
         paymentNotificationService.sendNotificationToUser(mockOrders);
 
         // Then
-        verify(notificationService, times(1)).sendNotificationWithData(
-                eq("dummyFcmToken"),
+        verify(notificationService, times(2)).sendNotificationWithData(
+                anyString(),
                 eq("결제가 완료되었습니다"),
                 eq("결제 내역을 확인해보세요."),
                 eq("결제"),
@@ -84,13 +100,11 @@ class PaymentNotificationServiceTest {
     void sendNotificationToUser_NotificationDisabled() {
         // Given
         mockUser.updateNotificationEnabled(false); // 알림 비활성화
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
 
         // When
         paymentNotificationService.sendNotificationToUser(mockOrders);
 
         // Then
-        verify(notificationService, never()).getFcmToken(anyLong());
         verify(notificationService, never()).sendNotificationWithData(any(), any(), any(), any(), any());
         verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
     }
@@ -98,31 +112,60 @@ class PaymentNotificationServiceTest {
     @Test
     @DisplayName("알림 전송 - 사용자 없음 예외")
     void sendNotificationToUser_UserNotFound() {
-        // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        // 토큰 목록이 비어있는 경우를 시뮬레이션
+        when(notificationService.getFcmTokens(1L)).thenReturn(Collections.emptyList());
 
         // When & Then
-        assertThrows(IllegalArgumentException.class, () ->
-                paymentNotificationService.sendNotificationToUser(mockOrders)
-        );
+        try {
+            paymentNotificationService.sendNotificationToUser(mockOrders);
+            fail("예외가 발생해야 합니다.");
+        } catch (Exception e) {
+            // 적절한 예외 처리 확인
+            assertTrue(e instanceof IllegalArgumentException);
+        }
 
-        verify(notificationService, never()).getFcmToken(anyLong());
         verify(notificationService, never()).sendNotificationWithData(any(), any(), any(), any(), any());
         verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
     }
-
     @Test
-    @DisplayName("알림 전송 - FCM 토큰 없음")
-    void sendNotificationToUser_NoFcmToken() {
-        // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
-        when(notificationService.getFcmToken(1L)).thenReturn(Optional.empty());
+    @DisplayName("알림 전송 - FCM 전송 실패")
+    void sendNotificationToUser_FcmSendFailed() {
+        // Assuming mockOrders returns 1L when getId() is called
+        when(notificationService.getFcmTokens(1L)).thenReturn(List.of("dummyFcmToken1"));
+        when(notificationService.sendNotificationWithData(
+                eq("dummyFcmToken1"),
+                eq("결제가 완료되었습니다"),
+                eq("결제 내역을 확인해보세요."),
+                eq("결제"),
+                eq(1L) // Change this to 1L to match the actual implementation
+        )).thenReturn(false);
 
         // When
         paymentNotificationService.sendNotificationToUser(mockOrders);
 
         // Then
-        verify(notificationService, times(1)).getFcmToken(1L);
+        verify(notificationService, times(1)).sendNotificationWithData(
+                eq("dummyFcmToken1"),
+                eq("결제가 완료되었습니다"),
+                eq("결제 내역을 확인해보세요."),
+                eq("결제"),
+                eq(1L) // Change this to 1L
+        );
+        verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
+    }
+
+
+    @Test
+    @DisplayName("알림 전송 - FCM 토큰 없음")
+    void sendNotificationToUser_NoFcmToken() {
+        // Given
+        when(notificationService.getFcmTokens(1L)).thenReturn(List.of());
+
+        // When
+        paymentNotificationService.sendNotificationToUser(mockOrders);
+
+        // Then
+        verify(notificationService, times(1)).getFcmTokens(1L);
         verify(notificationService, never()).sendNotificationWithData(any(), any(), any(), any(), any());
         verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
     }

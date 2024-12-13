@@ -53,8 +53,9 @@ public class AuthService {
         accessTokenCookie.setMaxAge(0);
         accessTokenCookie.setPath("/");
         accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
 
-        response.addCookie(cookieUtil.createCookie("Authorization", newAccessToken));
+        response.addHeader("Set-Cookie", cookieUtil.createCookie("Authorization", newAccessToken));
     }
 
     @Transactional
@@ -76,8 +77,8 @@ public class AuthService {
 
         redisUtil.saveRefreshToken(userId.toString(), refreshToken, 60 * 60 * 10000L);
 
-        response.addCookie(cookieUtil.createCookie("Refresh-Token", refreshToken));
-        response.addCookie(cookieUtil.createCookie("Authorization", accessToken));
+        response.addHeader("Set-Cookie", cookieUtil.createCookie("Refresh-Token", refreshToken));
+        response.addHeader("Set-Cookie", cookieUtil.createCookie("Authorization", accessToken));
 
         log.info("User Role Updated. Access Token: {}", accessToken);
     }
@@ -109,10 +110,15 @@ public class AuthService {
     }
 
     public CheckLoginDto checkLogin(CustomOAuth2User user) {
+
+        User users = userRepository.findById(user.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 ID입니다. userId: " + user.getUserId()));
+
         return CheckLoginDto.builder()
                 .isLogin(true)
                 .userId(user.getUserId())
                 .role(user.getRole())
+                .notificationEnabled(users.getNotificationEnabled())
                 .build();
     }
 }

@@ -6,6 +6,7 @@ import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.notification.dto.NotificationDto;
 import com.dangdangsalon.domain.notification.dto.ReviewNotificationDto;
+import com.dangdangsalon.domain.notification.scheduler.NotificationScheduler;
 import com.dangdangsalon.domain.user.entity.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,10 +21,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -86,23 +85,34 @@ class NotificationSchedulerTest {
         when(mockRequest.getUser()).thenReturn(mockUser);
         when(mockUser.getId()).thenReturn(1L);
         when(mockUser.getEmail()).thenReturn("test1234@naver.com");
+        when(mockUser.getName()).thenReturn("테스트 사용자");
 
         when(estimateRepository.findReservationsForTomorrow(any(), any())).thenReturn(List.of(mockEstimate));
-        when(notificationService.getFcmToken(1L)).thenReturn(Optional.of("dummyFcmToken"));
+        when(notificationService.getFcmTokens(1L)).thenReturn(Arrays.asList("dummyFcmToken1", "dummyFcmToken2"));
 
         // When
         notificationScheduler.sendReservationReminder();
 
         // Then
-        verify(notificationService, times(1)).sendNotificationWithData(
-                eq("dummyFcmToken"),
+        verify(notificationService, times(2)).sendNotificationWithData(
+                anyString(),
                 eq("예약일 알림"),
                 anyString(),
                 eq("RESERVATION_REMINDER"),
                 eq(1L)
         );
-        verify(notificationEmailService, times(1)).sendEmail(eq("test1234@naver.com"), eq("예약일 알림"), anyString());
-        verify(redisNotificationService, times(1)).saveNotificationToRedis(eq(1L), eq("예약일 알림"), anyString(), eq("RESERVATION_REMINDER"), eq(1L));
+        verify(notificationEmailService, times(1)).sendEmailWithTemplate(
+                eq("test1234@naver.com"),
+                eq("예약일 알림"),
+                eq("/templates/email.html"),
+                eq(Map.of(
+                        "userName", "테스트 사용자",
+                        "reservationDateTime", tomorrow.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                ))
+        );
+        verify(redisNotificationService, times(1)).saveNotificationToRedis(
+                eq(1L), eq("예약일 알림"), anyString(), eq("RESERVATION_REMINDER"), eq(1L)
+        );
     }
 
     @Test
@@ -111,9 +121,8 @@ class NotificationSchedulerTest {
         // Given
         String key = "notifications:1";
 
-        // 만료된 알림 데이터
         NotificationDto oldNotification = NotificationDto.builder()
-                .createdAt(LocalDateTime.now().minusDays(15)) // 오래된 알림
+                .createdAt(LocalDateTime.now().minusDays(15))
                 .id("oldNotification123")
                 .title("Old Notification")
                 .body("This is an old notification")
@@ -124,7 +133,6 @@ class NotificationSchedulerTest {
 
         String oldNotificationJson = objectMapper.writeValueAsString(oldNotification);
 
-        // Mock 설정
         when(redisTemplate.keys("notifications:*")).thenReturn(Set.of(key));
         when(listOperations.range(key, 0, -1)).thenReturn(Collections.singletonList(oldNotificationJson));
         when(objectMapper.readValue(eq(oldNotificationJson), eq(NotificationDto.class))).thenReturn(oldNotification);
@@ -135,7 +143,6 @@ class NotificationSchedulerTest {
         // Then
         verify(listOperations, times(1)).remove(eq(key), eq(1L), eq(oldNotificationJson));
     }
-
 
     @Test
     @DisplayName("리뷰 작성 요청 알림 성공")
@@ -156,14 +163,14 @@ class NotificationSchedulerTest {
         when(valueOperations.get(key)).thenReturn(jsonData);
         when(objectMapper.readValue(eq(jsonData), eq(ReviewNotificationDto.class))).thenReturn(mockReminder);
         when(estimateRepository.findWithEstimateById(1L)).thenReturn(Optional.of(mockEstimate));
-        when(notificationService.getFcmToken(1L)).thenReturn(Optional.of("dummyFcmToken"));
+        when(notificationService.getFcmTokens(1L)).thenReturn(Arrays.asList("dummyFcmToken1", "dummyFcmToken2"));
 
         // When
         notificationScheduler.sendReviewReminders();
 
         // Then
-        verify(notificationService, times(1)).sendNotificationWithData(
-                eq("dummyFcmToken"),
+        verify(notificationService, times(2)).sendNotificationWithData(
+                anyString(),
                 eq("리뷰 작성 요청"),
                 eq("테스트 미용사님에 대한 리뷰를 작성해주세요!"),
                 eq("REVIEW_REQUEST"),

@@ -7,14 +7,13 @@ import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.notification.service.RedisNotificationService;
-import com.dangdangsalon.domain.user.entity.User;
-import com.dangdangsalon.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -22,34 +21,29 @@ import java.util.Optional;
 public class EstimateNotificationService {
 
     private final NotificationService notificationService;
-    private final UserRepository userRepository;
     private final EstimateRepository estimateRepository;
     private final RedisNotificationService redisNotificationService;
 
-    @Transactional
+    @Async
     public void sendNotificationToUser(EstimateRequest estimateRequest, Estimate estimate, GroomerProfile groomerProfile) {
 
         Long userId = estimateRequest.getUser().getId();
+        List<String> fcmTokens = notificationService.getFcmTokens(userId);
 
-        User user = userRepository.findById(userId).orElseThrow(() ->
-                new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId)
-        );
+        String title = groomerProfile.getName() + "님이 견적을 보냈습니다.";
+        String body = "견적 내용을 확인해보세요.";
 
-        if (Boolean.FALSE.equals(user.getNotificationEnabled())) {
-            log.info("알림 비활성화: " + user.getId());
-        }else {
-            Optional<String> optionalFcmToken = notificationService.getFcmToken(userId);
+        boolean isNotificationSent = false;
 
-            if (optionalFcmToken.isPresent()) {
-                String fcmToken = optionalFcmToken.get();
-
-                String title = groomerProfile.getName() + "님이 견적을 보냈습니다.";
-                String body = "견적 내용을 확인해보세요.";
-                notificationService.sendNotificationWithData(fcmToken, title, body, "견적서", estimate.getId()); // 알림 전송
-
-                // Redis에 알림 내용 저장
-                redisNotificationService.saveNotificationToRedis(userId, title, body, "견적서", estimate.getId());
+        for (String fcmToken : fcmTokens) {
+            if (notificationService.sendNotificationWithData(fcmToken, title, body, "견적서", estimate.getId())) {
+                isNotificationSent = true;
             }
+        }
+
+        // Redis에는 한 번만 저장
+        if (isNotificationSent) {
+            redisNotificationService.saveNotificationToRedis(userId, title, body, "견적서", estimate.getId());
         }
     }
 

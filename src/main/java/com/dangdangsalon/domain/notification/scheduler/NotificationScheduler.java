@@ -1,11 +1,13 @@
-package com.dangdangsalon.domain.notification.service;
+package com.dangdangsalon.domain.notification.scheduler;
 
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.notification.dto.NotificationDto;
 import com.dangdangsalon.domain.notification.dto.ReviewNotificationDto;
+import com.dangdangsalon.domain.notification.service.NotificationEmailService;
+import com.dangdangsalon.domain.notification.service.NotificationService;
+import com.dangdangsalon.domain.notification.service.RedisNotificationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,30 +38,36 @@ public class NotificationScheduler {
     @Transactional
     @Scheduled(cron = "0 0 20 * * ?")
     public void sendReservationReminder() {
-        // 내일의 시작과 끝 시간 계산
         LocalDateTime tomorrowStart = LocalDateTime.now().plusDays(1).toLocalDate().atStartOfDay();
         LocalDateTime tomorrowEnd = tomorrowStart.plusDays(1).minusNanos(1);
 
-        // 내일 예약이 있는 Estimate 조회
         List<Estimate> estimateList = estimateRepository.findReservationsForTomorrow(tomorrowStart, tomorrowEnd);
 
-        // 알림 전송
         for (Estimate estimate : estimateList) {
-            Long userId = estimate.getEstimateRequest().getUser().getId(); // 사용자 ID 가져오기
-            String email = estimate.getEstimateRequest().getUser().getEmail(); // 이메일 가져오기
+            Long userId = estimate.getEstimateRequest().getUser().getId();
+            String email = estimate.getEstimateRequest().getUser().getEmail();
             String title = "예약일 알림";
 
             String timeOnly = estimate.getDate().format(DateTimeFormatter.ofPattern("HH:mm"));
             String body = "내일 " + timeOnly + "시에 강아지 미용이 예정되어 있습니다.";
 
             // 푸시 알림
-            notificationService.getFcmToken(userId).ifPresent(fcmToken ->
-                    notificationService.sendNotificationWithData(fcmToken, title, body, "RESERVATION_REMINDER", estimate.getId())
-            );
+            List<String> fcmTokens = notificationService.getFcmTokens(userId);
+            for (String fcmToken : fcmTokens) {
+                notificationService.sendNotificationWithData(fcmToken, title, body, "RESERVATION_REMINDER", estimate.getId());
+            }
 
             // 이메일 알림
             if (email != null) {
-                notificationEmailService.sendEmail(email, title, body);
+                notificationEmailService.sendEmailWithTemplate(
+                        email,
+                        title,
+                        "/templates/email.html",
+                        Map.of(
+                                "userName", estimate.getEstimateRequest().getUser().getName(),
+                                "reservationDateTime", estimate.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                        )
+                );
             }
 
             // Redis 알림 저장
@@ -80,13 +88,10 @@ public class NotificationScheduler {
 
             for (String notificationJson : notificationList) {
                 try {
-                    // JSON 문자열을 NotificationDto로 변환
                     NotificationDto notification = objectMapper.readValue(notificationJson, NotificationDto.class);
 
-                    // createdAt 확인
                     if (notification.getCreatedAt() != null &&
                             Duration.between(notification.getCreatedAt(), LocalDateTime.now()).toDays() > 14) {
-                        // 만료된 알림 삭제
                         redisTemplate.opsForList().remove(key, 1, notificationJson);
                     }
                 } catch (JsonProcessingException e) {
@@ -97,7 +102,7 @@ public class NotificationScheduler {
     }
 
     @Transactional
-    @Scheduled(cron = "0 * * * * ?") // 매 분마다 실행
+    @Scheduled(cron = "0 * * * * ?")
     public void sendReviewReminders() {
         Set<String> keys = redisTemplate.keys("review_notification:*");
 
@@ -106,7 +111,7 @@ public class NotificationScheduler {
                 try {
                     String jsonData = redisTemplate.opsForValue().get(key);
 
-                    ReviewNotificationDto reminderData = new ObjectMapper().readValue(jsonData, ReviewNotificationDto.class);
+                    ReviewNotificationDto reminderData = objectMapper.readValue(jsonData, ReviewNotificationDto.class);
 
                     LocalDateTime scheduledTime = LocalDateTime.parse(reminderData.getScheduledTime());
 
@@ -117,14 +122,25 @@ public class NotificationScheduler {
                         Estimate estimate = estimateRepository.findWithEstimateById(estimateId)
                                 .orElseThrow(() -> new IllegalArgumentException("견적서가 없습니다: " + estimateId));
 
-                        // FCM 알림 전송
                         String title = "리뷰 작성 요청";
                         String body = estimate.getGroomerProfile().getName() + "님에 대한 리뷰를 작성해주세요!";
-                        notificationService.getFcmToken(userId).ifPresent(fcmToken ->
-                                notificationService.sendNotificationWithData(fcmToken, title, body, "REVIEW_REQUEST", estimateId)
-                        );
 
-                        // Redis에서 알림 데이터 삭제
+                        List<String> fcmTokens = notificationService.getFcmTokens(userId);
+
+                        boolean isNotificationSent = false;
+
+                        for (String fcmToken : fcmTokens) {
+                            if (notificationService.sendNotificationWithData(fcmToken, title, body, "REVIEW_REQUEST", estimateId)) {
+                                isNotificationSent = true;
+                            }
+                        }
+
+                        // Redis에 알림 데이터 저장 (한 번만 저장)
+                        if (isNotificationSent) {
+                            redisNotificationService.saveNotificationToRedis(userId, title, body, "REVIEW_REQUEST", estimateId);
+                        }
+
+                        // Redis에서 예약 데이터 삭제
                         redisTemplate.delete(key);
                     }
                 } catch (Exception e) {

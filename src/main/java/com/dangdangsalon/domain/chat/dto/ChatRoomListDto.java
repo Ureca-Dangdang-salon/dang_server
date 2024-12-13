@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.chat.dto;
 
+import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,4 +15,5 @@ public class ChatRoomListDto {
     private String lastMessage;
     private int unreadCount;
     private int totalAmount;
+    private EstimateStatus estimateStatus;
 }

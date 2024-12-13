@@ -169,6 +169,7 @@ public class ChatRoomService {
 
         return ChatRoomListDto.builder()
                 .roomId(chatRoom.getId())
+                .estimateId(chatRoom.getEstimate().getId())
                 .groomerProfile(ChatGroomerProfileDto.create(groomerProfile))
                 .customer(ChatCustomerDto.create(chatRoom))
                 .lastMessage(lastMessage)

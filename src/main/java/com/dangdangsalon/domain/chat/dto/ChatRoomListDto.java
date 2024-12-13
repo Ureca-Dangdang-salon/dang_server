@@ -8,6 +8,7 @@ import lombok.Getter;
 public class ChatRoomListDto {
 
     private Long roomId;
+    private Long estimateId;
     private ChatGroomerProfileDto groomerProfile;
     private ChatCustomerDto customer;
     private String lastMessage;

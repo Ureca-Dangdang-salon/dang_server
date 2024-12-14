@@ -39,11 +39,7 @@ public class CouponController {
      React에서는 EventSource 객체가 이 스트림을 처리한다.
      */
     @GetMapping(value = "/queue/updates", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribeQueueUpdates(@AuthenticationPrincipal CustomOAuth2User user, @RequestParam Long eventId,
-                                            HttpServletResponse response) {
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-
+    public SseEmitter subscribeQueueUpdates(@AuthenticationPrincipal CustomOAuth2User user, @RequestParam Long eventId) {
         Long userId = user.getUserId();
         return couponIssueService.subscribeQueueUpdates(userId, eventId);
     }

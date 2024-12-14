@@ -1,5 +1,8 @@
 package com.dangdangsalon.domain.payment.service;
 
+import com.dangdangsalon.domain.estimate.entity.Estimate;
+import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
+import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.estimate.request.entity.RequestStatus;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
@@ -43,6 +46,7 @@ public class PaymentService {
     private final WebClient webClient;
     private final PaymentNotificationService paymentNotificationService;
     private final EstimateRequestRepository estimateRequestRepository;
+    private final EstimateRepository estimateRepository;
 
     @Value("${toss.api.key}")
     private String tossApiKey;
@@ -93,6 +97,11 @@ public class PaymentService {
 
             paymentRepository.save(payment);
             order.updateOrderStatus(OrderStatus.ACCEPTED);
+
+            Estimate estimate = estimateRepository.findById(order.getEstimate().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("견적서를 찾을 수 없습니다 : " + payment.getOrders().getEstimate().getEstimateRequest().getId()));
+
+            estimate.updateStatus(EstimateStatus.PAID);
 
             EstimateRequest estimateRequest = estimateRequestRepository.findById(payment.getOrders().getEstimate().getEstimateRequest().getId())
                     .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다 : " + payment.getOrders().getEstimate().getEstimateRequest().getId()));

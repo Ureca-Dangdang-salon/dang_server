@@ -47,16 +47,22 @@ public class ChatGptService {
         String translatedAnalysisResult = translateEngToKo(analysisResult);
         log.info("Translated image analysis result: {}", translatedAnalysisResult);
 
-        // 4. 최종 프롬프트 완성 (사용자 입력 그대로 사용)
+        // 4. 연예인 매칭
+        DogCelebrityMapping.DogCelebrityInfo matchingCelebrityInfo = matchCelebrityByExpression(translatedAnalysisResult);
+        log.info("Matching celebrity: {}, Image URL: {}", matchingCelebrityInfo.getCelebrity(), matchingCelebrityInfo.getImageUrl());
+
+        // 5. 최종 프롬프트 완성 (사용자 입력 그대로 사용)
         String detailedPrompt = createFinalPrompt(userPrompt, translatedAnalysisResult);
         log.info("Detailed prompt: {}", detailedPrompt);
 
-        // 5. 이미지 생성
+        // 6. 이미지 생성
         String generatedImageUrl = createImageFromDescription(detailedPrompt);
 
         return GenerateImageAnalysisResponseDto.builder()
                 .imageUrl(generatedImageUrl)
                 .translatedAnalysis(translatedAnalysisResult)
+                .matchingCelebrity(matchingCelebrityInfo.getCelebrity())
+                .celebrityImageUrl(matchingCelebrityInfo.getImageUrl())
                 .build();
     }
 
@@ -66,7 +72,7 @@ public class ChatGptService {
 
     private String createFinalPrompt(String userPrompt, String analysisResult) {
         return String.format(
-                "사진에는 %s이/가 있습니다. 사진 속 강아지를 %s 강아지로 만들어주세요",
+                "사진에는 %s이/가 있습니다. 사진 속 강아지를 %s 미용 스타일로 만들어주세요",
                 analysisResult,
                 userPrompt
         );
@@ -138,5 +144,9 @@ public class ChatGptService {
             return choice.getMessage().getContent().trim();
         }
         throw new RuntimeException("Failed to analyze image with OpenAI.");
+    }
+
+    private DogCelebrityMapping.DogCelebrityInfo matchCelebrityByExpression(String analysisResult) {
+        return DogCelebrityMapping.matchCelebrity(analysisResult);
     }
 }

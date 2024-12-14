@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.payment.service;
 
 import com.dangdangsalon.domain.estimate.entity.Estimate;
+import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
 import com.dangdangsalon.domain.orders.entity.OrderStatus;
@@ -50,6 +51,9 @@ class PaymentServiceTest {
 
     @Mock
     private PaymentRepository paymentRepository;
+
+    @Mock
+    private EstimateRepository estimateRepository;
 
     @Mock
     private EstimateRequestRepository estimateRequestRepository;
@@ -105,6 +109,7 @@ class PaymentServiceTest {
         Estimate mockEstimate = Estimate.builder()
                 .estimateRequest(mockEstimateRequest)
                 .build();
+        ReflectionTestUtils.setField(mockEstimate,"id",1L);
 
         mockUser = User.builder()
                 .name("이민수")
@@ -204,7 +209,7 @@ class PaymentServiceTest {
     @Test
     @DisplayName("결제 승인 - 요청 성공")
     void approvePayment_Success() {
-        // Given
+        // Existing mock data setup
         PaymentApproveResponseDto responseDto = PaymentApproveResponseDto.builder()
                 .paymentKey("PAYMENT_KEY_123")
                 .totalAmount(10000)
@@ -213,7 +218,7 @@ class PaymentServiceTest {
                 .method("CARD")
                 .build();
 
-        // webClient 설정
+        // WebClient Mock setup
         given(webClient.post()).willReturn(requestBodyUriSpec);
         given(requestBodyUriSpec.uri(anyString())).willReturn(requestBodySpec);
         given(requestBodySpec.header(anyString(), anyString())).willReturn(requestBodySpec);
@@ -221,15 +226,24 @@ class PaymentServiceTest {
         given(requestHeadersSpec.retrieve()).willReturn(responseSpec);
         given(responseSpec.bodyToMono(PaymentApproveResponseDto.class)).willReturn(Mono.just(responseDto));
 
+        // Redis Mock setup
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(valueOperations.setIfAbsent(anyString(), anyString(), any())).willReturn(true);
 
+        // Mock Repository data returns
         given(ordersRepository.findByTossOrderId(anyString())).willReturn(Optional.of(mockOrder));
 
-        EstimateRequest mockEstimateRequest = mockOrder.getEstimate().getEstimateRequest();
+        // Mock Estimate
+        Estimate mockEstimate = mockOrder.getEstimate();
+        given(estimateRepository.findById(mockEstimate.getId()))
+                .willReturn(Optional.of(mockEstimate));
+
+        // Mock EstimateRequest
+        EstimateRequest mockEstimateRequest = mockEstimate.getEstimateRequest();
         given(estimateRequestRepository.findById(mockEstimateRequest.getId()))
                 .willReturn(Optional.of(mockEstimateRequest));
 
+        // Notification Service setup
         doNothing().when(paymentNotificationService).sendNotificationToUser(any(Orders.class));
 
         // When
@@ -238,6 +252,7 @@ class PaymentServiceTest {
         // Then
         assertThat(result.getStatus()).isEqualTo("APPROVED");
         verify(ordersRepository).findByTossOrderId(anyString());
+        verify(estimateRepository).findById(mockEstimate.getId());
         verify(estimateRequestRepository).findById(mockEstimateRequest.getId());
         verify(redisTemplate).delete(anyString());
     }

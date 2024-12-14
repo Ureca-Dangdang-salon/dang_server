@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.payment.dto;
 
+import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,4 +22,5 @@ public class PaymentResponseDto {
     private List<PaymentDogProfileResponseDto> dogProfileList;
     private int totalAmount;
     private String status;
+    private EstimateStatus estimateStatus;
 }

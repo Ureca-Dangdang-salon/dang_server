@@ -19,6 +19,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -143,6 +146,11 @@ public class PaymentService {
         }
     }
 
+    @Retryable(
+            retryFor = { WebClientResponseException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     private PaymentApproveResponseDto sendApprovalRequestToToss(PaymentApproveRequestDto paymentApproveRequestDto, String url, String idempotencyKey) {
         String authorizationHeader = "Basic " + Base64.getEncoder().encodeToString((tossApiKey + ":").getBytes());
 
@@ -166,6 +174,16 @@ public class PaymentService {
         }
     }
 
+    @Recover
+    public void recover(WebClientResponseException ex, PaymentApproveRequestDto requestDto) {
+        log.error("결제 승인 재시도 실패: 요청 ID={}, 오류={}", requestDto.getOrderId(), ex.getMessage());
+    }
+
+    @Retryable(
+            retryFor = { WebClientResponseException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     private PaymentCancelResponseDto sendCancelRequestToToss(PaymentCancelRequestDto paymentCancelRequestDto, String url, String idempotencyKey) {
         String authorizationHeader = "Basic " + Base64.getEncoder().encodeToString((tossApiKey + ":").getBytes());
 
@@ -185,6 +203,11 @@ public class PaymentService {
             log.error("Toss 결제 취소 API 호출 실패: {}", ex.getResponseBodyAsString());
             throw new RuntimeException("결제 취소 중 오류가 발생했습니다.");
         }
+    }
+
+    @Recover
+    public void recover(WebClientResponseException ex, PaymentCancelRequestDto requestDto) {
+        log.error("결제 취소 재시도 실패: 요청 ID={}, 오류={}", requestDto.getPaymentKey(), ex.getMessage());
     }
 
     private void validatePaymentAmount(long amount) {

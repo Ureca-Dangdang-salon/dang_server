@@ -68,6 +68,7 @@ public class PaymentService {
         }
 
         try {
+            // 결제 금액 유효성 검사
             validatePaymentAmount(paymentApproveRequestDto.getAmount());
             Orders order = ordersRepository.findByTossOrderId(paymentApproveRequestDto.getOrderId())
                     .orElseThrow(() -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다: " + paymentApproveRequestDto.getOrderId()));
@@ -95,10 +96,15 @@ public class PaymentService {
 
             estimateRequest.updateRequestStatus(RequestStatus.PAID);
 
+            // 알림
             paymentNotificationService.sendNotificationToUser(order);
 
             return paymentResponse;
+        } catch (Exception e) {
+            log.error("결제 승인 처리 중 오류 발생: {}", e.getMessage());
+            throw e; // 예외 다시 던지기
         } finally {
+            // 멱등키 삭제
             deleteIdempotencyKey(key);
         }
     }
@@ -109,6 +115,7 @@ public class PaymentService {
 
         String idempotencyKey = UUID.randomUUID().toString();
         String key = IDEMPOTENCY_KEY_PREFIX + userId;
+
         // 멱등키 저장 (중복 요청 방지)
         if (saveIdempotencyKey(key, idempotencyKey)) {
             throw new IllegalStateException("이미 동일한 결제 취소 요청이 처리 중입니다.");
@@ -128,6 +135,9 @@ public class PaymentService {
                     .orderId(paymentCancelResponseDto.getOrderId())
                     .status(paymentCancelResponseDto.getStatus())
                     .build();
+        } catch (Exception e) {
+            log.error("결제 취소 처리 중 오류 발생: {}", e.getMessage());
+            throw e;
         } finally {
             deleteIdempotencyKey(key);
         }
@@ -191,6 +201,5 @@ public class PaymentService {
     private void deleteIdempotencyKey(String key) {
         redisTemplate.delete(key);
     }
-
 
 }

@@ -43,7 +43,7 @@ class ChatGptApiTest {
     @DisplayName("이미지 생성 요청 테스트")
     @WithMockUser(username = "testUser", roles = {"USER"})
     void generateImageTest() throws Exception {
-        GenerateImageAnalysisResponseDto mockResponse = new GenerateImageAnalysisResponseDto("generated-image-url","강아지는 행복해보여요");
+        GenerateImageAnalysisResponseDto mockResponse = new GenerateImageAnalysisResponseDto("generated-image-url","강아지는 행복해보여요","카리나","imageUrl");
         when(chatGptService.generateDogStyleImage(anyString(), any())).thenReturn(mockResponse);
 
         MockMultipartFile mockFile = new MockMultipartFile(

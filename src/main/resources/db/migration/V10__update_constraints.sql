@@ -52,3 +52,10 @@ ALTER TABLE groomer_estimate_request
     ADD CONSTRAINT groomer_estimate_request_ibfk_1
         FOREIGN KEY (request_id) REFERENCES estimate_request (id)
             ON DELETE CASCADE;
+
+ALTER TABLE fcm_token
+DROP FOREIGN KEY fcm_token_ibfk_1;
+ALTER TABLE fcm_token
+    ADD CONSTRAINT FK_fcm_token_user
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE;
+

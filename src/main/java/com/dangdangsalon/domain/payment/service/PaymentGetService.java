@@ -54,6 +54,7 @@ public class PaymentGetService {
                     .totalAmount(payment.getTotalAmount())
                     .status(payment.getPaymentStatus().toString())
                     .estimateStatus(order.getEstimate().getStatus())
+                    .paymentKey(payment.getPaymentKey())
                     .build();
         }).toList();
     }

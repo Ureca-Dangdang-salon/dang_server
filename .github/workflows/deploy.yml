@@ -22,6 +22,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # Redis 컨테이너 실행
+      - name: Start Redis
+        run: |
+          docker run -d --name redis-test -p 6379:6379 redis:6.2
+
       - name: Run tests
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}

@@ -37,15 +37,11 @@ public class ChatGptService {
         String base64Image = encodeImageToBase64(file);
         String imageUrl = "data:image/jpeg;base64," + base64Image;
 
-        log.info("Encoded image to Base64: {}", imageUrl);
-
         // 2. 이미지 분석 (한국어로)
         String analysisResult = analyzeImageWithOpenAI(imageUrl);
-        log.info("Image analysis result (Korean): {}", analysisResult);
 
         // 3. 연예인 매칭
         DogCelebrityMapping.DogCelebrityInfo matchingCelebrityInfo = matchCelebrityByExpression(analysisResult);
-        log.info("Matching celebrity: {}, Image URL: {}", matchingCelebrityInfo.getCelebrity(), matchingCelebrityInfo.getImageUrl());
 
         // 4. 최종 프롬프트 완성 (사용자 입력 그대로 사용)
         String detailedPrompt = createFinalPrompt(userPrompt, analysisResult);

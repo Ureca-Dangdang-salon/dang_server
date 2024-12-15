@@ -212,11 +212,13 @@ public class ChatRoomService {
             chatMessageService.saveMessageRedis(wantSendDescriptionMessage);
         }
 
-        if (groomerProfile.getDetails().getStartChat() != null) {
-            ChatMessageDto firstMessage = ChatMessageDto.createTextMessage(++currentSequence, createdChatRoom.getId(),
-                    groomer.getId(), Role.ROLE_SALON.name(), groomerProfile.getDetails().getStartChat());
+        if (groomerProfile.getDetails() != null) {
+            if (groomerProfile.getDetails().getStartChat() != null) {
+                ChatMessageDto firstMessage = ChatMessageDto.createTextMessage(++currentSequence, createdChatRoom.getId(),
+                        groomer.getId(), Role.ROLE_SALON.name(), groomerProfile.getDetails().getStartChat());
 
-            chatMessageService.saveMessageRedis(firstMessage);
+                chatMessageService.saveMessageRedis(firstMessage);
+            }
         }
 
         chatMessageService.saveMessageRedis(estimateMessage);

@@ -1,4 +1,4 @@
-package com.dangdangsalon.chatgpt.dto;
+package com.dangdangsalon.chatgpt;
 
 public enum DogCelebrityMapping {
 
@@ -10,7 +10,7 @@ public enum DogCelebrityMapping {
     BULL_TERRIER("불테리어", "박명수", "https://m.segye.com/content/image/2024/04/03/20240403506251.png"),
     SHEPHERD("셰퍼드", "이연복", "https://img6.yna.co.kr/etc/inner/KR/2019/10/29/AKR20191029084100005_01_i_P2.jpg"),
     SHIH_TZU("시츄", "채수빈", "https://spnimage.edaily.co.kr/images/Photo/files/NP/S/2019/01/PS19011100033.jpg"),
-    POODLE("푸들", "푸들", "https://search.pstatic.net/common/?src=http%3A%2F%2Fimgnews.naver.net%2Fimage%2F609%2F2023%2F12%2F15%2F202312151957421510_1_20231215195804576.jpg&type=a340"),
+    POODLE("푸들", "윈터", "https://search.pstatic.net/common/?src=http%3A%2F%2Fimgnews.naver.net%2Fimage%2F609%2F2023%2F12%2F15%2F202312151957421510_1_20231215195804576.jpg&type=a340"),
     HUSKY("허스키", "이상윤", "https://newsimg.sedaily.com/2019/12/29/1VS9GSK58M_1.jpg"),
     CORGI("웰시코기", "박보영", "https://i.namu.wiki/i/JkML_XrsJw3fSPzxItjfvxNWtF8XkGA8qs3pm7i-n0c7VRjZlC32xt1Vblx2MmOX3io8syX6aoKkaBAUUBLosA.webp"),
     DALMATIAN("달마시안", "한지민", "https://pimg.mk.co.kr/news/cms/202411/08/news-p.v1.20241108.693ff74fdbcc4010aada161b6ef59915_P1.jpg"),

@@ -1,7 +1,7 @@
 package com.dangdangsalon.chatgpt.service;
 
+import com.dangdangsalon.chatgpt.DogCelebrityMapping;
 import com.dangdangsalon.chatgpt.dto.*;
-import com.dangdangsalon.domain.s3image.service.ImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;

@@ -1,6 +1,6 @@
 package com.dangdangsalon.config;
 
-import com.dangdangsalon.domain.coupon.listener.RedisMessageSubscriber;
+//import com.dangdangsalon.domain.coupon.listener.RedisMessageSubscriber;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;

@@ -229,7 +229,7 @@ CREATE TABLE `estimate`
     `description`         text,
     `health_issue_charge` int    NOT NULL,
     `image_key`           varchar(255) DEFAULT NULL,
-    `status`              enum('ACCEPTED','REJECTED','SEND') DEFAULT NULL,
+    `status`              enum('ACCEPTED','REJECTED','SEND', 'PAID') DEFAULT NULL,
     `request_id`          bigint       DEFAULT NULL,
     `groomer_profile_id`  bigint       DEFAULT NULL,
     PRIMARY KEY (`id`),

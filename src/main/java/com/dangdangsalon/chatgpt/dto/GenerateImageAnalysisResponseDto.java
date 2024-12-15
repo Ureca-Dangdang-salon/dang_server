@@ -11,5 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GenerateImageAnalysisResponseDto {
     private String imageUrl;
-    private String translatedAnalysis;
+    private String analysisResult;
+    private String matchingCelebrity;
+    private String celebrityImageUrl;
 }

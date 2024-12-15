@@ -1,5 +1,8 @@
 package com.dangdangsalon.domain.payment.service;
 
+import com.dangdangsalon.domain.estimate.entity.Estimate;
+import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
+import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.estimate.request.entity.RequestStatus;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
@@ -19,6 +22,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -40,6 +46,7 @@ public class PaymentService {
     private final WebClient webClient;
     private final PaymentNotificationService paymentNotificationService;
     private final EstimateRequestRepository estimateRequestRepository;
+    private final EstimateRepository estimateRepository;
 
     @Value("${toss.api.key}")
     private String tossApiKey;
@@ -68,6 +75,7 @@ public class PaymentService {
         }
 
         try {
+            // 결제 금액 유효성 검사
             validatePaymentAmount(paymentApproveRequestDto.getAmount());
             Orders order = ordersRepository.findByTossOrderId(paymentApproveRequestDto.getOrderId())
                     .orElseThrow(() -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다: " + paymentApproveRequestDto.getOrderId()));
@@ -90,15 +98,25 @@ public class PaymentService {
             paymentRepository.save(payment);
             order.updateOrderStatus(OrderStatus.ACCEPTED);
 
+            Estimate estimate = estimateRepository.findById(order.getEstimate().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("견적서를 찾을 수 없습니다 : " + payment.getOrders().getEstimate().getEstimateRequest().getId()));
+
+            estimate.updateStatus(EstimateStatus.PAID);
+
             EstimateRequest estimateRequest = estimateRequestRepository.findById(payment.getOrders().getEstimate().getEstimateRequest().getId())
                     .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다 : " + payment.getOrders().getEstimate().getEstimateRequest().getId()));
 
             estimateRequest.updateRequestStatus(RequestStatus.PAID);
 
+            // 알림
             paymentNotificationService.sendNotificationToUser(order);
 
             return paymentResponse;
+        } catch (Exception e) {
+            log.error("결제 승인 처리 중 오류 발생: {}", e.getMessage());
+            throw e; // 예외 다시 던지기
         } finally {
+            // 멱등키 삭제
             deleteIdempotencyKey(key);
         }
     }
@@ -109,6 +127,7 @@ public class PaymentService {
 
         String idempotencyKey = UUID.randomUUID().toString();
         String key = IDEMPOTENCY_KEY_PREFIX + userId;
+
         // 멱등키 저장 (중복 요청 방지)
         if (saveIdempotencyKey(key, idempotencyKey)) {
             throw new IllegalStateException("이미 동일한 결제 취소 요청이 처리 중입니다.");
@@ -128,11 +147,19 @@ public class PaymentService {
                     .orderId(paymentCancelResponseDto.getOrderId())
                     .status(paymentCancelResponseDto.getStatus())
                     .build();
+        } catch (Exception e) {
+            log.error("결제 취소 처리 중 오류 발생: {}", e.getMessage());
+            throw e;
         } finally {
             deleteIdempotencyKey(key);
         }
     }
 
+    @Retryable(
+            retryFor = { WebClientResponseException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     private PaymentApproveResponseDto sendApprovalRequestToToss(PaymentApproveRequestDto paymentApproveRequestDto, String url, String idempotencyKey) {
         String authorizationHeader = "Basic " + Base64.getEncoder().encodeToString((tossApiKey + ":").getBytes());
 
@@ -156,6 +183,16 @@ public class PaymentService {
         }
     }
 
+    @Recover
+    public void recover(WebClientResponseException ex, PaymentApproveRequestDto requestDto) {
+        log.error("결제 승인 재시도 실패: 요청 ID={}, 오류={}", requestDto.getOrderId(), ex.getMessage());
+    }
+
+    @Retryable(
+            retryFor = { WebClientResponseException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
     private PaymentCancelResponseDto sendCancelRequestToToss(PaymentCancelRequestDto paymentCancelRequestDto, String url, String idempotencyKey) {
         String authorizationHeader = "Basic " + Base64.getEncoder().encodeToString((tossApiKey + ":").getBytes());
 
@@ -177,6 +214,11 @@ public class PaymentService {
         }
     }
 
+    @Recover
+    public void recover(WebClientResponseException ex, PaymentCancelRequestDto requestDto) {
+        log.error("결제 취소 재시도 실패: 요청 ID={}, 오류={}", requestDto.getPaymentKey(), ex.getMessage());
+    }
+
     private void validatePaymentAmount(long amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("결제 금액은 0보다 커야 합니다.");
@@ -191,6 +233,5 @@ public class PaymentService {
     private void deleteIdempotencyKey(String key) {
         redisTemplate.delete(key);
     }
-
 
 }

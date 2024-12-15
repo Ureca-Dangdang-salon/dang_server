@@ -39,28 +39,24 @@ public class ChatGptService {
 
         log.info("Encoded image to Base64: {}", imageUrl);
 
-        // 2. 이미지 분석 (영어로)
+        // 2. 이미지 분석 (한국어로)
         String analysisResult = analyzeImageWithOpenAI(imageUrl);
-        log.info("Image analysis result: {}", analysisResult);
+        log.info("Image analysis result (Korean): {}", analysisResult);
 
-        // 3. 분석 결과 한글로 번역
-        String translatedAnalysisResult = translateEngToKo(analysisResult);
-        log.info("Translated image analysis result: {}", translatedAnalysisResult);
-
-        // 4. 연예인 매칭
-        DogCelebrityMapping.DogCelebrityInfo matchingCelebrityInfo = matchCelebrityByExpression(translatedAnalysisResult);
+        // 3. 연예인 매칭
+        DogCelebrityMapping.DogCelebrityInfo matchingCelebrityInfo = matchCelebrityByExpression(analysisResult);
         log.info("Matching celebrity: {}, Image URL: {}", matchingCelebrityInfo.getCelebrity(), matchingCelebrityInfo.getImageUrl());
 
-        // 5. 최종 프롬프트 완성 (사용자 입력 그대로 사용)
-        String detailedPrompt = createFinalPrompt(userPrompt, translatedAnalysisResult);
+        // 4. 최종 프롬프트 완성 (사용자 입력 그대로 사용)
+        String detailedPrompt = createFinalPrompt(userPrompt, analysisResult);
         log.info("Detailed prompt: {}", detailedPrompt);
 
-        // 6. 이미지 생성
+        // 5. 이미지 생성
         String generatedImageUrl = createImageFromDescription(detailedPrompt);
 
         return GenerateImageAnalysisResponseDto.builder()
                 .imageUrl(generatedImageUrl)
-                .translatedAnalysis(translatedAnalysisResult)
+                .analysisResult(analysisResult)
                 .matchingCelebrity(matchingCelebrityInfo.getCelebrity())
                 .celebrityImageUrl(matchingCelebrityInfo.getImageUrl())
                 .build();
@@ -72,32 +68,38 @@ public class ChatGptService {
 
     private String createFinalPrompt(String userPrompt, String analysisResult) {
         return String.format(
-                "사진에는 %s이/가 있습니다. 사진 속 강아지를 %s 미용 스타일로 만들어주세요",
+                "사진에는 %s 사진 속 강아지를 %s 미용 스타일로 만들어주세요",
                 analysisResult,
                 userPrompt
         );
     }
 
-    // 영어를 한글로 번역
-    private String translateEngToKo(String englishText) {
-        TranslateRequestDto requestDto = TranslateRequestDto.builder()
+    private String analyzeImageWithOpenAI(String imageUrl) {
+        TranslateGptRequestDto request = TranslateGptRequestDto.builder()
                 .model("gpt-4o")
                 .messages(List.of(
-                        MessageResponseDto.builder()
+                        ChatGPTMessage.builder()
                                 .role("user")
-                                .content("Translate the following English text to Korean: " + englishText)
+                                .content(List.of(
+                                        Map.of("type", "text", "text", "다음 이미지를 분석하고 결과를 한국어로 작성해 주세요."),
+                                        Map.of("type", "image_url", "image_url", Map.of("url", imageUrl))
+                                ))
                                 .build()
                 ))
                 .build();
 
-        HttpEntity<TranslateRequestDto> entity = new HttpEntity<>(requestDto, httpHeaders);
+        HttpEntity<TranslateGptRequestDto> entity = new HttpEntity<>(request, httpHeaders);
         ResponseEntity<TranslateResponseDto> response = restTemplate.postForEntity(gptUrl, entity, TranslateResponseDto.class);
 
         if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
             ChoiceResponseDto choice = response.getBody().getChoices().get(0);
             return choice.getMessage().getContent().trim();
         }
-        throw new RuntimeException("Failed to translate text to Korean.");
+        throw new RuntimeException("Failed to analyze image with OpenAI.");
+    }
+
+    private DogCelebrityMapping.DogCelebrityInfo matchCelebrityByExpression(String analysisResult) {
+        return DogCelebrityMapping.matchCelebrity(analysisResult);
     }
 
     private String createImageFromDescription(String prompt) {
@@ -120,33 +122,5 @@ public class ChatGptService {
             throw new RuntimeException("No image URLs returned.");
         }
         throw new RuntimeException("Failed to generate image.");
-    }
-
-    private String analyzeImageWithOpenAI(String imageUrl) {
-        TranslateGptRequestDto request = TranslateGptRequestDto.builder()
-                .model("gpt-4o")
-                .messages(List.of(
-                        ChatGPTMessage.builder()
-                                .role("user")
-                                .content(List.of(
-                                        Map.of("type", "text", "text", "Analyze this image."),
-                                        Map.of("type", "image_url", "image_url", Map.of("url", imageUrl))
-                                ))
-                                .build()
-                ))
-                .build();
-
-        HttpEntity<TranslateGptRequestDto> entity = new HttpEntity<>(request, httpHeaders);
-        ResponseEntity<TranslateResponseDto> response = restTemplate.postForEntity(gptUrl, entity, TranslateResponseDto.class);
-
-        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-            ChoiceResponseDto choice = response.getBody().getChoices().get(0);
-            return choice.getMessage().getContent().trim();
-        }
-        throw new RuntimeException("Failed to analyze image with OpenAI.");
-    }
-
-    private DogCelebrityMapping.DogCelebrityInfo matchCelebrityByExpression(String analysisResult) {
-        return DogCelebrityMapping.matchCelebrity(analysisResult);
     }
 }

@@ -15,12 +15,12 @@ public class EmbeddedRedisConfig {
 
     @Bean
     public RedisServer redisServer() throws IOException {
-        redisServer = new RedisServer(6379); // 테스트용 Redis 포트
+        redisServer = new RedisServer(6379); // 포트를 변경하려면 여기서 수정
         redisServer.start();
         return redisServer;
     }
 
-    // 테스트 종료 후 Redis 서버를 종료
+    // 테스트 종료 시 Redis 서버를 종료
     @Bean
     public void stopRedis() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

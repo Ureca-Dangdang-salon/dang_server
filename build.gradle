@@ -59,7 +59,7 @@ dependencies {
 	implementation 'com.google.firebase:firebase-admin:9.4.1'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.retry:spring-retry'
-	implementation 'it.ozimov:embedded-redis:0.7.2'
+	testImplementation 'com.github.kstyrc:embedded-redis:0.6'
 }
 
 tasks.named('test') {

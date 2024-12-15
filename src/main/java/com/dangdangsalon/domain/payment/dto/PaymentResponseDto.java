@@ -23,4 +23,5 @@ public class PaymentResponseDto {
     private int totalAmount;
     private String status;
     private EstimateStatus estimateStatus;
+    private String paymentKey;
 }

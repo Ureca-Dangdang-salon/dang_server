@@ -12,9 +12,6 @@ import com.dangdangsalon.domain.payment.dto.PaymentDogProfileResponseDto;
 import com.dangdangsalon.domain.payment.dto.PaymentResponseDto;
 import com.dangdangsalon.domain.payment.entity.Payment;
 import com.dangdangsalon.domain.payment.repository.PaymentRepository;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -131,7 +128,5 @@ public class PaymentGetService {
                     .build();
         }).toList();
     }
-
-
 }
 

@@ -142,6 +142,16 @@ public class PaymentService {
 
             payment.updatePaymentStatus(PaymentStatus.CANCELED);
 
+            Estimate estimate = estimateRepository.findById(payment.getOrders().getEstimate().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("견적서를 찾을 수 없습니다 : " + payment.getOrders().getEstimate().getEstimateRequest().getId()));
+
+            estimate.updateStatus(EstimateStatus.REFUND);
+
+            EstimateRequest estimateRequest = estimateRequestRepository.findById(payment.getOrders().getEstimate().getEstimateRequest().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다 : " + payment.getOrders().getEstimate().getEstimateRequest().getId()));
+
+            estimateRequest.updateRequestStatus(RequestStatus.REFUND);
+
             return PaymentCancelResponseDto.builder()
                     .paymentKey(paymentCancelResponseDto.getPaymentKey())
                     .orderId(paymentCancelResponseDto.getOrderId())

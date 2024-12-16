@@ -19,8 +19,8 @@ public class GroomerRecommendResponseDto {
 
         return GroomerRecommendResponseDto.builder()
                 .profileId(groomerProfile.getId())
-                .name(groomerProfile.getUser().getName())
-                .imageKey(groomerProfile.getUser().getImageKey())
+                .name(groomerProfile.getName())
+                .imageKey(groomerProfile.getImageKey())
                 .city(groomerProfile.getUser().getDistrict().getCity().getName())
                 .district(groomerProfile.getUser().getDistrict().getName())
                 .build();

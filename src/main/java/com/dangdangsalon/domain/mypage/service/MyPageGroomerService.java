@@ -93,9 +93,6 @@ public class MyPageGroomerService {
         GroomerProfile groomerProfile = groomerProfileRepository.findById(profileId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 미용사를 찾을 수 없습니다. profileId : " + profileId));
 
-        if (groomerProfile.getDetails() == null) {
-            throw new IllegalArgumentException("해당 미용사의 프로필이 없습니다.");
-        }
         // 서비스 지역 정보 매핑
         List<DistrictResponseDto> serviceDistricts =
                 groomerProfileRepository.findServiceAreasWithDistricts(profileId);

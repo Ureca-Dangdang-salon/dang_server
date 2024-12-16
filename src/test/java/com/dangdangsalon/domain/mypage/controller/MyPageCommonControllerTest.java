@@ -65,7 +65,7 @@ class MyPageCommonControllerTest {
                         .with(csrf())
                 .principal(new UsernamePasswordAuthenticationToken(customOAuth2User, null)))  // CSRF 토큰을 포함하여 요청
                 .andExpect(status().isOk())  // 상태 코드 200 OK 확인
-                .andExpect(jsonPath("$.response.profileImage").value("imageKey"))  // 사용자 이름 확인
+                .andExpect(jsonPath("$.response.imageKey").value("imageKey"))  // 사용자 이름 확인
                 .andExpect(jsonPath("$.response.email").value("email@example.com"));  // 사용자 이메일 확인
     }
 

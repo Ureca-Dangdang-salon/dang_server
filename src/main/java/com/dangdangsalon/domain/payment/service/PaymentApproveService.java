@@ -1,5 +1,8 @@
 package com.dangdangsalon.domain.payment.service;
 
+import com.dangdangsalon.domain.coupon.entity.Coupon;
+import com.dangdangsalon.domain.coupon.entity.CouponStatus;
+import com.dangdangsalon.domain.coupon.repository.CouponRepository;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
@@ -39,6 +42,7 @@ class PaymentApproveService {
     private final EstimateRepository estimateRepository;
     private final EstimateRequestRepository estimateRequestRepository;
     private final PaymentNotificationService paymentNotificationService;
+    private final CouponRepository couponRepository;
     private final WebClient webClient;
 
     @Value("${toss.api.key}")
@@ -60,7 +64,16 @@ class PaymentApproveService {
                 idempotencyKey
         );
 
-        Payment payment = createPayment(order, paymentResponse);
+        Long couponId = paymentApproveRequestDto.getCouponId();
+        Coupon coupon = null;
+
+        if (couponId != null) {
+            coupon = couponRepository.findById(couponId)
+                    .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 쿠폰 ID 입니다: " + couponId));
+            updateCouponStatusToUsed(coupon);
+        }
+
+        Payment payment = createPayment(order, coupon, paymentResponse);
         updateOrderStatus(order);
         updateEstimateAndRequestStatus(order);
 
@@ -119,7 +132,7 @@ class PaymentApproveService {
         }
     }
 
-    private Payment createPayment(Orders order, PaymentApproveResponseDto paymentResponse) {
+    private Payment createPayment(Orders order, Coupon coupon, PaymentApproveResponseDto paymentResponse) {
         Payment payment = Payment.builder()
                 .paymentKey(paymentResponse.getPaymentKey())
                 .totalAmount(paymentResponse.getTotalAmount())
@@ -127,6 +140,7 @@ class PaymentApproveService {
                 .requestedAt(paymentResponse.getApprovedAt().toLocalDateTime())
                 .paymentMethod(paymentResponse.getMethod())
                 .orders(order)
+                .coupon(coupon)
                 .build();
 
         return paymentRepository.save(payment);
@@ -152,5 +166,13 @@ class PaymentApproveService {
     private EstimateRequest findEstimateRequestById(Long requestId) {
         return estimateRequestRepository.findById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("견적 요청을 찾을 수 없습니다: " + requestId));
+    }
+
+    private void updateCouponStatusToUsed(Coupon coupon) {
+
+        if (coupon.getStatus() != CouponStatus.NOT_USED) {
+            throw new IllegalStateException("쿠폰을 사용할 수 없는 상태입니다.");
+        }
+        coupon.updateCouponStatus(CouponStatus.USED);
     }
 }

@@ -65,9 +65,11 @@ public class MyPageGroomerService {
         long reviewCount = groomerProfile.getReviews().size();
 
         // 리뷰 총 점수
-        double totalScore = reviewCount != 0 ? groomerProfile.getReviews().stream()
+        double totalScore = reviewCount != 0
+                ? Math.round(groomerProfile.getReviews().stream()
                 .mapToDouble(Review::getStarScore)
-                .sum() / reviewCount : 0;
+                .sum() / reviewCount * 10) / 10.0
+                : 0;
 
         GroomerProfileDetailsResponseDto groomerProfileDetailsResponseDto =
                 GroomerProfileDetailsResponseDto.create(
@@ -118,9 +120,11 @@ public class MyPageGroomerService {
         long reviewCount = groomerProfile.getReviews().size();
 
         // 리뷰 총 점수
-        double totalScore = groomerProfile.getReviews().stream()
+        double totalScore = reviewCount != 0
+                ? Math.round(groomerProfile.getReviews().stream()
                 .mapToDouble(Review::getStarScore)
-                .sum() / reviewCount;
+                .sum() / reviewCount * 10) / 10.0
+                : 0;
 
         // 응답 DTO 생성
         return GroomerProfileDetailsResponseDto.create(

@@ -40,7 +40,7 @@ public class Payment extends BaseEntity {
     @JoinColumn(name = "order_id")
     private Orders orders;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;
 

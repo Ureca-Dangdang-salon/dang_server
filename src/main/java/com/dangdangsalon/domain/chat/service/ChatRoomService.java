@@ -196,6 +196,8 @@ public class ChatRoomService {
         GroomerProfile groomerProfile = groomerProfileRepository.findByUserId(groomer.getId())
                 .orElseThrow(() -> new IllegalArgumentException("미용사 프로필이 존재하지 않습니다. Id: " + groomer.getId()));
 
+        chatMessageService.saveMessageRedis(estimateMessage);
+
         if (estimate.getImageKey() != null) {
             ChatMessageDto wantSendImageMessage = ChatMessageDto.createImageMessage(++currentSequence,
                     createdChatRoom.getId(),
@@ -220,8 +222,6 @@ public class ChatRoomService {
                 chatMessageService.saveMessageRedis(firstMessage);
             }
         }
-
-        chatMessageService.saveMessageRedis(estimateMessage);
 
         chatRedisUtil.updateCurrentSequence(createdChatRoom.getId(), currentSequence);
     }

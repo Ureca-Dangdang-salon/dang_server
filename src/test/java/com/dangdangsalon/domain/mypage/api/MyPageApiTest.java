@@ -93,7 +93,7 @@ public class MyPageApiTest {
                         List.of(new SimpleGrantedAuthority("ROLE_USER"))));
 
         CommonProfileRequestDto requestDto = CommonProfileRequestDto.builder()
-                .profileImage("imageKey")
+                .imageKey("imageKey")
                 .email("updated@example.com")
                 .build();
 

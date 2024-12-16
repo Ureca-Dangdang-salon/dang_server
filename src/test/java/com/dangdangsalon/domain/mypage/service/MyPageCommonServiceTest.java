@@ -99,7 +99,7 @@ class MyPageCommonServiceTest {
         // then
         verify(userRepository, times(1)).findById(userId);
         verify(districtRepository, times(1)).findById(districtId);
-        verify(mockUser, times(1)).updateUserInfo(requestDto.getProfileImage(),
+        verify(mockUser, times(1)).updateUserInfo(requestDto.getImageKey(),
                 requestDto.getEmail(), mockDistrict);
     }
 

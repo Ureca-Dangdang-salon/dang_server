@@ -33,6 +33,6 @@ public class MyPageCommonService {
         District district = districtRepository.findById(requestDto.getDistrictId()).orElseThrow(() ->
                 new IllegalArgumentException("지역을 찾을 수 없습니다. districtId : " + requestDto.getDistrictId()));;
 
-        user.updateUserInfo(requestDto.getProfileImage(), requestDto.getEmail(), district);
+        user.updateUserInfo(requestDto.getImageKey(), requestDto.getEmail(), district);
     }
 }

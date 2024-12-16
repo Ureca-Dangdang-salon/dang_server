@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CommonProfileRequestDto {
-    private String imageKey;
+    private String profileImage;
     private String email;
     private Long districtId;
 }

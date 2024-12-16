@@ -1,5 +1,8 @@
 package com.dangdangsalon.domain.payment.service;
 
+import com.dangdangsalon.domain.coupon.entity.Coupon;
+import com.dangdangsalon.domain.coupon.entity.CouponStatus;
+import com.dangdangsalon.domain.coupon.repository.CouponRepository;
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
@@ -34,6 +37,7 @@ class PaymentCancelService {
     private final PaymentRepository paymentRepository;
     private final EstimateRepository estimateRepository;
     private final EstimateRequestRepository estimateRequestRepository;
+    private final CouponRepository couponRepository;
     private final WebClient webClient;
 
     @Value("${toss.api.key}")
@@ -43,10 +47,7 @@ class PaymentCancelService {
     private String tossCancelUrl;
 
     @Transactional
-    public PaymentCancelResponseDto processPaymentCancellation(
-            PaymentCancelRequestDto paymentCancelRequestDto,
-            String idempotencyKey
-    ) {
+    public PaymentCancelResponseDto processPaymentCancellation(PaymentCancelRequestDto paymentCancelRequestDto, String idempotencyKey) {
         Payment payment = findPaymentByPaymentKey(paymentCancelRequestDto.getPaymentKey());
 
         String cancelUrl = tossCancelUrl.replace("{paymentKey}", paymentCancelRequestDto.getPaymentKey());
@@ -55,6 +56,14 @@ class PaymentCancelService {
                 cancelUrl,
                 idempotencyKey
         );
+
+        Long couponId = paymentCancelRequestDto.getCouponId();
+
+        if (couponId != null) {
+            Coupon coupon = couponRepository.findById(couponId)
+                    .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 쿠폰 ID 입니다: " + couponId));
+            updateCouponStatusToNotUsed(coupon);
+        }
 
         updatePaymentAndRelatedEntities(payment);
 
@@ -123,5 +132,9 @@ class PaymentCancelService {
                 .orderId(responseDto.getOrderId())
                 .status(responseDto.getStatus())
                 .build();
+    }
+
+    private void updateCouponStatusToNotUsed(Coupon coupon) {
+        coupon.updateCouponStatus(CouponStatus.NOT_USED);
     }
 }

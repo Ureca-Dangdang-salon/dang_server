@@ -99,6 +99,11 @@ class PaymentCancelService {
     @Recover
     public void recover(WebClientResponseException ex, PaymentCancelRequestDto requestDto) {
         log.error("결제 취소 재시도 실패: 요청 ID={}, 오류={}", requestDto.getPaymentKey(), ex.getMessage());
+
+        Payment payment = paymentRepository.findByPaymentKey(requestDto.getPaymentKey())
+                .orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
+
+        payment.updatePaymentStatus(PaymentStatus.REJECTED);
     }
 
     private Payment findPaymentByPaymentKey(String paymentKey) {

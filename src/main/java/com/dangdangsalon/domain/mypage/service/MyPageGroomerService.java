@@ -9,7 +9,7 @@ import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
 import com.dangdangsalon.domain.groomerservice.repository.GroomerServiceRepository;
 import com.dangdangsalon.domain.mypage.dto.req.*;
 import com.dangdangsalon.domain.mypage.dto.res.*;
-import com.dangdangsalon.domain.orders.entity.OrderStatus;
+import com.dangdangsalon.domain.orders.repository.OrdersRepository;
 import com.dangdangsalon.domain.region.entity.District;
 import com.dangdangsalon.domain.region.repository.DistrictRepository;
 import com.dangdangsalon.domain.user.entity.Role;
@@ -31,6 +31,7 @@ public class MyPageGroomerService {
 
     private final GroomerServiceRepository groomerServiceRepository;
     private final DistrictRepository districtRepository;
+    private final OrdersRepository ordersRepository;
 
     // 미용사 마이페이지 조회
     @Transactional(readOnly = true)
@@ -108,10 +109,8 @@ public class MyPageGroomerService {
                 .map(GroomerCertification::getCertification)
                 .toList();
 
-        // 견적 완료 개수
-        long estimateCount = groomerProfile.getEstimates().stream()
-                .filter(request -> request.getStatus() == EstimateStatus.ACCEPTED)
-                .count();
+        // 결제 내역 개수
+        long paymentCount = ordersRepository.countAcceptedOrders(profileId);
 
         // 리뷰 개수
         long reviewCount = groomerProfile.getReviews().size();
@@ -127,7 +126,7 @@ public class MyPageGroomerService {
         return GroomerProfileDetailsResponseDto.create(
                 groomerProfile,
                 GroomerProfileDetailsInfoResponseDto.create(
-                        totalScore, reviewCount, estimateCount, badges,
+                        totalScore, reviewCount, paymentCount, badges,
                         servicesOffered, serviceDistricts, certifications
                 )
         );
@@ -263,7 +262,7 @@ public class MyPageGroomerService {
     }
 
     private void addCertification(List<String> certifications,
-                                    GroomerProfile groomerProfile) {
+                                  GroomerProfile groomerProfile) {
         for (String certification : certifications) {
             GroomerCertification groomerCertification = GroomerCertification.builder()
                     .groomerProfile(groomerProfile)
@@ -274,7 +273,7 @@ public class MyPageGroomerService {
     }
 
     private void addDistrict(List<District> districts,
-                                  GroomerProfile groomerProfile) {
+                             GroomerProfile groomerProfile) {
         for (District district : districts) {
             GroomerServiceArea groomerServiceArea = GroomerServiceArea.builder()
                     .groomerProfile(groomerProfile)
@@ -285,7 +284,7 @@ public class MyPageGroomerService {
     }
 
     private void addCanService(List<GroomerService> services,
-                             GroomerProfile groomerProfile) {
+                               GroomerProfile groomerProfile) {
         for (GroomerService service : services) {
             GroomerCanService groomerCanService = GroomerCanService.builder()
                     .groomerProfile(groomerProfile)

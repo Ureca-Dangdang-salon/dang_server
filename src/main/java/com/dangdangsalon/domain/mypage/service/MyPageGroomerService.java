@@ -155,13 +155,13 @@ public class MyPageGroomerService {
             addCanService(services, groomerProfile);
         }
 
-        // 요청에 포함된 서비스 ID로 GroomerService 리스트 조회
+        // 요청에 포함된 지역 ID로 GroomerService 리스트 조회
         if (requestDto.getServicesDistrictIds() != null && !requestDto.getServicesDistrictIds().isEmpty()) {
             List<District> districts = districtRepository.findAllById(requestDto.getServicesDistrictIds());
 
-            // 유효하지 않은 서비스 ID 확인
+            // 유효하지 않은 지역 ID 확인
             if (districts.size() != requestDto.getServicesDistrictIds().size()) {
-                throw new IllegalArgumentException("유효하지 않은 서비스 ID가 포함되어 있습니다.");
+                throw new IllegalArgumentException("유효하지 않은 지역 ID가 포함되어 있습니다.");
             }
             addDistrict(districts, groomerProfile);
         }
@@ -209,13 +209,13 @@ public class MyPageGroomerService {
         if (requestDto.getCertifications() != null && !requestDto.getCertifications().isEmpty()) {
             addCertification(requestDto.getCertifications(), groomerProfile);
         }
-        // 요청에 포함된 서비스 ID로 GroomerService 리스트 조회
+
         if (requestDto.getServicesDistrictIds() != null && !requestDto.getServicesDistrictIds().isEmpty()) {
             List<District> districts = districtRepository.findAllById(requestDto.getServicesDistrictIds());
 
-            // 유효하지 않은 서비스 ID 확인
+            // 유효하지 않은 지역 ID 확인
             if (districts.size() != requestDto.getServicesDistrictIds().size()) {
-                throw new IllegalArgumentException("유효하지 않은 서비스 ID가 포함되어 있습니다.");
+                throw new IllegalArgumentException("유효하지 않은 지역 ID가 포함되어 있습니다.");
             }
             addDistrict(districts, groomerProfile);
         }

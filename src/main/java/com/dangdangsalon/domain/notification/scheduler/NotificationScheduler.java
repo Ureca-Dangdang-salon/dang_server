@@ -7,6 +7,10 @@ import com.dangdangsalon.domain.notification.dto.ReviewNotificationDto;
 import com.dangdangsalon.domain.notification.service.NotificationEmailService;
 import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.notification.service.RedisNotificationService;
+import com.dangdangsalon.domain.orders.entity.Orders;
+import com.dangdangsalon.domain.payment.entity.Payment;
+import com.dangdangsalon.domain.payment.entity.PaymentStatus;
+import com.dangdangsalon.domain.payment.repository.PaymentRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,50 +36,58 @@ public class NotificationScheduler {
     private final NotificationEmailService notificationEmailService;
     private final ObjectMapper objectMapper;
     private final EstimateRepository estimateRepository;
+    private final PaymentRepository paymentRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final RedisNotificationService redisNotificationService;
 
     @Transactional
-    @Scheduled(cron = "0 05 14 * * ?")
-    public void sendReservationReminder() {
+    @Scheduled(cron = "0 0 20 * * ?")
+    public void sendAcceptedPaymentReminders() {
 
         log.info("예약 알림 스케줄러 시작됨: {}", LocalDateTime.now());
 
         LocalDateTime tomorrowStart = LocalDateTime.now().plusDays(1).toLocalDate().atStartOfDay();
         LocalDateTime tomorrowEnd = tomorrowStart.plusDays(1).minusNanos(1);
 
-        List<Estimate> estimateList = estimateRepository.findReservationsForTomorrow(tomorrowStart, tomorrowEnd);
+        List<Payment> acceptedPayments = paymentRepository.findByPaymentStatus(PaymentStatus.ACCEPTED);
 
-        for (Estimate estimate : estimateList) {
-            Long userId = estimate.getEstimateRequest().getUser().getId();
-            String email = estimate.getEstimateRequest().getUser().getEmail();
-            String title = "예약일 알림";
+        for (Payment payment : acceptedPayments) {
+            Orders order = payment.getOrders();
 
-            String timeOnly = estimate.getDate().format(DateTimeFormatter.ofPattern("HH:mm"));
-            String body = "내일 " + timeOnly + "시에 강아지 미용이 예정되어 있습니다.";
+            if (order != null && order.getEstimate() != null) {
+                LocalDateTime estimateDate = order.getEstimate().getDate();
+                if (estimateDate.isAfter(tomorrowStart) && estimateDate.isBefore(tomorrowEnd)) {
+                    Long userId = order.getUser().getId();
+                    String email = order.getUser().getEmail();
+                    String title = "예약일 알림";
 
-            // 푸시 알림
-            List<String> fcmTokens = notificationService.getFcmTokens(userId);
-            for (String fcmToken : fcmTokens) {
-                notificationService.sendNotificationWithData(fcmToken, title, body, "RESERVATION_REMINDER", estimate.getId());
+                    String timeOnly = estimateDate.format(DateTimeFormatter.ofPattern("HH:mm"));
+                    String body = "내일 " + timeOnly + "시에 강아지 미용이 예정되어 있습니다.";
+
+                    // 푸시 알림
+                    List<String> fcmTokens = notificationService.getFcmTokens(userId);
+                    for (String fcmToken : fcmTokens) {
+                        notificationService.sendNotificationWithData(fcmToken, title, body, "RESERVATION_REMINDER", payment.getId());
+                    }
+
+                    // 이메일 알림
+                    if (email != null) {
+                        notificationEmailService.sendEmailWithTemplate(
+                                email,
+                                title,
+                                "/templates/email.html",
+                                Map.of(
+                                        "userName", order.getUser().getName(),
+                                        "reservationDateTime", estimateDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                                )
+                        );
+                        log.info("이메일 알림 전송: 사용자 ID {}, 이메일 {}", userId, email);
+                    }
+
+                    // Redis 알림 저장
+                    redisNotificationService.saveNotificationToRedis(userId, title, body, "RESERVATION_REMINDER", payment.getId());
+                }
             }
-
-            // 이메일 알림
-            if (email != null) {
-                notificationEmailService.sendEmailWithTemplate(
-                        email,
-                        title,
-                        "/templates/email.html",
-                        Map.of(
-                                "userName", estimate.getEstimateRequest().getUser().getName(),
-                                "reservationDateTime", estimate.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-                        )
-                );
-                log.info("이메일 알림 전송: 사용자 ID {}, 이메일 {}", userId, email);
-            }
-
-            // Redis 알림 저장
-            redisNotificationService.saveNotificationToRedis(userId, title, body, "RESERVATION_REMINDER", estimate.getId());
         }
     }
 

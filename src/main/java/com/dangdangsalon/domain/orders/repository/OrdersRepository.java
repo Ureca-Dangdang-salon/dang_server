@@ -14,7 +14,7 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
 
     Optional<Orders> findByTossOrderId(String tossOrderId);
 
-    Optional<List<Orders>> findAllByUserIdAndStatus(Long userId, OrderStatus status);
+    Optional<List<Orders>> findAllByUserIdAndStatusNot(Long userId, OrderStatus status);
 
     @Query("SELECT o FROM Orders o JOIN o.estimate e WHERE o.user.id = :userId AND o.status = :status AND e.date BETWEEN :contestStartDate AND :contestEndDate")
     Optional<List<Orders>> findAllByUserIdAndStatusAndContestDate(Long userId, OrderStatus status,

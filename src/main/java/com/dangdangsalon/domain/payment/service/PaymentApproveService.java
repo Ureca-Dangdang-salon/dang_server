@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Map;
 
@@ -113,6 +114,20 @@ class PaymentApproveService {
     @Recover
     public void recover(WebClientResponseException ex, PaymentApproveRequestDto requestDto) {
         log.error("결제 승인 재시도 실패: 요청 ID={}, 오류={}", requestDto.getOrderId(), ex.getMessage());
+
+        Orders order = findOrderByTossOrderId(requestDto.getOrderId());
+
+        Payment rejectedPayment = Payment.builder()
+                .paymentKey(requestDto.getPaymentKey())
+                .totalAmount(0)
+                .paymentStatus(PaymentStatus.REJECTED)
+                .requestedAt(LocalDateTime.now())
+                .paymentMethod("UNKNOWN")
+                .orders(order)
+                .coupon(null)
+                .build();
+
+        paymentRepository.save(rejectedPayment);
     }
 
     private void validatePaymentAmount(long amount) {

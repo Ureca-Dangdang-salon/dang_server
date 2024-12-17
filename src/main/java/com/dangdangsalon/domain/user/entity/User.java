@@ -58,7 +58,7 @@ public class User extends BaseEntity {
     @JoinColumn(name = "district_id")
     private District district;
 
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private GroomerProfile groomerProfile;
 
     @Column(name = "notification_enabled")

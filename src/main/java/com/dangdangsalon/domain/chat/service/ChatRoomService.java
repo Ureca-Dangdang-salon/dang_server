@@ -97,7 +97,7 @@ public class ChatRoomService {
 
         return chatRooms.stream()
                 .map(chatRoom -> convertToChatRoomListDto(chatRoom, userRole))
-                .sorted(Comparator.comparingInt(ChatRoomListDto::getUnreadCount))
+                .sorted(Comparator.comparingInt(ChatRoomListDto::getUnreadCount).reversed())
                 .toList();
     }
 

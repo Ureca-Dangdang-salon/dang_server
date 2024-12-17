@@ -57,7 +57,18 @@ public class ChatMessageService {
         if (lastMessage == null) {
             log.info("Redis에 메시지 X -> MongoDB 조회");
             List<ChatMessageDto> mongoMessages = chatMessageMongoService.getChatMessagesInMongo(roomId, 0, 1);
-            return mongoMessages.get(0).getMessageText();
+            ChatMessageDto chatMessage = mongoMessages.get(0);
+            String messageText = chatMessage.getMessageText();
+            String imageUrl = chatMessage.getImageUrl();
+            ChatEstimateInfo estimateInfo = chatMessage.getEstimateInfo();
+
+            if (messageText != null) {
+                return messageText;
+            } else if (imageUrl != null) {
+                return "사진을 보냈습니다.";
+            } else if (estimateInfo != null) {
+                return "견적서를 보냈습니다.";
+            }
         }
 
         return "최신 메시지가 없습니다.";

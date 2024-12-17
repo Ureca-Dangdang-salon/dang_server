@@ -66,8 +66,8 @@ public class EstimateUpdateService {
 
         estimate.updateEstimate(requestDto.getDescription(), requestDto.getImageKey(), requestDto.getTotalAmount(), requestDto.getDate());
 
-        ChatMessageDto updateEstimateMessage = chatRoomService.createUpdateEstimateMessage(estimate);
-        chatMessageService.saveMessageRedis(updateEstimateMessage);
+//        ChatMessageDto updateEstimateMessage = chatRoomService.createUpdateEstimateMessage(estimate);
+//        chatMessageService.saveMessageRedis(updateEstimateMessage);
     }
 
     @Transactional

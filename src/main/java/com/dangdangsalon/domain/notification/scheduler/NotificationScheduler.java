@@ -36,7 +36,7 @@ public class NotificationScheduler {
     private final RedisNotificationService redisNotificationService;
 
     @Transactional
-    @Scheduled(cron = "0 0 20 * * ?")
+    @Scheduled(cron = "0 0 12 * * ?")
     public void sendReservationReminder() {
         LocalDateTime tomorrowStart = LocalDateTime.now().plusDays(1).toLocalDate().atStartOfDay();
         LocalDateTime tomorrowEnd = tomorrowStart.plusDays(1).minusNanos(1);

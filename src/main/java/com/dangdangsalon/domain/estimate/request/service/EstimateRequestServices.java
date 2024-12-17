@@ -78,9 +78,9 @@ public class EstimateRequestServices {
                             })
                             .toList();
 
-                    // 견적서를 조회하고 상태 가져오기
-                    Estimate estimate = estimateRepository.findByEstimateRequestId(estimateRequest.getId())
-                            .orElse(null);
+                    // ACCEPTED 상태인 견적만 조회
+                    Estimate estimate = estimateRepository.findByEstimateRequestIdAndStatus(
+                            estimateRequest.getId(), EstimateStatus.ACCEPTED).orElse(null);
 
                     EstimateStatus estimateStatus = (estimate != null) ? estimate.getStatus() : null;
 
@@ -94,7 +94,6 @@ public class EstimateRequestServices {
                 })
                 .toList();
     }
-
 
     // 견적 그만 받기( 견적 요청을 CANCEL 로 바꾸면 미용사들이 견적서를 보내지 못한다. )
     @Transactional

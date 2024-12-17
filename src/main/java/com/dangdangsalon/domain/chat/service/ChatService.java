@@ -20,6 +20,7 @@ public class ChatService {
                 .senderRole(senderRole)
                 .messageText(chatMessageDto.getMessageText())
                 .imageUrl(chatMessageDto.getImageUrl())
+                .estimateInfo(chatMessageDto.getEstimateInfo())
                 .sendAt(LocalDateTime.now())
                 .build();
 

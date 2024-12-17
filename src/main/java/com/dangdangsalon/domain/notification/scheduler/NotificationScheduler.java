@@ -43,7 +43,8 @@ public class NotificationScheduler {
     @Transactional
     @Scheduled(cron = "0 0 20 * * ?")
     public void sendAcceptedPaymentReminders() {
-        log.info("알림 스케줄러 시작됨: {}", LocalDateTime.now());
+
+        log.info("예약 알림 스케줄러 시작됨: {}", LocalDateTime.now());
 
         LocalDateTime tomorrowStart = LocalDateTime.now().plusDays(1).toLocalDate().atStartOfDay();
         LocalDateTime tomorrowEnd = tomorrowStart.plusDays(1).minusNanos(1);

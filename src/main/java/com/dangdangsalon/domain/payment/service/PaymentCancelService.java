@@ -9,6 +9,9 @@ import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.estimate.request.entity.RequestStatus;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
+import com.dangdangsalon.domain.orders.entity.OrderStatus;
+import com.dangdangsalon.domain.orders.entity.Orders;
+import com.dangdangsalon.domain.orders.repository.OrdersRepository;
 import com.dangdangsalon.domain.payment.dto.PaymentCancelRequestDto;
 import com.dangdangsalon.domain.payment.dto.PaymentCancelResponseDto;
 import com.dangdangsalon.domain.payment.entity.Payment;
@@ -38,6 +41,7 @@ class PaymentCancelService {
     private final EstimateRepository estimateRepository;
     private final EstimateRequestRepository estimateRequestRepository;
     private final CouponRepository couponRepository;
+    private final OrdersRepository ordersRepository;
     private final WebClient webClient;
 
     @Value("${toss.api.key}")
@@ -64,6 +68,11 @@ class PaymentCancelService {
                     .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 쿠폰 ID 입니다: " + couponId));
             updateCouponStatusToNotUsed(coupon);
         }
+
+        Orders orders = ordersRepository.findById(payment.getOrders().getId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문 아이디입니다: " + payment.getOrders().getId()));
+
+        orders.updateOrderStatus(OrderStatus.REJECTED);
 
         updatePaymentAndRelatedEntities(payment);
 

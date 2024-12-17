@@ -6,6 +6,7 @@ import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
 import com.dangdangsalon.domain.orders.entity.Orders;
+import com.dangdangsalon.domain.orders.repository.OrdersRepository;
 import com.dangdangsalon.domain.payment.dto.PaymentCancelRequestDto;
 import com.dangdangsalon.domain.payment.dto.PaymentCancelResponseDto;
 import com.dangdangsalon.domain.payment.entity.Payment;
@@ -20,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 import java.util.Optional;
@@ -38,6 +40,9 @@ class PaymentCancelServiceTest {
 
     @Mock
     private EstimateRepository estimateRepository;
+
+    @Mock
+    private OrdersRepository ordersRepository;
 
     @Mock
     private EstimateRequestRepository estimateRequestRepository;
@@ -99,6 +104,7 @@ class PaymentCancelServiceTest {
         Orders mockOrders = Orders.builder()
                 .estimate(mockEstimate)
                 .build();
+        ReflectionTestUtils.setField(mockOrders, "id", 1L); // 주문 ID 설정
 
         Payment mockPayment = Payment.builder()
                 .paymentKey("PAYMENT_KEY_123")
@@ -111,9 +117,11 @@ class PaymentCancelServiceTest {
                 .status("CANCELED")
                 .build();
 
+        // 목 설정
         given(paymentRepository.findByPaymentKey(anyString())).willReturn(Optional.of(mockPayment));
         given(estimateRepository.findById(anyLong())).willReturn(Optional.of(mockEstimate));
         given(estimateRequestRepository.findById(anyLong())).willReturn(Optional.of(mockEstimateRequest));
+        given(ordersRepository.findById(anyLong())).willReturn(Optional.of(mockOrders)); // 추가된 설정
         given(webClient.post()).willReturn(requestBodyUriSpec);
         given(requestBodyUriSpec.uri(anyString())).willReturn(requestBodySpec);
         given(requestBodySpec.header(anyString(), anyString())).willReturn(requestBodySpec);
@@ -131,6 +139,7 @@ class PaymentCancelServiceTest {
         verify(paymentRepository).findByPaymentKey(anyString());
         verify(estimateRepository).findById(mockEstimate.getId());
         verify(estimateRequestRepository).findById(mockEstimateRequest.getId());
+        verify(ordersRepository).findById(mockOrders.getId()); // 검증 추가
     }
 
 

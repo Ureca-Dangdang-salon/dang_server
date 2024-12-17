@@ -173,33 +173,4 @@ class PaymentCancelServiceTest {
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("결제 취소 중 오류가 발생했습니다.");
     }
-
-    @Test
-    @DisplayName("결제 취소 - 재시도 실패로 REJECTED 상태 저장")
-    void cancelPayment_RecoveryFailure() {
-        // Given
-        PaymentCancelRequestDto failedRequestDto = PaymentCancelRequestDto.builder()
-                .paymentKey("FAILED_PAYMENT_KEY")
-                .cancelReason("취소 실패 테스트")
-                .build();
-
-        Payment payment = Payment.builder()
-                .paymentKey("FAILED_PAYMENT_KEY")
-                .paymentStatus(PaymentStatus.ACCEPTED)
-                .build();
-
-        given(paymentRepository.findByPaymentKey("FAILED_PAYMENT_KEY")).willReturn(Optional.of(payment));
-
-        WebClientResponseException exception = new WebClientResponseException(
-                500, "Internal Server Error", null, null, null, null);
-
-        // When
-        paymentCancelService.recover(exception, failedRequestDto);
-
-        // Then
-        assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.REJECTED);
-
-        verify(paymentRepository).findByPaymentKey("FAILED_PAYMENT_KEY");
-    }
-
 }

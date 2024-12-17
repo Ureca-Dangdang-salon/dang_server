@@ -36,7 +36,7 @@ public class NotificationScheduler {
     private final RedisNotificationService redisNotificationService;
 
     @Transactional
-    @Scheduled(cron = "0 20 12 * * ?")
+    @Scheduled(cron = "0 48 13 * * ?")
     public void sendReservationReminder() {
 
         log.info("예약 알림 스케줄러 시작됨: {}", LocalDateTime.now());

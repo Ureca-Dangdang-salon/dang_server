@@ -6,6 +6,7 @@ import com.dangdangsalon.domain.contest.repository.ContestPostLikeRepository;
 import com.dangdangsalon.domain.contest.repository.ContestPostRepository;
 import com.dangdangsalon.domain.user.entity.User;
 import com.dangdangsalon.domain.user.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -54,6 +55,10 @@ public class ContestPostLikeService {
 //    @Cacheable(value = "likeStatus", key = "'like_status:' + #userId + ':' + #postId")
     public boolean checkIsLiked(Long postId, Long userId) {
         return contestPostLikeRepository.existsByUserIdAndContestPostId(userId, postId);
+    }
+
+    public List<Long> getLikedPostIds(Long userId, List<Long> postIds) {
+        return contestPostLikeRepository.findLikedPostIds(userId, postIds);
     }
 
     private boolean isLike(Long postId, Long userId) {

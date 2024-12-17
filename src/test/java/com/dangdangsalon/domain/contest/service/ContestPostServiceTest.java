@@ -3,6 +3,7 @@ package com.dangdangsalon.domain.contest.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -93,11 +94,12 @@ class ContestPostServiceTest {
     @DisplayName("콘테스트 게시글 조회")
     void getContestPosts() {
         Page<ContestPost> mockPosts = new PageImpl<>(List.of(mockPost));
-
         ReflectionTestUtils.setField(mockPost, "id", 1L);
 
+        List<Long> likedPostIds = List.of(1L); // 좋아요가 눌린 게시글 ID 리스트
+
         given(contestPostRepository.findByContestId(anyLong(), any(Pageable.class))).willReturn(mockPosts);
-        given(contestPostLikeService.checkIsLiked(anyLong(), anyLong())).willReturn(true);
+        given(contestPostLikeService.getLikedPostIds(anyLong(), anyList())).willReturn(likedPostIds);
 
         Page<PostInfoDto> result = contestPostService.getContestPosts(1L, 1L, PageRequest.of(0, 5));
 
@@ -106,7 +108,7 @@ class ContestPostServiceTest {
         assertThat(result.getContent().get(0).isLiked()).isTrue();
 
         verify(contestPostRepository, times(1)).findByContestId(anyLong(), any(Pageable.class));
-        verify(contestPostLikeService, times(1)).checkIsLiked(anyLong(), anyLong());
+        verify(contestPostLikeService, times(1)).getLikedPostIds(anyLong(), anyList());
     }
 
     @Test

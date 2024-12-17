@@ -14,4 +14,8 @@ public interface ContestPostLikeRepository extends JpaRepository<ContestPostLike
     boolean existsByUserIdAndContestPostId(Long userId, Long postId);
 
     void deleteByUserIdAndContestPostId(Long userId, Long postId);
+
+    @Query("SELECT cpl.contestPost.id FROM ContestPostLike cpl WHERE cpl.user.id = :userId AND cpl.contestPost.id IN :postIds")
+    List<Long> findLikedPostIds(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
+
 }

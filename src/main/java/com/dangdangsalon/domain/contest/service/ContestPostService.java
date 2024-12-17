@@ -33,8 +33,16 @@ public class ContestPostService {
     public Page<PostInfoDto> getContestPosts(Long contestId, Long userId, Pageable pageable) {
         Page<ContestPost> posts = contestPostRepository.findByContestId(contestId, pageable);
 
+        // 게시물 ID 목록 가져오기
+        List<Long> postIds = posts.stream()
+                .map(ContestPost::getId)
+                .toList();
+
+        // 한 번의 쿼리로 좋아요 여부 확인
+        List<Long> likedPostIds = contestPostLikeService.getLikedPostIds(userId, postIds);
+
         return posts.map(post -> {
-            boolean isLiked = contestPostLikeService.checkIsLiked(userId, post.getId());
+            boolean isLiked = likedPostIds.contains(post.getId());
             return PostInfoDto.create(post, isLiked);
         });
     }

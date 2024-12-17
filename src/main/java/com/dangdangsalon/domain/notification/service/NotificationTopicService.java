@@ -1,12 +1,16 @@
 package com.dangdangsalon.domain.notification.service;
 
+import com.dangdangsalon.domain.notification.entity.Topic;
+import com.dangdangsalon.domain.notification.repository.TopicRepository;
+import com.dangdangsalon.domain.user.entity.User;
+import com.dangdangsalon.domain.user.repository.UserRepository;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -14,6 +18,52 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class NotificationTopicService {
+
+    private final TopicRepository topicRepository;
+    private final UserRepository userRepository;
+
+    @Transactional
+    public void subscribeToTopicInApp(String fcmToken, String topicName, Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다: " + userId));
+
+        subscribeToTopic(fcmToken, topicName);
+
+        Topic topic = topicRepository.findByTopicNameAndUser(topicName, user)
+                .orElse(Topic.builder()
+                        .topicName(topicName)
+                        .subscribe(true)
+                        .user(user)
+                        .build());
+
+        topic.updateSubscribe(true);
+        topicRepository.save(topic);
+    }
+
+    @Transactional
+    public void unsubscribeFromTopicInApp(String fcmToken, String topicName, Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다: " + userId));
+
+        unsubscribeFromTopic(fcmToken, topicName);
+
+        Topic topic = topicRepository.findByTopicNameAndUser(topicName, user)
+                .orElseThrow(() -> new IllegalArgumentException("구독 중인 주제를 찾을 수 없습니다."));
+
+        topic.updateSubscribe(false);
+    }
+
+    public boolean isSubscribed(String topicName, Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다: " + userId));
+
+        return topicRepository.findByTopicNameAndUser(topicName, user)
+                .map(Topic::getSubscribe)
+                .orElse(false);
+    }
 
     // 주제로 메시지 보내기
     public void sendNotificationToTopic(String topic, String title, String body) {

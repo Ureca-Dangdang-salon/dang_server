@@ -2,11 +2,14 @@ package com.dangdangsalon.domain.notification.service;
 
 import com.dangdangsalon.domain.estimate.entity.Estimate;
 import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
-import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.notification.dto.NotificationDto;
 import com.dangdangsalon.domain.notification.dto.ReviewNotificationDto;
 import com.dangdangsalon.domain.notification.scheduler.NotificationScheduler;
+import com.dangdangsalon.domain.orders.entity.Orders;
+import com.dangdangsalon.domain.payment.entity.Payment;
+import com.dangdangsalon.domain.payment.entity.PaymentStatus;
+import com.dangdangsalon.domain.payment.repository.PaymentRepository;
 import com.dangdangsalon.domain.user.entity.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +27,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -54,6 +56,9 @@ class NotificationSchedulerTest {
     private ValueOperations<String, String> valueOperations;
 
     @Mock
+    private PaymentRepository paymentRepository;
+
+    @Mock
     private RedisNotificationService redisNotificationService;
 
     @InjectMocks
@@ -74,24 +79,28 @@ class NotificationSchedulerTest {
         // Given
         LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
         Estimate mockEstimate = mock(Estimate.class);
+        Orders mockOrder = mock(Orders.class);
+        Payment mockPayment = mock(Payment.class);
 
-        EstimateRequest mockRequest = mock(EstimateRequest.class);
         User mockUser = mock(User.class);
 
         // Mock 데이터 설정
         when(mockEstimate.getDate()).thenReturn(tomorrow);
         when(mockEstimate.getId()).thenReturn(1L);
-        when(mockEstimate.getEstimateRequest()).thenReturn(mockRequest);
-        when(mockRequest.getUser()).thenReturn(mockUser);
+        when(mockOrder.getEstimate()).thenReturn(mockEstimate);
+        when(mockOrder.getUser()).thenReturn(mockUser);
+        when(mockPayment.getOrders()).thenReturn(mockOrder);
+        when(mockPayment.getId()).thenReturn(1L);
+
         when(mockUser.getId()).thenReturn(1L);
         when(mockUser.getEmail()).thenReturn("test1234@naver.com");
         when(mockUser.getName()).thenReturn("테스트 사용자");
 
-        when(estimateRepository.findReservationsForTomorrow(any(), any())).thenReturn(List.of(mockEstimate));
+        when(paymentRepository.findByPaymentStatus(PaymentStatus.ACCEPTED)).thenReturn(List.of(mockPayment));
         when(notificationService.getFcmTokens(1L)).thenReturn(Arrays.asList("dummyFcmToken1", "dummyFcmToken2"));
 
         // When
-        notificationScheduler.sendReservationReminder();
+        notificationScheduler.sendAcceptedPaymentReminders();
 
         // Then
         verify(notificationService, times(2)).sendNotificationWithData(
@@ -99,7 +108,7 @@ class NotificationSchedulerTest {
                 eq("예약일 알림"),
                 anyString(),
                 eq("RESERVATION_REMINDER"),
-                eq(1L)
+                anyLong()
         );
         verify(notificationEmailService, times(1)).sendEmailWithTemplate(
                 eq("test1234@naver.com"),
@@ -111,7 +120,7 @@ class NotificationSchedulerTest {
                 ))
         );
         verify(redisNotificationService, times(1)).saveNotificationToRedis(
-                eq(1L), eq("예약일 알림"), anyString(), eq("RESERVATION_REMINDER"), eq(1L)
+                eq(1L), eq("예약일 알림"), anyString(), eq("RESERVATION_REMINDER"), anyLong()
         );
     }
 

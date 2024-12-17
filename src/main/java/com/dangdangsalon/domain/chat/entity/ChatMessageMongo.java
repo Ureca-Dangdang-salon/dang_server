@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.chat.entity;
 
+import com.dangdangsalon.domain.chat.dto.ChatEstimateInfo;
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
 import jakarta.persistence.Id;
 import java.time.LocalDateTime;
@@ -21,12 +22,12 @@ public class ChatMessageMongo {
     private String senderRole;
     private String messageText;
     private String imageUrl;
+    private ChatEstimateInfo estimateInfo;
     private LocalDateTime sendAt;
 
     @Builder
     public ChatMessageMongo(String id, Long sequence, Long roomId, Long senderId, String senderRole, String messageText,
-                            String imageUrl,
-                            LocalDateTime sendAt) {
+                            String imageUrl, ChatEstimateInfo estimateInfo, LocalDateTime sendAt) {
         this.id = id;
         this.sequence = sequence;
         this.roomId = roomId;
@@ -34,6 +35,7 @@ public class ChatMessageMongo {
         this.senderRole = senderRole;
         this.messageText = messageText;
         this.imageUrl = imageUrl;
+        this.estimateInfo = estimateInfo;
         this.sendAt = sendAt;
     }
 
@@ -46,6 +48,7 @@ public class ChatMessageMongo {
                 .senderRole(message.getSenderRole())
                 .messageText(message.getMessageText())
                 .imageUrl(message.getImageUrl())
+                .estimateInfo(message.getEstimateInfo())
                 .sendAt(message.getSendAt())
                 .build();
     }

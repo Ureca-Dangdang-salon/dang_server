@@ -67,8 +67,10 @@ public class GroomerEstimateRequestService {
         return groomerEstimateRequestList.stream()
                 .filter(groomerEstimateRequest -> !groomerEstimateRequest.getEstimateRequest().getRequestStatus().equals(RequestStatus.CANCEL))
                 .map(groomerEstimateRequest -> {
-                    Estimate estimate = estimateRepository.findByEstimateRequestId(groomerEstimateRequest.getEstimateRequest().getId())
-                            .orElse(null);
+                    Estimate estimate = estimateRepository.findByEstimateRequestIdAndGroomerProfileId(
+                            groomerEstimateRequest.getEstimateRequest().getId(),
+                            groomerProfileId
+                    ).orElse(null);
                     return EstimateRequestResponseDto.toDto(groomerEstimateRequest, estimate);
                 })
                 .toList();

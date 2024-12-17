@@ -13,4 +13,5 @@ public class PaymentApproveRequestDto {
     private String paymentKey;
     private String orderId;
     private int amount;
+    private Long couponId;
 }

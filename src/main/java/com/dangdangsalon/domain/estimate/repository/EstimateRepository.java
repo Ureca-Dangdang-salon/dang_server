@@ -31,4 +31,6 @@ public interface EstimateRepository extends JpaRepository<Estimate, Long> {
     Optional<Estimate> findWithEstimateById(@Param("estimateId") Long estimateId);
 
     Optional<Estimate> findByEstimateRequestId(Long requestId);
+
+    Optional<Estimate> findByEstimateRequestIdAndGroomerProfileId(Long estimateRequestId, Long groomerProfileId);
 }

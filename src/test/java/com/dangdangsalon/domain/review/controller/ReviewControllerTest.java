@@ -3,6 +3,7 @@ package com.dangdangsalon.domain.review.controller;
 import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerDetails;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerServiceArea;
 import com.dangdangsalon.domain.groomerprofile.review.controller.ReviewController;
 import com.dangdangsalon.domain.groomerprofile.review.dto.ReviewGroomerResponseDto;
 import com.dangdangsalon.domain.groomerprofile.review.dto.ReviewInsertRequestDto;
@@ -27,6 +28,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
@@ -68,18 +70,29 @@ class ReviewControllerTest {
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        User user = User.builder()
-                .name("user1")
+        City city = City.builder()
+                .name("서울시")
+                .build();
+        District district = District.builder()
+                .name("종로구")
+                .city(city)
                 .build();
 
-        GroomerDetails details = GroomerDetails.builder()
-                .address("미용 주소")
+        // Mock 데이터 설정
+        User user = User.builder()
+                .name("user1")
+                .district(district)
                 .build();
 
         GroomerProfile profile = GroomerProfile.builder()
                 .name("groomer1")
-                .details(details)
                 .build();
+
+        GroomerServiceArea area = GroomerServiceArea.builder()
+                .district(district)
+                .groomerProfile(profile)
+                .build();
+        ReflectionTestUtils.setField(profile, "groomerServiceAreas", List.of(area));
 
         // Review 생성 및 저장
         Review review1 = Review.builder()

@@ -2,6 +2,8 @@ package com.dangdangsalon.domain.payment.service;
 
 import com.dangdangsalon.domain.contest.dto.ContestPaymentDto;
 import com.dangdangsalon.domain.contest.dto.ContestPaymentRequestDto;
+import com.dangdangsalon.domain.coupon.entity.Coupon;
+import com.dangdangsalon.domain.coupon.repository.CouponRepository;
 import com.dangdangsalon.domain.estimate.request.dto.ServicePriceResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestServiceRepository;
@@ -12,9 +14,6 @@ import com.dangdangsalon.domain.payment.dto.PaymentDogProfileResponseDto;
 import com.dangdangsalon.domain.payment.dto.PaymentResponseDto;
 import com.dangdangsalon.domain.payment.entity.Payment;
 import com.dangdangsalon.domain.payment.repository.PaymentRepository;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +26,7 @@ public class PaymentGetService {
 
     private final OrdersRepository ordersRepository;
     private final PaymentRepository paymentRepository;
+    private final CouponRepository couponRepository;
     private final EstimateRequestServiceRepository estimateRequestServiceRepository;
 
     @Transactional(readOnly = true)
@@ -43,19 +43,11 @@ public class PaymentGetService {
                             "주문 ID " + order.getId() + "에 대한 결제 정보가 없습니다."
                     ));
 
+            Coupon coupon = findCouponForPayment(payment);
+
             List<PaymentDogProfileResponseDto> dogProfileList = getDogProfileServices(order);
 
-            return PaymentResponseDto.builder()
-                    .groomerName(order.getEstimate().getGroomerProfile().getName())
-                    .groomerImage(order.getEstimate().getGroomerProfile().getImageKey())
-                    .reservationDate(order.getEstimate().getDate())
-                    .paymentDate(payment.getRequestedAt())
-                    .dogProfileList(dogProfileList)
-                    .totalAmount(payment.getTotalAmount())
-                    .status(payment.getPaymentStatus().toString())
-                    .estimateStatus(order.getEstimate().getStatus())
-                    .paymentKey(payment.getPaymentKey())
-                    .build();
+            return PaymentResponseDto.from(payment, order, coupon, dogProfileList);
         }).toList();
     }
 
@@ -132,6 +124,12 @@ public class PaymentGetService {
         }).toList();
     }
 
-
+    private Coupon findCouponForPayment(Payment payment) {
+        if (payment.getCoupon() == null) {
+            return null;
+        }
+        return couponRepository.findById(payment.getCoupon().getId())
+                .orElseThrow(() -> new IllegalArgumentException("결제에 맞는 쿠폰이 없습니다."));
+    }
 }
 

@@ -31,11 +31,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatRoomService {
 
     private final EstimateRepository estimateRepository;
@@ -196,7 +198,10 @@ public class ChatRoomService {
         GroomerProfile groomerProfile = groomerProfileRepository.findByUserId(groomer.getId())
                 .orElseThrow(() -> new IllegalArgumentException("미용사 프로필이 존재하지 않습니다. Id: " + groomer.getId()));
 
+        chatMessageService.saveMessageRedis(estimateMessage);
+
         if (estimate.getImageKey() != null) {
+            log.info("getImageKey= " + estimate.getImageKey());
             ChatMessageDto wantSendImageMessage = ChatMessageDto.createImageMessage(++currentSequence,
                     createdChatRoom.getId(),
                     groomer.getId(), Role.ROLE_SALON.name(), estimate.getImageKey());
@@ -205,6 +210,7 @@ public class ChatRoomService {
         }
 
         if (estimate.getDescription() != null) {
+            log.info("getDescription= " + estimate.getDescription());
             ChatMessageDto wantSendDescriptionMessage = ChatMessageDto.createTextMessage(++currentSequence,
                     createdChatRoom.getId(),
                     groomer.getId(), Role.ROLE_SALON.name(), estimate.getDescription());
@@ -220,8 +226,6 @@ public class ChatRoomService {
                 chatMessageService.saveMessageRedis(firstMessage);
             }
         }
-
-        chatMessageService.saveMessageRedis(estimateMessage);
 
         chatRedisUtil.updateCurrentSequence(createdChatRoom.getId(), currentSequence);
     }

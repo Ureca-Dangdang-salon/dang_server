@@ -19,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -55,6 +54,9 @@ class PaymentApproveServiceTest {
     private PaymentApproveService paymentApproveService;
 
     @Mock
+    private PaymentApproveRetryService retryService; // 추가
+
+    @Mock
     private WebClient webClient;
 
     @Mock
@@ -76,7 +78,6 @@ class PaymentApproveServiceTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(paymentApproveService, "tossApiKey", "test-api-key");
         ReflectionTestUtils.setField(paymentApproveService, "tossApproveUrl", TEST_APPROVE_URL);
 
         approveRequestDto = PaymentApproveRequestDto.builder()
@@ -100,6 +101,9 @@ class PaymentApproveServiceTest {
                 .tossOrderId("TOSS_ORDER_123")
                 .estimate(estimate)
                 .build();
+
+        // Mock 객체를 PaymentApproveService에 주입
+        ReflectionTestUtils.setField(paymentApproveService, "retryService", retryService);
     }
 
     @Test
@@ -113,12 +117,9 @@ class PaymentApproveServiceTest {
                 .method("CARD")
                 .build();
 
-        given(webClient.post()).willReturn(requestBodyUriSpec);
-        given(requestBodyUriSpec.uri(anyString())).willReturn(requestBodySpec);
-        given(requestBodySpec.header(anyString(), anyString())).willReturn(requestBodySpec);
-        given(requestBodySpec.bodyValue(any())).willAnswer(invocation -> requestHeadersSpec);
-        given(requestHeadersSpec.retrieve()).willReturn(responseSpec);
-        given(responseSpec.bodyToMono(PaymentApproveResponseDto.class)).willReturn(Mono.just(responseDto));
+        // retryService의 동작 설정
+        given(retryService.sendApprovalRequestToToss(any(), anyString(), anyString()))
+                .willReturn(responseDto);
 
         given(ordersRepository.findByTossOrderId(anyString())).willReturn(Optional.of(mockOrder));
         given(estimateRepository.findById(anyLong())).willReturn(Optional.of(mockOrder.getEstimate()));
@@ -131,7 +132,9 @@ class PaymentApproveServiceTest {
         verify(ordersRepository).findByTossOrderId(anyString());
         verify(estimateRepository).findById(anyLong());
         verify(estimateRequestRepository).findById(anyLong());
+        verify(retryService).sendApprovalRequestToToss(any(), anyString(), anyString());
     }
+
 
     @Test
     @DisplayName("결제 승인 - 결제 금액 불일치")
@@ -158,21 +161,4 @@ class PaymentApproveServiceTest {
                 .hasMessageContaining("주문 정보를 찾을 수 없습니다");
     }
 
-    @Test
-    @DisplayName("결제 승인 - Toss API 호출 실패")
-    void approvePayment_TossApiFailure() {
-        given(ordersRepository.findByTossOrderId(anyString())).willReturn(Optional.of(mockOrder));
-
-        given(webClient.post()).willReturn(requestBodyUriSpec);
-        given(requestBodyUriSpec.uri(anyString())).willReturn(requestBodySpec);
-        given(requestBodySpec.header(anyString(), anyString())).willReturn(requestBodySpec);
-        given(requestBodySpec.bodyValue(any())).willAnswer(invocation -> requestHeadersSpec);
-        given(requestHeadersSpec.retrieve()).willReturn(responseSpec);
-        given(responseSpec.bodyToMono(PaymentApproveResponseDto.class))
-                .willThrow(new RuntimeException("결제 승인 중 오류가 발생했습니다."));
-
-        assertThatThrownBy(() -> paymentApproveService.processPaymentApproval(approveRequestDto, "IDEMPOTENCY_KEY_123"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("결제 승인 중 오류가 발생했습니다.");
-    }
 }

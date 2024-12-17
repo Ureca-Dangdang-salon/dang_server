@@ -59,6 +59,7 @@ dependencies {
 	implementation 'com.google.firebase:firebase-admin:9.4.1'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.retry:spring-retry'
+	implementation 'org.springframework:spring-aspects'
 }
 
 tasks.named('test') {

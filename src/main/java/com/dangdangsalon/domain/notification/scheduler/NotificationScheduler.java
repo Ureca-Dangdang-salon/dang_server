@@ -36,8 +36,11 @@ public class NotificationScheduler {
     private final RedisNotificationService redisNotificationService;
 
     @Transactional
-    @Scheduled(cron = "0 0 12 * * ?")
+    @Scheduled(cron = "0 20 12 * * ?")
     public void sendReservationReminder() {
+
+        log.info("예약 알림 스케줄러 시작됨: {}", LocalDateTime.now());
+
         LocalDateTime tomorrowStart = LocalDateTime.now().plusDays(1).toLocalDate().atStartOfDay();
         LocalDateTime tomorrowEnd = tomorrowStart.plusDays(1).minusNanos(1);
 
@@ -68,6 +71,7 @@ public class NotificationScheduler {
                                 "reservationDateTime", estimate.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
                         )
                 );
+                log.info("이메일 알림 전송: 사용자 ID {}, 이메일 {}", userId, email);
             }
 
             // Redis 알림 저장

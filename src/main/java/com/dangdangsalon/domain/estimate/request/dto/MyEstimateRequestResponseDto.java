@@ -1,5 +1,6 @@
 package com.dangdangsalon.domain.estimate.request.dto;
 
+import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.estimate.request.entity.RequestStatus;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,12 +17,14 @@ public class MyEstimateRequestResponseDto {
     private List<DogNameResponseDto> dogList;
     private LocalDateTime date;
     private RequestStatus status;
+    private EstimateStatus estimateStatus;
 
     @Builder
-    public MyEstimateRequestResponseDto(Long requestId,List<DogNameResponseDto> dogList, LocalDateTime date, RequestStatus status) {
+    public MyEstimateRequestResponseDto(Long requestId,List<DogNameResponseDto> dogList, LocalDateTime date, RequestStatus status, EstimateStatus estimateStatus) {
         this.requestId = requestId;
         this.dogList = dogList;
         this.date = date;
         this.status = status;
+        this.estimateStatus = estimateStatus;
     }
 }

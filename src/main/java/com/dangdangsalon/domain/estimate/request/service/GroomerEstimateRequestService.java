@@ -5,6 +5,7 @@ import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequest;
+import com.dangdangsalon.domain.estimate.request.entity.RequestStatus;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerCanService;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerServiceArea;
@@ -64,9 +65,12 @@ public class GroomerEstimateRequestService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 요청에 대한 미용사 정보를 찾을 수 없습니다"));
 
         return groomerEstimateRequestList.stream()
+                .filter(groomerEstimateRequest -> !groomerEstimateRequest.getEstimateRequest().getRequestStatus().equals(RequestStatus.CANCEL))
                 .map(groomerEstimateRequest -> {
-                    Estimate estimate = estimateRepository.findByEstimateRequestId(groomerEstimateRequest.getEstimateRequest().getId())
-                            .orElse(null);
+                    Estimate estimate = estimateRepository.findByEstimateRequestIdAndGroomerProfileId(
+                            groomerEstimateRequest.getEstimateRequest().getId(),
+                            groomerProfileId
+                    ).orElse(null);
                     return EstimateRequestResponseDto.toDto(groomerEstimateRequest, estimate);
                 })
                 .toList();

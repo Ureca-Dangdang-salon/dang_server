@@ -11,6 +11,7 @@ import com.dangdangsalon.domain.mypage.dto.req.GroomerDetailsUpdateRequestDto;
 import com.dangdangsalon.domain.mypage.dto.req.GroomerProfileDetailsRequestDto;
 import com.dangdangsalon.domain.mypage.dto.req.GroomerProfileRequestDto;
 import com.dangdangsalon.domain.mypage.dto.res.*;
+import com.dangdangsalon.domain.orders.repository.OrdersRepository;
 import com.dangdangsalon.domain.region.entity.City;
 import com.dangdangsalon.domain.region.entity.District;
 import com.dangdangsalon.domain.region.repository.DistrictRepository;
@@ -52,6 +53,9 @@ class MyPageGroomerServiceTest {
     @Mock
     private DistrictRepository districtRepository;
 
+    @Mock
+    private OrdersRepository ordersRepository;
+
     @Test
     @DisplayName("미용사 마이페이지 조회 성공 테스트")
     void getGroomerProfilePage_success() {
@@ -75,6 +79,7 @@ class MyPageGroomerServiceTest {
         when(groomerProfileRepository.findByUserIdWithDistrict(userId)).thenReturn(Optional.of(groomerProfile));
         when(groomerProfileRepository.findServiceAreasWithDistricts(1L)).thenReturn(List.of());
         when(groomerProfileRepository.findGroomerServiceDescriptions(1L)).thenReturn(List.of());
+        when(groomerProfileRepository.findBadgesByProfileId(1L)).thenReturn(List.of());
         when(groomerProfileRepository.findBadgesByProfileId(1L)).thenReturn(List.of());
 
         // When

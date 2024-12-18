@@ -7,6 +7,7 @@ import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
 public class KafkaTopicConfig {
+
     @Bean
     public NewTopic chatTopic() {
         return TopicBuilder.name("chat-topic")

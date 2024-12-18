@@ -50,28 +50,28 @@ public interface GroomerProfileRepository extends JpaRepository<GroomerProfile, 
     List<BadgeResponseDto> findBadgesByProfileId(@Param("profileId") Long profileId);
 
     @Query("SELECT new com.dangdangsalon.domain.mypage.dto.res.GroomerRecommendResponseDto( " +
-            "gp.id, u.name, u.imageKey, c.name, d.name) " +
+            "gp.id, gp.name, gp.imageKey, c.name, d.name) " +
             "FROM GroomerProfile gp " +
             "JOIN gp.user u " +
             "JOIN gp.estimates e " +
             "JOIN u.district d " +
             "JOIN d.city c " +
             "WHERE e.status = :status " +
-            "GROUP BY gp.id, u.name, u.imageKey, c.name, d.name " +
+            "GROUP BY gp.id, gp.name, gp.imageKey, c.name, d.name " +
             "ORDER BY COUNT(e) DESC")
     List<GroomerRecommendResponseDto> findTop5ByAcceptedOrdersWithDto(
             @Param("status") EstimateStatus status,
             Pageable pageable);
 
     @Query("SELECT new com.dangdangsalon.domain.mypage.dto.res.GroomerRecommendResponseDto( " +
-            "gp.id, u.name, u.imageKey, c.name, d.name) " +
+            "gp.id, gp.name, gp.imageKey, c.name, d.name) " +
             "FROM GroomerProfile gp " +
             "JOIN gp.user u " +
             "JOIN u.district d " +
             "JOIN d.city c " +
             "LEFT JOIN gp.reviews r " +
             "WHERE d.name = :districtName " +
-            "GROUP BY gp.id, u.name, u.imageKey, c.name, d.name " +
+            "GROUP BY gp.id, gp.name, gp.imageKey, c.name, d.name " +
             "ORDER BY AVG(r.starScore) DESC, COUNT(r.id) DESC")
     List<GroomerRecommendResponseDto> findTop5GroomersInArea(
             @Param("districtName") String districtName,

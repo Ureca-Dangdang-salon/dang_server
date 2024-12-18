@@ -47,9 +47,10 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint()) // 인증 실패 시 동작
                         .accessDeniedHandler(new CustomAccessDeniedHandler())) //권한 부족 시 동작
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/oauth2/authorization/**", "/api/test", "/actuator/**",
+                        .requestMatchers("/", "/oauth2/authorization/**", "/api/test", "/actuator/**",
                                 "/api/contests/winner/**", "/api/images/**", "/api/groomerprofile/{groomerProfileId}",
-                                "/api/auth/check/login", "/api/auth/refresh", "/ws/chat/**", "/custom/login", "/oauth2/**")
+                                "/api/auth/check/login", "/api/auth/refresh", "/ws/chat/**", "/custom/login", "/oauth2/**",
+                                "/api/coupons/queue/updates/**")
                         .permitAll()
                         .requestMatchers("/api/auth/join").hasRole("PENDING")
                         .anyRequest().hasAnyRole("USER", "SALON", "ADMIN") // 나머지 경로는 인증 필요

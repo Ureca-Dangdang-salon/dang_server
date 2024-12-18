@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.payment.entity;
 
 import com.dangdangsalon.config.base.BaseEntity;
+import com.dangdangsalon.domain.coupon.entity.Coupon;
 import com.dangdangsalon.domain.orders.entity.Orders;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -39,15 +40,20 @@ public class Payment extends BaseEntity {
     @JoinColumn(name = "order_id")
     private Orders orders;
 
+    @ManyToOne
+    @JoinColumn(name = "coupon_id")
+    private Coupon coupon;
+
     @Builder
     public Payment(String paymentKey, int totalAmount, PaymentStatus paymentStatus,
-                   LocalDateTime requestedAt, String paymentMethod, Orders orders) {
+                   LocalDateTime requestedAt, String paymentMethod, Orders orders, Coupon coupon) {
         this.paymentKey = paymentKey;
         this.totalAmount = totalAmount;
         this.paymentStatus = paymentStatus;
         this.requestedAt = requestedAt;
         this.paymentMethod = paymentMethod;
         this.orders = orders;
+        this.coupon = coupon;
     }
 
     public void updatePaymentStatus(PaymentStatus paymentStatus) {

@@ -22,6 +22,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # Redis 컨테이너 실행
+      - name: Start Redis
+        run: |
+          docker run -d --name redis-test -p 6379:6379 redis:6.2
+
       - name: Run tests
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -40,6 +45,7 @@ jobs:
           TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
           FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          OPENAI_SECRET_KEY: ${{ secrets.OPENAI_SECRET_KEY }}
         run: |
           chmod +x ./gradlew
           ./gradlew clean test -Dspring.profiles.active=test
@@ -59,6 +65,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Start Redis
+        run: |
+          docker run -d --name redis-test -p 6379:6379 redis:6.2
+
       - name: Build JAR file
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -77,6 +87,7 @@ jobs:
           TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
           FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          OPENAI_SECRET_KEY: ${{ secrets.OPENAI_SECRET_KEY }}
         run: |
           chmod +x ./gradlew
           ./gradlew clean build -Dspring.profiles.active=test
@@ -117,6 +128,10 @@ jobs:
           MONGODB_HOST: ${{ secrets.MONGODB_HOST }}
           MONGODB_PORT: ${{ secrets.MONGODB_PORT }}
           MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
+          TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+          FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          OPENAI_SECRET_KEY: ${{ secrets.OPENAI_SECRET_KEY }}
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa

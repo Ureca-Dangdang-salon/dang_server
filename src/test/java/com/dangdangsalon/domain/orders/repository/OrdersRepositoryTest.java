@@ -115,14 +115,14 @@ class OrdersRepositoryTest {
         em.flush();
 
         // When
-        Optional<List<Orders>> result = ordersRepository.findAllByUserIdAndStatus(user.getId(), OrderStatus.ACCEPTED);
+        Optional<List<Orders>> result = ordersRepository.findAllByUserIdAndStatusNot(user.getId(), OrderStatus.PENDING);
 
         // Then
         assertThat(result).isPresent();
-        assertThat(result.get()).hasSize(2);
+        assertThat(result.get()).hasSize(3);
         assertThat(result.get())
                 .extracting("tossOrderId")
-                .containsExactlyInAnyOrder("TOSS_ORDER_789", "TOSS_ORDER_101");
+                .containsExactlyInAnyOrder("TOSS_ORDER_789", "TOSS_ORDER_101", "TOSS_ORDER_102");
     }
 
 
@@ -150,7 +150,7 @@ class OrdersRepositoryTest {
     @DisplayName("존재하지 않는 사용자와 상태로 조회 테스트")
     void testFindAllByUserIdAndStatus_NotFound() {
         // When
-        Optional<List<Orders>> result = ordersRepository.findAllByUserIdAndStatus(99L, OrderStatus.PENDING);
+        Optional<List<Orders>> result = ordersRepository.findAllByUserIdAndStatusNot(99L, OrderStatus.PENDING);
 
         // Then
         assertThat(result).isPresent();

@@ -8,6 +8,7 @@ import com.dangdangsalon.domain.coupon.service.CouponIssueService;
 import com.dangdangsalon.domain.coupon.service.CouponService;
 import com.dangdangsalon.util.ApiUtil;
 import com.dangdangsalon.util.ApiUtil.ApiSuccess;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

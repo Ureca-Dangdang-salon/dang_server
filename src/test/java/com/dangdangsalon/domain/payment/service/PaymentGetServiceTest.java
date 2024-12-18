@@ -125,7 +125,7 @@ class PaymentGetServiceTest {
     @DisplayName("사용자의 결제 내역 조회")
     void getPayments_Success() {
         // Given
-        given(ordersRepository.findAllByUserIdAndStatus(anyLong(), any(OrderStatus.class)))
+        given(ordersRepository.findAllByUserIdAndStatusNot(anyLong(), any(OrderStatus.class)))
                 .willReturn(Optional.of(List.of(mockOrder)));
 
         given(paymentRepository.findByOrders(any(Orders.class)))
@@ -158,7 +158,7 @@ class PaymentGetServiceTest {
         assertThat(service.getDescription()).isEqualTo("목욕 서비스");
         assertThat(service.getPrice()).isEqualTo(10000);
 
-        verify(ordersRepository, times(1)).findAllByUserIdAndStatus(anyLong(), any(OrderStatus.class));
+        verify(ordersRepository, times(1)).findAllByUserIdAndStatusNot(anyLong(), any(OrderStatus.class));
         verify(paymentRepository, times(1)).findByOrders(any(Orders.class));
         verify(estimateRequestServiceRepository, times(1)).findByEstimateRequestProfilesId(anyLong());
     }
@@ -167,15 +167,15 @@ class PaymentGetServiceTest {
     @DisplayName("결제 완료된 주문이 없는 경우")
     void getPayments_NoPayments() {
         // Given
-        given(ordersRepository.findAllByUserIdAndStatus(anyLong(), any(OrderStatus.class)))
+        given(ordersRepository.findAllByUserIdAndStatusNot(anyLong(), any(OrderStatus.class)))
                 .willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> paymentGetService.getPayments(mockUser.getId()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("결제 완료된 주문이 없습니다.");
+                .hasMessageContaining("결제 관련 주문이 없습니다.");
 
-        verify(ordersRepository, times(1)).findAllByUserIdAndStatus(anyLong(), any(OrderStatus.class));
+        verify(ordersRepository, times(1)).findAllByUserIdAndStatusNot(anyLong(), any(OrderStatus.class));
         verify(paymentRepository, times(0)).findByOrders(any(Orders.class));
         verify(estimateRequestServiceRepository, times(0)).findByEstimateRequestProfilesId(anyLong());
     }
@@ -184,7 +184,7 @@ class PaymentGetServiceTest {
     @DisplayName("주문 ID에 대한 결제 정보가 없을 때 예외 발생")
     void getPayments_PaymentNotFound() {
         // Given
-        given(ordersRepository.findAllByUserIdAndStatus(anyLong(), any(OrderStatus.class)))
+        given(ordersRepository.findAllByUserIdAndStatusNot(anyLong(), any(OrderStatus.class)))
                 .willReturn(Optional.of(List.of(mockOrder)));
 
         given(paymentRepository.findByOrders(any(Orders.class)))
@@ -196,7 +196,7 @@ class PaymentGetServiceTest {
                 .hasMessageContaining("주문 ID " + mockOrder.getId() + "에 대한 결제 정보가 없습니다.");
 
         // Verify
-        verify(ordersRepository, times(1)).findAllByUserIdAndStatus(anyLong(), any(OrderStatus.class));
+        verify(ordersRepository, times(1)).findAllByUserIdAndStatusNot(anyLong(), any(OrderStatus.class));
         verify(paymentRepository, times(1)).findByOrders(any(Orders.class));
         verify(estimateRequestServiceRepository, times(0)).findByEstimateRequestProfilesId(anyLong());
     }

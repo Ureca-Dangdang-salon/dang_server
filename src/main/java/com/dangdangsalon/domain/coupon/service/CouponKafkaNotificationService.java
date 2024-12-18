@@ -25,13 +25,13 @@ public class CouponKafkaNotificationService {
     private final FcmTokenRepository fcmTokenRepository;
     private final EventNotificationProducer producer;
 
-    @Scheduled(cron = "0 30 17 * * *")
+    @Scheduled(cron = "0 45 17 * * *")
     public void sendCouponNotifications() {
         log.info("스케줄러 시작");
         LocalDateTime now = LocalDateTime.now();
         log.info("현재 시간 {}", now);
 
-        LocalDateTime oneHourLater = now.plusHours(1).plusMinutes(1);
+        LocalDateTime oneHourLater = now.plusHours(10);
 
         CouponEvent upcomingEvent = couponEventRepository.findUpcomingEvent(now, oneHourLater);
 

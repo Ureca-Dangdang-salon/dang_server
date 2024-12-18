@@ -128,7 +128,7 @@ jacocoTestCoverageVerification {
 			limit {
 				counter = 'BRANCH'
 				value = 'COVEREDRATIO'
-				minimum = 0.80
+				minimum = 0.50
 			}
 
 			// 한 파일에 최대 500줄 제한

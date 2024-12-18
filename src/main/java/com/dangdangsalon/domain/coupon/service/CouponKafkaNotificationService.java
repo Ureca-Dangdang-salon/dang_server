@@ -25,17 +25,17 @@ public class CouponKafkaNotificationService {
     private final FcmTokenRepository fcmTokenRepository;
     private final EventNotificationProducer producer;
 
-    @Scheduled(cron = "0 50 15 * * *")
+    @Scheduled(cron = "0 0 16 * * *")
     public void sendCouponNotifications() {
         log.info("스케줄러 시작");
         LocalDateTime now = LocalDateTime.now();
         log.info("현재 시간 {}", now);
 
-        LocalDateTime oneHourLater = now.plusHours(1);
+        LocalDateTime oneHourLater = now.plusHours(1).plusMinutes(1);
 
         // 1시간 이내에 시작하고, 아직 종료되지 않은 단일 이벤트 조회
         CouponEvent upcomingEvent = couponEventRepository.findFirstByStartedAtBetweenAndEndedAtAfter(
-                now.minusSeconds(1), oneHourLater, now);
+                now, oneHourLater, now);
 
         if (upcomingEvent == null) {
             log.info("현재 1시간 이내에 시작하고 종료되지 않은 이벤트가 없습니다.");

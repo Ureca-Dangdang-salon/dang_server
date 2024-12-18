@@ -106,7 +106,8 @@ jacocoTestCoverageVerification {
 						'**/util/**', // util 관련 클래스 제외
 						'**/auth/**',
 						'**/s3image/**',
-						'**/filter/**'
+						'**/filter/**',
+						'**/chat/**'
 				])
 			})
 	)

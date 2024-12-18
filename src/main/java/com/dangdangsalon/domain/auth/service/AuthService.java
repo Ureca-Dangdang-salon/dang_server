@@ -34,6 +34,7 @@ public class AuthService {
 
     public void refreshAccessToken(String refreshToken, HttpServletResponse response) {
         if (jwtUtil.isExpired(refreshToken)) {
+            response.addHeader("Set-Cookie", cookieUtil.createCookie("Refresh-Token", ""));
             throw new TokenExpiredException();
         }
 
@@ -41,6 +42,7 @@ public class AuthService {
 
         Object cachedRefreshToken = redisUtil.getRefreshToken(userId.toString());
         if (cachedRefreshToken == null || !cachedRefreshToken.equals(refreshToken)) {
+            log.info("TokenExpiredException= RefreshToken -X Redis");
             throw new TokenExpiredException();
         }
 
@@ -49,14 +51,6 @@ public class AuthService {
 
         String newAccessToken = jwtUtil.createAccessToken(userId, username, role);
 
-        Cookie accessTokenCookie = new Cookie("Authorization", null);
-        accessTokenCookie.setMaxAge(0);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
-        accessTokenCookie.setDomain(".dangdang-salon.com");
-
-        response.addCookie(accessTokenCookie);
         response.addHeader("Set-Cookie", cookieUtil.createCookie("Authorization", newAccessToken));
     }
 
@@ -102,14 +96,12 @@ public class AuthService {
         accessTokenCookie.setPath("/");
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
-        accessTokenCookie.setDomain(".dangdang-salon.com");
 
         Cookie refreshTokenCookie = new Cookie("Refresh-Token", null);
         refreshTokenCookie.setMaxAge(0);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setDomain(".dangdang-salon.com");
 
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);

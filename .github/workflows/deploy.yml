@@ -24,7 +24,7 @@ jobs:
       # Redis와 Kafka를 Docker Compose로 실행
       - name: Start Redis and Kafka with Docker Compose
         run: |
-          docker-compose -f docker-compose.yml up -d
+          docker-compose up -d
           sleep 15 # 컨테이너 준비 시간
 
       - name: Check running containers

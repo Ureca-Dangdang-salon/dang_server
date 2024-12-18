@@ -84,7 +84,7 @@ public class ContestService {
                 .userId(winnerPost.getUser().getId())
                 .dogName(winnerPost.getDogName())
                 .imageUrl(winnerPost.getImageKey())
-                .likeCount(winnerLikeCount + 77)
+                .likeCount(winnerLikeCount + 99)
                 .build();
 
         Pageable pageable = PageRequest.of(0, 6);

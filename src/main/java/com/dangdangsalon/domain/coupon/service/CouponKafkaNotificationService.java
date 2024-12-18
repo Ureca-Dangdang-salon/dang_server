@@ -30,7 +30,8 @@ public class CouponKafkaNotificationService {
         LocalDateTime oneHourLater = now.plusHours(1);
 
         // 1시간 이내에 시작하고, 아직 종료되지 않은 단일 이벤트 조회
-        CouponEvent upcomingEvent = couponEventRepository.findFirstByStartedAtBetweenAndEndedAtAfter(now, oneHourLater, now);
+        CouponEvent upcomingEvent = couponEventRepository.findFirstByStartedAtBetweenAndEndedAtAfter(
+                now.minusSeconds(1), oneHourLater, now);
 
         if (upcomingEvent == null) {
             log.info("현재 1시간 이내에 시작하고 종료되지 않은 이벤트가 없습니다.");

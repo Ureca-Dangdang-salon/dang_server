@@ -185,24 +185,24 @@ class EstimateRequestControllerTest {
         Long groomerProfileId = 1L;
 
         EstimateRequestResponseDto request1 = EstimateRequestResponseDto.builder()
-                .estimateId(100L)
+                .requestId(100L)
                 .name("홍길동")
                 .date(LocalDate.of(2024, 11, 25))
                 .serviceType("VISIT")
                 .region("서울 강남구")
                 .imageKey("image123")
-                .estimateRequestStatus("PENDING")
+                .estimateStatus("PENDING")
                 .groomerEstimateRequestStatus("APPROVED")
                 .build();
 
         EstimateRequestResponseDto request2 = EstimateRequestResponseDto.builder()
-                .estimateId(101L)
+                .requestId(101L)
                 .name("김철수")
                 .date(LocalDate.of(2024, 11, 26))
                 .serviceType("VISIT")
                 .region("서울 서초구")
                 .imageKey("image456")
-                .estimateRequestStatus("COMPLETED")
+                .estimateStatus("COMPLETED")
                 .groomerEstimateRequestStatus("PENDING")
                 .build();
 
@@ -220,23 +220,23 @@ class EstimateRequestControllerTest {
                 .andExpect(jsonPath("$.response", hasSize(2)))
 
                 // 첫 번째 요청 검증
-                .andExpect(jsonPath("$.response[0].estimateId", is(100)))
+                .andExpect(jsonPath("$.response[0].requestId", is(100)))
                 .andExpect(jsonPath("$.response[0].name", is("홍길동")))
                 .andExpect(jsonPath("$.response[0].date", is("2024-11-25")))
                 .andExpect(jsonPath("$.response[0].serviceType", is("VISIT")))
                 .andExpect(jsonPath("$.response[0].region", is("서울 강남구")))
                 .andExpect(jsonPath("$.response[0].imageKey", is("image123")))
-                .andExpect(jsonPath("$.response[0].estimateRequestStatus", is("PENDING")))
+                .andExpect(jsonPath("$.response[0].estimateStatus", is("PENDING")))
                 .andExpect(jsonPath("$.response[0].groomerEstimateRequestStatus", is("APPROVED")))
 
                 // 두 번째 요청 검증
-                .andExpect(jsonPath("$.response[1].estimateId", is(101)))
+                .andExpect(jsonPath("$.response[1].requestId", is(101)))
                 .andExpect(jsonPath("$.response[1].name", is("김철수")))
                 .andExpect(jsonPath("$.response[1].date", is("2024-11-26")))
                 .andExpect(jsonPath("$.response[1].serviceType", is("VISIT")))
                 .andExpect(jsonPath("$.response[1].region", is("서울 서초구")))
                 .andExpect(jsonPath("$.response[1].imageKey", is("image456")))
-                .andExpect(jsonPath("$.response[1].estimateRequestStatus", is("COMPLETED")))
+                .andExpect(jsonPath("$.response[1].estimateStatus", is("COMPLETED")))
                 .andExpect(jsonPath("$.response[1].groomerEstimateRequestStatus", is("PENDING")));
     }
 
@@ -328,12 +328,12 @@ class EstimateRequestControllerTest {
     void deleteEstimateRequest_Success() throws Exception {
         // Given
         Long requestId = 1L;
-
+        Long groomerProfileId = 1L;
         // 서비스 계층의 메서드 모킹
-        doNothing().when(groomerEstimateRequestService).deleteGroomerEstimateRequest(requestId);
+        doNothing().when(groomerEstimateRequestService).deleteGroomerEstimateRequest(requestId,groomerProfileId);
 
         // When & Then
-        mockMvc.perform(delete("/api/estimaterequest/{requestId}", requestId)
+        mockMvc.perform(delete("/api/estimaterequest/{requestId}/{groomerProfileId}", requestId, groomerProfileId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(csrf())
                         .with(SecurityMockMvcRequestPostProcessors.authentication(

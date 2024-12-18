@@ -88,8 +88,7 @@ public class GroomerProfile extends BaseEntity {
         this.user = user;
     }
 
-    public void updateProfileDetail(ServiceType serviceType, String imageKey, GroomerDetails details) {
-        this.serviceType = serviceType;
+    public void updateProfileDetail(String imageKey, GroomerDetails details) {
         this.imageKey = imageKey;
         this.details = details;
     }
@@ -113,6 +112,7 @@ public class GroomerProfile extends BaseEntity {
                 .name(requestDto.getName())
                 .phone(requestDto.getPhone())
                 .contactHours(requestDto.getContactHours())
+                .serviceType(requestDto.getServiceType())
                 .details(null)
                 .user(user)
                 .build();

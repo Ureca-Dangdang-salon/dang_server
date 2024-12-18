@@ -2,6 +2,9 @@ package com.dangdangsalon.domain.estimate.request.service;
 
 
 import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
+import com.dangdangsalon.domain.estimate.entity.Estimate;
+import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
+import com.dangdangsalon.domain.estimate.repository.EstimateRepository;
 import com.dangdangsalon.domain.estimate.request.dto.DogNameResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.EstimateRequestDto;
 import com.dangdangsalon.domain.estimate.request.dto.MyEstimateRequestResponseDto;
@@ -30,6 +33,7 @@ public class EstimateRequestServices {
     private final EstimateRequestRepository estimateRequestRepository;
     private final UserRepository userRepository;
     private final GroomerProfileRepository groomerProfileRepository;
+    private final EstimateRepository estimateRepository;
 
     // 견적 요청 등록
     @Transactional
@@ -58,13 +62,13 @@ public class EstimateRequestServices {
     // 내 견적 요청 조회 (채팅)
     @Transactional(readOnly = true)
     public List<MyEstimateRequestResponseDto> getMyEstimateRequest(Long userId) {
-        // 내 견적 요청 다 가져오고
+        // 내 견적 요청 다 가져오기
         List<EstimateRequest> estimateRequestList = estimateRequestRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("회원의 견적 요청을 찾을 수 없습니다: " + userId));
 
         return estimateRequestList.stream()
                 .map(estimateRequest -> {
-                    // 견적 요청에 연결된 강아지 정보 가져온다
+                    // 견적 요청에 연결된 강아지 정보 가져오기
                     List<DogNameResponseDto> dogList = estimateRequest.getEstimateRequestProfiles().stream()
                             .map(estimateRequestProfile -> {
                                 DogProfile dogProfile = estimateRequestProfile.getDogProfile();
@@ -74,17 +78,24 @@ public class EstimateRequestServices {
                             })
                             .toList();
 
+                    // ACCEPTED 상태인 견적만 조회
+                    Estimate estimate = estimateRepository.findByEstimateRequestIdAndStatus(
+                            estimateRequest.getId(), EstimateStatus.ACCEPTED).orElse(null);
+
+                    EstimateStatus estimateStatus = (estimate != null) ? estimate.getStatus() : null;
+
                     return MyEstimateRequestResponseDto.builder()
                             .dogList(dogList)
                             .requestId(estimateRequest.getId())
                             .date(estimateRequest.getRequestDate())
                             .status(estimateRequest.getRequestStatus())
+                            .estimateStatus(estimateStatus)
                             .build();
                 })
                 .toList();
     }
 
-    // 견적 그만 받기( 견적 요청을 CANCEL 로 바꾸면 미용사들이 견적서를 보내지 못한다.
+    // 견적 그만 받기( 견적 요청을 CANCEL 로 바꾸면 미용사들이 견적서를 보내지 못한다. )
     @Transactional
     public void stopEstimate(Long requestId) {
 

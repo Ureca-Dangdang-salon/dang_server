@@ -51,7 +51,7 @@ public class ContestPostLikeService {
         contestPostLikeRepository.deleteByUserIdAndContestPostId(userId, postId);
     }
 
-    @Cacheable(value = "likeStatus", key = "'like_status:' + #userId + ':' + #postId")
+//    @Cacheable(value = "likeStatus", key = "'like_status:' + #userId + ':' + #postId")
     public boolean checkIsLiked(Long postId, Long userId) {
         return contestPostLikeRepository.existsByUserIdAndContestPostId(userId, postId);
     }

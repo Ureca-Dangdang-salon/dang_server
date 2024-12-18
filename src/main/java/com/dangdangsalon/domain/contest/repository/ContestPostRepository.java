@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface ContestPostRepository extends JpaRepository<ContestPost, Long> {
 
+    @Query("SELECT p FROM ContestPost p WHERE p.contest.id = :contestId ORDER BY p.createdAt DESC")
     Page<ContestPost> findByContestId(Long contestId, Pageable pageable);
 
     boolean existsByContestIdAndUserId(Long contestId, Long userId);

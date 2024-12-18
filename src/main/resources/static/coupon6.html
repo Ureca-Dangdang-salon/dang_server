@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>쿠폰 발급 대기열</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .queue-status {
+            width: 400px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: none; /* 처음에는 숨김 */
+        }
+        .progress-bar-container {
+            background: #e0e0e0;
+            border-radius: 5px;
+            height: 20px;
+            width: 100%;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            background: #4caf50;
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        .stats {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .stop-btn, .start-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .stop-btn:hover {
+            background: #c9302c;
+        }
+        .start-btn {
+            background: #007bff;
+        }
+        .start-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<button class="start-btn" id="start-btn">쿠폰 발급하기</button>
+
+<div class="queue-status" id="queue-status">
+    <h2>접속 대기 중입니다.</h2>
+    <div class="stats">
+        <span>앞에 <b id="remaining-ahead">0</b>명</span>,
+        <span>뒤에 <b id="remaining-behind">0</b>명</span>
+    </div>
+    <div>예상시간: <b id="estimated-time">00:00</b></div>
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+    </div>
+    <button class="stop-btn" id="stop-btn">중지</button>
+</div>
+
+<script>
+    document.getElementById("start-btn").addEventListener("click", async () => {
+        const eventName = "TestEvent";
+        const userId = sessionStorage.getItem("userId") || Math.floor(Math.random() * 100) + 100;
+        sessionStorage.setItem("userId", userId);
+
+        try {
+            // 대기열 등록 API 호출
+            const response = await fetch(`/api/coupon-events/register?userId=${userId}&eventName=${eventName}`, {
+                method: "POST"
+            });
+            // const resultMessage = await response.text();
+            //
+            // if (!response.ok || !resultMessage.includes("대기열 등록이 완료되었습니다.")) {
+            //     alert(resultMessage);
+            //     return;
+            // }
+
+            // 상태 창 표시
+            document.getElementById("queue-status").style.display = "block";
+
+            // SSE 연결 시작
+            startSSE(eventName, userId);
+        } catch (error) {
+            console.error("Error registering for queue:", error);
+            alert("대기열 등록 중 오류가 발생했습니다.");
+        }
+    });
+
+    document.getElementById("stop-btn").addEventListener("click", () => {
+        if (eventSource) eventSource.close();
+        document.getElementById("queue-status").style.display = "none";
+    });
+
+    let eventSource;
+    const startSSE = (eventName, userId) => {
+        eventSource = new EventSource(`/api/coupon-events/sse?eventName=${eventName}&userId=${userId}`);
+
+        eventSource.addEventListener("queue-status", (event) => {
+            const data = JSON.parse(event.data);
+            console.log(data);
+            // 상태 업데이트
+            document.getElementById("remaining-ahead").textContent = data.remainingCountAhead;
+            document.getElementById("remaining-behind").textContent = data.remainingCountBehind;
+            document.getElementById("estimated-time").textContent = data.estimatedTime;
+            document.getElementById("progress-bar").style.width = `${data.progressPercentage}%`;
+
+            // 발급 완료 처리
+            if (data.isIssued) {
+                alert("쿠폰이 발급되었습니다!");
+                eventSource.close();
+                document.getElementById("queue-status").style.display = "none";
+            }
+        });
+
+        eventSource.onerror = (err) => {
+            console.error("SSE connection error:", err);
+            alert("서버와의 연결이 끊어졌습니다. 다시 시도해주세요.");
+            eventSource.close();
+        };
+    };
+
+</script>
+</body>
+</html>

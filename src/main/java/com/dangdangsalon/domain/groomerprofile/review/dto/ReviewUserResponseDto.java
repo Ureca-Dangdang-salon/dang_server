@@ -19,7 +19,8 @@ public class ReviewUserResponseDto {
     private String groomerImageKey;
     private String text;
     private double starScore;
-    private String address;
+    private String city;
+    private String district;
     private List<String> reviewImages;
 
     public static ReviewUserResponseDto fromEntity(Review review) {
@@ -27,10 +28,11 @@ public class ReviewUserResponseDto {
                 .reviewId(review.getId())
                 .profileId(review.getGroomerProfile().getId())
                 .groomerName(review.getGroomerProfile().getName())
-                .groomerImageKey(review.getGroomerProfile().getName())
+                .groomerImageKey(review.getGroomerProfile().getImageKey())
                 .text(review.getText())
                 .starScore(review.getStarScore())
-                .address(review.getGroomerProfile().getDetails().getAddress())
+                .city(review.getGroomerProfile().getGroomerServiceAreas().get(0).getDistrict().getCity().getName())
+                .district(review.getGroomerProfile().getGroomerServiceAreas().get(0).getDistrict().getName())
                 .reviewImages(review.getReviewImages().stream()
                         .map(ReviewImage::getImageKey)
                         .toList())

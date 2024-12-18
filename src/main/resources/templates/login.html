@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 30px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            width: 250px;
+            text-align: center;
+        }
+        .naver {
+            background-color: #03C75A;
+        }
+        .kakao {
+            background-color: #FEE500;
+            color: #000;
+        }
+        .google {
+            background-color: #4285F4;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>소셜 로그인</h1>
+    <p>원하는 로그인 방식을 선택하세요:</p>
+    <!-- 네이버 로그인 -->
+    <a href="/oauth2/authorization/naver" class="button naver">네이버로 로그인</a>
+    <!-- 카카오 로그인 -->
+    <a href="/oauth2/authorization/kakao" class="button kakao">카카오로 로그인</a>
+    <!-- 구글 로그인 -->
+    <a href="/oauth2/authorization/google" class="button google">구글로 로그인</a>
+</div>
+</body>
+</html>

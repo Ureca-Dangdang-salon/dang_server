@@ -66,7 +66,8 @@ public class ReviewApiTest {
                         .groomerImageKey("imageKey1")
                         .text("더미 리뷰 내용입니다.1")
                         .starScore(4)
-                        .address("서울시 강남구")
+                        .city("서울시")
+                        .district("강남구")
                         .reviewImages(List.of("dummy-image1.jpg", "dummy-image2.jpg"))
                         .build()
         );

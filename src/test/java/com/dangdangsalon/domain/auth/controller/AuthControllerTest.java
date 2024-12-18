@@ -28,6 +28,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -106,7 +107,8 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.response").value("회원가입에 성공했습니다."));
 
-        verify(authService, times(1)).completeRegister(eq(1L), any(JoinAdditionalInfoDto.class));
+        verify(authService, times(1))
+                .completeRegister(any(HttpServletResponse.class), eq(1L), any(JoinAdditionalInfoDto.class));
     }
 
     @Test

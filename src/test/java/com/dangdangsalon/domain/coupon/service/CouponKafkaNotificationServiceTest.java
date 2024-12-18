@@ -3,9 +3,9 @@ package com.dangdangsalon.domain.coupon.service;
 import com.dangdangsalon.domain.coupon.entity.CouponEvent;
 import com.dangdangsalon.domain.coupon.repository.CouponEventRepository;
 import com.dangdangsalon.domain.notification.dto.EventNotificationDto;
-import com.dangdangsalon.domain.notification.entity.FcmToken;
 import com.dangdangsalon.domain.notification.repository.FcmTokenRepository;
 import com.dangdangsalon.domain.notification.service.EventNotificationProducer;
+import com.dangdangsalon.domain.user.entity.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,6 @@ class CouponKafkaNotificationServiceTest {
     private CouponKafkaNotificationService couponKafkaNotificationService;
 
     private CouponEvent mockEvent;
-    private List<FcmToken> mockTokens;
 
     @BeforeEach
     void setUp() {
@@ -45,10 +44,6 @@ class CouponKafkaNotificationServiceTest {
                 .startedAt(LocalDateTime.now().plusMinutes(30))
                 .endedAt(LocalDateTime.now().plusHours(2))
                 .build();
-
-        FcmToken token1 = FcmToken.builder().fcmToken("token1").build();
-        FcmToken token2 = FcmToken.builder().fcmToken("token2").build();
-        mockTokens = List.of(token1, token2);
     }
 
     @Test
@@ -58,16 +53,18 @@ class CouponKafkaNotificationServiceTest {
         given(couponEventRepository.findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any()))
                 .willReturn(mockEvent);
 
-        given(fcmTokenRepository.findAll()).willReturn(mockTokens);
+        List<String> mockFcmTokens = List.of("token1", "token2");
+        given(fcmTokenRepository.findAllByUserRole(any())).willReturn(mockFcmTokens);
 
         // When
         couponKafkaNotificationService.sendCouponNotifications();
 
         // Then
         verify(couponEventRepository, times(1)).findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any());
-        verify(fcmTokenRepository, times(1)).findAll();
+        verify(fcmTokenRepository, times(1)).findAllByUserRole(Role.ROLE_USER);
         verify(producer, times(1)).sendEventNotification(any(EventNotificationDto.class));
     }
+
 
     @Test
     @DisplayName("쿠폰 알림 전송 테스트 - 이벤트 없음")
@@ -81,7 +78,23 @@ class CouponKafkaNotificationServiceTest {
 
         // Then
         verify(couponEventRepository, times(1)).findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any());
-        verify(fcmTokenRepository, never()).findAll();
+        verify(fcmTokenRepository, never()).findAllByUserRole(Role.ROLE_USER);
+        verify(producer, never()).sendEventNotification(any(EventNotificationDto.class));
+    }
+
+    @Test
+    @DisplayName("쿠폰 알림 전송 테스트 - 미용사 대상 없음")
+    void testSendCouponNotifications_ForHairstylist_NoEvent() {
+        // Given
+        given(couponEventRepository.findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any()))
+                .willReturn(null);
+
+        // When
+        couponKafkaNotificationService.sendCouponNotifications();
+
+        // Then
+        verify(couponEventRepository, times(1)).findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any());
+        verify(fcmTokenRepository, never()).findAllByUserRole(Role.ROLE_SALON);
         verify(producer, never()).sendEventNotification(any(EventNotificationDto.class));
     }
 }

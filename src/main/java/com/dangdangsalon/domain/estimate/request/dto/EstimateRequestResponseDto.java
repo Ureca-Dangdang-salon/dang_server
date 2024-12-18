@@ -10,14 +10,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
 public class EstimateRequestResponseDto {
     private Long requestId;
     private String name;
-    private LocalDate date;
+    private LocalDateTime date;
     private String serviceType;
     private String region;
     private String imageKey;
@@ -25,7 +25,7 @@ public class EstimateRequestResponseDto {
     private String groomerEstimateRequestStatus;
 
     @Builder
-    public EstimateRequestResponseDto(Long requestId, String name, LocalDate date, String serviceType, String region, String imageKey, String estimateStatus, String groomerEstimateRequestStatus) {
+    public EstimateRequestResponseDto(Long requestId, String name, LocalDateTime date, String serviceType, String region, String imageKey, String estimateStatus, String groomerEstimateRequestStatus) {
         this.requestId = requestId;
         this.name = name;
         this.date = date;
@@ -48,7 +48,7 @@ public class EstimateRequestResponseDto {
         return EstimateRequestResponseDto.builder()
                 .requestId(estimateRequest.getId())
                 .name(user.getName())
-                .date(estimateRequest.getRequestDate().toLocalDate())
+                .date(estimateRequest.getRequestDate())
                 .serviceType(estimateRequest.getServiceType().name())
                 .region(fullRegion)
                 .imageKey(user.getImageKey())

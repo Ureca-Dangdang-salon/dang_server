@@ -25,7 +25,7 @@ public class CouponKafkaNotificationService {
     private final FcmTokenRepository fcmTokenRepository;
     private final EventNotificationProducer producer;
 
-    @Scheduled(cron = "0 15 18 * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void sendCouponNotifications() {
         log.info("스케줄러 시작");
         LocalDateTime now = LocalDateTime.now();
@@ -52,7 +52,7 @@ public class CouponKafkaNotificationService {
 
         // 이벤트 알림 생성 및 전송
         String formattedStartTime = upcomingEvent.getStartedAt().toLocalTime().toString();
-        String message = String.format("'%s' 이벤트가 1시간 후에 시작됩니다! 시작 시간: %s", upcomingEvent.getName(), formattedStartTime);
+        String message = String.format("'%s' 이벤트가 1시간 후에 시작됩니다!", upcomingEvent.getName());
 
         EventNotificationDto batchNotification = EventNotificationDto.builder()
                 .fcmToken(fcmTokens)

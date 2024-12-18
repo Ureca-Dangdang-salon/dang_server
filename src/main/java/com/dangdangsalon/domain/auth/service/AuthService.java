@@ -34,7 +34,7 @@ public class AuthService {
 
     public void refreshAccessToken(String refreshToken, HttpServletResponse response) {
         if (jwtUtil.isExpired(refreshToken)) {
-            response.addHeader("Set-Cookie", cookieUtil.createCookie("Refresh-Token", ""));
+            response.addHeader("Set-Cookie", cookieUtil.createCookie("Refresh-Token", null));
             throw new TokenExpiredException();
         }
 

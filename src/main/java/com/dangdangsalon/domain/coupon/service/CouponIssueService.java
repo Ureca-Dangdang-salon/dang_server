@@ -31,7 +31,7 @@ public class CouponIssueService {
     private final CouponEventRepository couponEventRepository;
     private final UserRepository userRepository;
 
-    private static final int MAX_QUEUE_SIZE = 5000;
+    private static final int MAX_QUEUE_SIZE = 1000;
 
     public String joinQueue(Long userId, Long eventId) {
         if (!isEventStarted(eventId)) {

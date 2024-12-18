@@ -34,7 +34,6 @@ public class AuthService {
 
     public void refreshAccessToken(String refreshToken, HttpServletResponse response) {
         if (jwtUtil.isExpired(refreshToken)) {
-            response.addHeader("Set-Cookie", cookieUtil.createCookie("Refresh-Token", null));
             throw new TokenExpiredException();
         }
 
@@ -96,12 +95,14 @@ public class AuthService {
         accessTokenCookie.setPath("/");
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
+        accessTokenCookie.setDomain(".dangdang-salon.com");
 
         Cookie refreshTokenCookie = new Cookie("Refresh-Token", null);
         refreshTokenCookie.setMaxAge(0);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setDomain(".dangdang-salon.com");
 
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);

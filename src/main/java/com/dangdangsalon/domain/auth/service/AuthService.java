@@ -56,6 +56,7 @@ public class AuthService {
         accessTokenCookie.setSecure(true);
         accessTokenCookie.setDomain(".dangdang-salon.com");
 
+        response.addCookie(accessTokenCookie);
         response.addHeader("Set-Cookie", cookieUtil.createCookie("Authorization", newAccessToken));
     }
 

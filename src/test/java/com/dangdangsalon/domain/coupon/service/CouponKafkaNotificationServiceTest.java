@@ -50,7 +50,7 @@ class CouponKafkaNotificationServiceTest {
     @DisplayName("쿠폰 알림 전송 테스트 - 성공")
     void testSendCouponNotifications_Success() {
         // Given
-        given(couponEventRepository.findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any()))
+        given(couponEventRepository.findUpcomingEvent(any(), any()))
                 .willReturn(mockEvent);
 
         List<String> mockFcmTokens = List.of("token1", "token2");
@@ -60,7 +60,7 @@ class CouponKafkaNotificationServiceTest {
         couponKafkaNotificationService.sendCouponNotifications();
 
         // Then
-        verify(couponEventRepository, times(1)).findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any());
+        verify(couponEventRepository, times(1)).findUpcomingEvent(any(), any());
         verify(fcmTokenRepository, times(1)).findAllByUserRole(Role.ROLE_USER);
         verify(producer, times(1)).sendEventNotification(any(EventNotificationDto.class));
     }
@@ -70,14 +70,14 @@ class CouponKafkaNotificationServiceTest {
     @DisplayName("쿠폰 알림 전송 테스트 - 이벤트 없음")
     void testSendCouponNotifications_NoEvent() {
         // Given
-        given(couponEventRepository.findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any()))
+        given(couponEventRepository.findUpcomingEvent(any(), any()))
                 .willReturn(null);
 
         // When
         couponKafkaNotificationService.sendCouponNotifications();
 
         // Then
-        verify(couponEventRepository, times(1)).findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any());
+        verify(couponEventRepository, times(1)).findUpcomingEvent(any(), any());
         verify(fcmTokenRepository, never()).findAllByUserRole(Role.ROLE_USER);
         verify(producer, never()).sendEventNotification(any(EventNotificationDto.class));
     }
@@ -86,14 +86,14 @@ class CouponKafkaNotificationServiceTest {
     @DisplayName("쿠폰 알림 전송 테스트 - 미용사 대상 없음")
     void testSendCouponNotifications_ForHairstylist_NoEvent() {
         // Given
-        given(couponEventRepository.findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any()))
+        given(couponEventRepository.findUpcomingEvent(any(), any()))
                 .willReturn(null);
 
         // When
         couponKafkaNotificationService.sendCouponNotifications();
 
         // Then
-        verify(couponEventRepository, times(1)).findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any());
+        verify(couponEventRepository, times(1)).findUpcomingEvent(any(), any());
         verify(fcmTokenRepository, never()).findAllByUserRole(Role.ROLE_SALON);
         verify(producer, never()).sendEventNotification(any(EventNotificationDto.class));
     }

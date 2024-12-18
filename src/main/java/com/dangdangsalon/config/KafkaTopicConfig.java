@@ -15,4 +15,13 @@ public class KafkaTopicConfig {
                 .replicas(1)
                 .build();
     }
+
+    @Bean
+    public NewTopic eventTopic() {
+        return TopicBuilder.name("event-alerts")
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
 }
+

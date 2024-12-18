@@ -103,7 +103,10 @@ jacocoTestCoverageVerification {
 						'**/entity/**',    // Entity 패키지 제외
 						'**/config/**',    // 설정 관련 클래스 제외
 						'**/exception/**',  // 예외 처리 관련 클래스 제외
-						'**/util/**' // util 관련 클래스 제외
+						'**/util/**', // util 관련 클래스 제외
+						'**/auth/**',
+						'**/s3image/**',
+						'**/filter/**'
 				])
 			})
 	)
@@ -117,14 +120,14 @@ jacocoTestCoverageVerification {
 			limit {
 				counter = 'LINE'
 				value = 'COVEREDRATIO'
-				minimum = 0.00
+				minimum = 0.80
 			}
 
-			// 브랜치 커버리지 최소 70%
+			// 브랜치 커버리지 최소 80%
 			limit {
 				counter = 'BRANCH'
 				value = 'COVEREDRATIO'
-				minimum = 0.00
+				minimum = 0.80
 			}
 
 			// 한 파일에 최대 500줄 제한

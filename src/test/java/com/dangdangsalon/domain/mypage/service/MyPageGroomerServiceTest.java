@@ -18,6 +18,7 @@ import com.dangdangsalon.domain.region.repository.DistrictRepository;
 import com.dangdangsalon.domain.user.entity.Role;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -339,6 +340,35 @@ class MyPageGroomerServiceTest {
         assertNotNull(result);
         assertTrue(result.getDistrictTopGroomers().isEmpty());
         assertTrue(result.getNationalTopGroomers().isEmpty());
+    }
+
+    @Test
+    @DisplayName("닉네임이 중복이 아닐 때 true 반환")
+    void isNameDuplicate_Fail() {
+        // Given
+        String uniqueName = "uniqueUser";
+        when(groomerProfileRepository.existsByName(uniqueName)).thenReturn(false);
+
+        // When
+        boolean result = myPageGroomerService.isNameDuplicate(uniqueName);
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    @DisplayName("닉네임이 중복일 때 false 반환")
+    void isNameDuplicate_Success() {
+
+        // Given
+        String duplicateName = "test";
+        when(groomerProfileRepository.existsByName(duplicateName)).thenReturn(true);
+
+        // When
+        boolean result = myPageGroomerService.isNameDuplicate(duplicateName);
+
+        // Then
+        assertThat(result).isFalse();
     }
 
     private GroomerProfile createMockGroomerProfile() {

@@ -261,6 +261,11 @@ public class MyPageGroomerService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public boolean isNameDuplicate(String name) {
+        return !groomerProfileRepository.existsByName(name);
+    }
+
     private void addCertification(List<String> certifications,
                                   GroomerProfile groomerProfile) {
         for (String certification : certifications) {

@@ -11,4 +11,7 @@ import java.util.List;
 public interface CouponEventRepository extends JpaRepository<CouponEvent, Long> {
     @Query("SELECT e FROM CouponEvent e WHERE e.startedAt <= :now AND e.endedAt >= :now")
     List<CouponEvent> findActiveEvents(@Param("now") LocalDateTime now);
+
+    @Query("SELECT e FROM CouponEvent e WHERE e.startedAt > CURRENT_TIMESTAMP OR e.endedAt > CURRENT_TIMESTAMP")
+    List<CouponEvent> findUpcomingEvents();
 }

@@ -2,6 +2,9 @@ package com.dangdangsalon.domain.coupon.controller;
 
 import com.dangdangsalon.domain.coupon.entity.CouponEvent;
 import com.dangdangsalon.domain.coupon.repository.CouponEventRepository;
+import com.dangdangsalon.domain.coupon.scheduler.CouponScheduler;
+import com.dangdangsalon.domain.coupon.scheduler.EventInitializer;
+import com.dangdangsalon.domain.coupon.service.CouponEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,6 +21,7 @@ public class CouponEventController {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final CouponEventRepository couponEventRepository;
+    private final CouponScheduler couponScheduler;
 
     @PostMapping("/start")
     public String startEvent(@RequestParam Long eventId) {
@@ -31,7 +35,7 @@ public class CouponEventController {
         redisTemplate.opsForValue().set(couponRemainingKey, event.getTotalQuantity());
         redisTemplate.delete(couponQueueKey);
         redisTemplate.delete(issuedUsersKey);
-
+        couponScheduler.startDynamicScheduler(eventId);
         log.info("이벤트 시작 - ID: {}, 쿠폰 수량: {}", eventId, event.getTotalQuantity());
         return "이벤트가 시작되었습니다. ID: " + eventId;
     }

@@ -10,7 +10,6 @@ import com.dangdangsalon.domain.user.entity.User;
 import com.dangdangsalon.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,13 +22,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CouponService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
     private final CouponEventRepository couponEventRepository;
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public List<CouponMainResponseDto> getCouponValidMainPage() {
-        List<CouponEvent> activeEvent = couponEventRepository.findActiveEvents(LocalDateTime.now());
+        List<CouponEvent> activeEvent = couponEventRepository.findUpcomingEvents();
 
         return activeEvent.stream()
                 .map(CouponMainResponseDto::create)

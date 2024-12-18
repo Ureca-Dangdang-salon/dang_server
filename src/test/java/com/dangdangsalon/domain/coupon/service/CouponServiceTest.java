@@ -63,7 +63,7 @@ class CouponServiceTest {
                 .endedAt(LocalDateTime.now().plusDays(2))
                 .build();
 
-        when(couponEventRepository.findActiveEvents(any(LocalDateTime.class))).thenReturn(List.of(event1, event2));
+        when(couponEventRepository.findUpcomingEvents()).thenReturn(List.of(event1, event2));
 
         // When
         List<CouponMainResponseDto> result = couponService.getCouponValidMainPage();
@@ -146,7 +146,7 @@ class CouponServiceTest {
     @DisplayName("유효한 쿠폰 이벤트 조회 실패")
     void getCouponValidMainPage_Failure() {
         // Given
-        when(couponEventRepository.findActiveEvents(any(LocalDateTime.class))).thenReturn(Collections.emptyList());
+        when(couponEventRepository.findUpcomingEvents()).thenReturn(Collections.emptyList());
 
         // When
         List<CouponMainResponseDto> result = couponService.getCouponValidMainPage();

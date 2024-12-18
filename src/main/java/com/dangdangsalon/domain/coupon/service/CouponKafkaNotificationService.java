@@ -6,6 +6,7 @@ import com.dangdangsalon.domain.notification.dto.EventNotificationDto;
 import com.dangdangsalon.domain.notification.entity.FcmToken;
 import com.dangdangsalon.domain.notification.repository.FcmTokenRepository;
 import com.dangdangsalon.domain.notification.service.EventNotificationProducer;
+import com.dangdangsalon.domain.user.entity.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,7 +25,7 @@ public class CouponKafkaNotificationService {
     private final FcmTokenRepository fcmTokenRepository;
     private final EventNotificationProducer producer;
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 20 15 * * *")
     public void sendCouponNotifications() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneHourLater = now.plusHours(1);
@@ -39,9 +40,8 @@ public class CouponKafkaNotificationService {
         }
 
         // FCM 토큰
-        List<String> fcmTokens = fcmTokenRepository.findAll().stream()
-                .map(FcmToken::getFcmToken)
-                .toList();
+        List<String> fcmTokens = fcmTokenRepository.findAllByUserRole(Role.ROLE_USER);
+
 
         if (fcmTokens.isEmpty()) {
             log.warn("알림을 전송할 FCM 토큰이 없습니다.");

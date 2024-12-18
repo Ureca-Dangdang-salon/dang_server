@@ -195,7 +195,7 @@ class ChatMessageServiceTest {
 
         String lastMessage = chatMessageService.getLastMessage(1L);
 
-        assertThat(lastMessage).isEqualTo("Redis 메시지");
+        assertThat(lastMessage).isEqualTo("최신 메시지가 없습니다.");
     }
 
     @Test

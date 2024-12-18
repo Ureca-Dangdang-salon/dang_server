@@ -15,7 +15,4 @@ public interface CouponEventRepository extends JpaRepository<CouponEvent, Long> 
 
     @Query("SELECT e FROM CouponEvent e WHERE e.startedAt <= :now AND e.endedAt >= :now")
     List<CouponEvent> findActiveEvents(@Param("now") LocalDateTime now);
-
-    // 1시간 이내에 시작하고, 아직 종료되지 않은 이벤트 조회
-    CouponEvent findFirstByStartedAtBetweenAndEndedAtAfter(LocalDateTime start, LocalDateTime end, LocalDateTime now);
 }

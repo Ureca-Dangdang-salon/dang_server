@@ -111,6 +111,7 @@ jacocoTestCoverageVerification {
 						'**/scheduler/**',
 						'**/coupon/controller/CouponTestController.class',
 						'**/coupon/controller/CouponEventController.class',
+						'**/coupon/service/CouponEventService.class',
 						'**/DangdangSalonServerApplication.class'
 
 				])

@@ -11,6 +11,7 @@ public class PostInfoDto {
 
     private Long postId;
     private Long userId;
+    private String userProfileImage;
     private String userName;
     private String dogName;
     private String imageUrl;
@@ -22,6 +23,7 @@ public class PostInfoDto {
         return PostInfoDto.builder()
                 .postId(post.getId())
                 .userId(post.getUser().getId())
+                .userProfileImage(post.getUser().getImageKey())
                 .userName(post.getUser().getName())
                 .dogName(post.getDogName())
                 .imageUrl(post.getImageKey())

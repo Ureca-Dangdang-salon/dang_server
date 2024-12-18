@@ -39,9 +39,9 @@ public class AuthController {
     }
 
     @PostMapping("/join")
-    public ApiSuccess<?> completeSignup(@RequestBody JoinAdditionalInfoDto requestDto,
+    public ApiSuccess<?> completeSignup(HttpServletResponse response, @RequestBody JoinAdditionalInfoDto requestDto,
                                         @AuthenticationPrincipal CustomOAuth2User user) {
-        authService.completeRegister(user.getUserId(), requestDto);
+        authService.completeRegister(response, user.getUserId(), requestDto);
 
         return ApiUtil.success("회원가입에 성공했습니다.");
     }

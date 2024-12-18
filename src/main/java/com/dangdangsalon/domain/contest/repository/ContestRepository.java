@@ -9,6 +9,11 @@ public interface ContestRepository extends JpaRepository<Contest, Long> {
 
     Optional<Contest> findTopByOrderByStartedAtDesc();
 
-    @Query("SELECT c FROM Contest c WHERE c.startedAt < (SELECT MAX(c2.startedAt) FROM Contest c2) ORDER BY c.startedAt DESC")
+    @Query(value = """
+    SELECT * 
+    FROM contest c
+    ORDER BY c.started_at DESC
+    LIMIT 1 OFFSET 1
+    """, nativeQuery = true)
     Optional<Contest> findPreviousContest();
 }

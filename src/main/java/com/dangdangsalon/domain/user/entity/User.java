@@ -3,6 +3,7 @@ package com.dangdangsalon.domain.user.entity;
 import com.dangdangsalon.config.base.BaseEntity;
 import com.dangdangsalon.domain.coupon.entity.Coupon;
 import com.dangdangsalon.domain.dogprofile.entity.DogProfile;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.groomerprofile.review.entity.Review;
 import com.dangdangsalon.domain.orders.entity.Orders;
 import com.dangdangsalon.domain.region.entity.District;
@@ -57,6 +58,12 @@ public class User extends BaseEntity {
     @JoinColumn(name = "district_id")
     private District district;
 
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private GroomerProfile groomerProfile;
+
+    @Column(name = "notification_enabled")
+    private Boolean notificationEnabled = true;
+
     @Builder
     public User(Long id, String username, String name, String email, String imageKey, Role role, District district) {
         this.id = id;
@@ -66,6 +73,7 @@ public class User extends BaseEntity {
         this.imageKey = imageKey;
         this.role = role;
         this.district = district;
+        this.notificationEnabled = notificationEnabled;
     }
 
     public void updateAdditionalInfo(Role role, District district) {
@@ -81,5 +89,9 @@ public class User extends BaseEntity {
         this.imageKey = imageKey;
         this.email = email;
         this.district = district;
+    }
+
+    public void updateNotificationEnabled(Boolean notificationEnabled) {
+        this.notificationEnabled = notificationEnabled;
     }
 }

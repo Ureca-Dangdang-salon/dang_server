@@ -22,28 +22,24 @@ public class PaymentController {
     /**
      * 결제 승인 요청
      * @param paymentApproveRequestDto 결제 요청 데이터
-     * @param idempotencyKey 멱등키
      * @return 결제 승인 결과
      */
     @PostMapping("/approve")
-    public ApiSuccess<?> approvePayment(
-            @RequestBody PaymentApproveRequestDto paymentApproveRequestDto,
-            @RequestHeader("Idempotency-Key") String idempotencyKey) {
-        PaymentApproveResponseDto paymentResponse = paymentApproveService.approvePayment(paymentApproveRequestDto, idempotencyKey);
+    public ApiSuccess<?> approvePayment(@RequestBody PaymentApproveRequestDto paymentApproveRequestDto, @AuthenticationPrincipal CustomOAuth2User user) {
+        Long userId = user.getUserId();
+        PaymentApproveResponseDto paymentResponse = paymentApproveService.approvePayment(paymentApproveRequestDto, userId);
         return ApiUtil.success(paymentResponse);
     }
 
     /**
      * 결제 취소 요청
      * @param paymentCancelRequestDto 결제 취소 요청 데이터
-     * @param idempotencyKey 멱등키
      * @return 결제 취소 결과
      */
     @PostMapping("/cancel")
-    public ApiSuccess<?> cancelPayment(
-            @RequestBody PaymentCancelRequestDto paymentCancelRequestDto,
-            @RequestHeader("Idempotency-Key") String idempotencyKey) {
-        PaymentCancelResponseDto cancelResponse = paymentApproveService.cancelPayment(paymentCancelRequestDto, idempotencyKey);
+    public ApiSuccess<?> cancelPayment(@RequestBody PaymentCancelRequestDto paymentCancelRequestDto, @AuthenticationPrincipal CustomOAuth2User user) {
+        Long userId = user.getUserId();
+        PaymentCancelResponseDto cancelResponse = paymentApproveService.cancelPayment(paymentCancelRequestDto, userId);
         return ApiUtil.success(cancelResponse);
     }
 

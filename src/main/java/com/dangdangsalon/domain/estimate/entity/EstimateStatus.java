@@ -1,5 +1,5 @@
 package com.dangdangsalon.domain.estimate.entity;
 
 public enum EstimateStatus {
-    SEND, ACCEPTED, REJECTED
+    SEND, ACCEPTED, REJECTED, PAID, REFUND
 }

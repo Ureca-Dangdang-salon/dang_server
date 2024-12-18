@@ -28,7 +28,23 @@ public class GroomerProfileDetailsResponseDto {
     public static GroomerProfileDetailsResponseDto create(
             GroomerProfile groomerProfile,
             GroomerProfileDetailsInfoResponseDto groomerProfileDetailsInfoResponseDto) {
-
+        if (groomerProfile.getDetails() == null) {
+            return GroomerProfileDetailsResponseDto.builder()
+                    .profileId(groomerProfile.getId())
+                    .name(groomerProfile.getName())
+                    .imageKey(groomerProfile.getImageKey())
+                    .businessNumber(null)
+                    .phone(groomerProfile.getPhone())
+                    .contactHours(groomerProfile.getContactHours())
+                    .serviceType(groomerProfile.getServiceType())
+                    .address(null)
+                    .experience(null)
+                    .description(null)
+                    .startMessage(null)
+                    .faq(null)
+                    .groomerProfileDetailsInfoResponseDto(groomerProfileDetailsInfoResponseDto)
+                    .build();
+        }
         return GroomerProfileDetailsResponseDto.builder()
                 .profileId(groomerProfile.getId())
                 .name(groomerProfile.getName())

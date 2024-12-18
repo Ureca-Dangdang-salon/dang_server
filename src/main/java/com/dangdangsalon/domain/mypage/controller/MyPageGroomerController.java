@@ -4,6 +4,7 @@ import com.dangdangsalon.domain.auth.dto.CustomOAuth2User;
 import com.dangdangsalon.domain.mypage.dto.req.GroomerDetailsUpdateRequestDto;
 import com.dangdangsalon.domain.mypage.dto.req.GroomerProfileDetailsRequestDto;
 import com.dangdangsalon.domain.mypage.dto.req.GroomerProfileRequestDto;
+import com.dangdangsalon.domain.mypage.dto.res.GroomerMainResponseDto;
 import com.dangdangsalon.domain.mypage.dto.res.GroomerProfileDetailsResponseDto;
 import com.dangdangsalon.domain.mypage.dto.res.GroomerProfileResponseDto;
 import com.dangdangsalon.domain.mypage.service.MyPageGroomerService;
@@ -42,7 +43,7 @@ public class MyPageGroomerController {
     }
 
     @PostMapping("/detail")
-    public ApiSuccess<?> saveGroomerProfileDetail(@RequestBody GroomerProfileDetailsRequestDto requestDto,
+    public ApiSuccess<?> saveGroomerProfile(@RequestBody GroomerProfileDetailsRequestDto requestDto,
                                             @AuthenticationPrincipal CustomOAuth2User user) {
         Long userId = user.getUserId();
         myPageGroomerService.saveGroomerProfileDetails(requestDto, userId);
@@ -55,7 +56,7 @@ public class MyPageGroomerController {
                                                   @PathVariable Long profileId) {
         Long userId = user.getUserId();
         myPageGroomerService.updateGroomerProfile(requestDto, userId, profileId);
-        return ApiUtil.success("미용사 프로필 상세 정보 등록이 완료되었습니다.");
+        return ApiUtil.success("미용사 프로필 정보 수정이 완료되었습니다.");
     }
 
     @DeleteMapping("/{profileId}")
@@ -64,5 +65,12 @@ public class MyPageGroomerController {
         Long userId = user.getUserId();
         myPageGroomerService.deleteGroomerProfile(userId, profileId);
         return ApiUtil.success("미용사 프로필 삭제가 완료되었습니다.");
+    }
+
+    @GetMapping("/main")
+    public ApiSuccess<?> getGroomerProfileMainPage(@AuthenticationPrincipal CustomOAuth2User user) {
+        Long userId = user.getUserId();
+        GroomerMainResponseDto groomerProfile = myPageGroomerService.getGroomerProfileMainPage(userId);
+        return ApiUtil.success(groomerProfile);
     }
 }

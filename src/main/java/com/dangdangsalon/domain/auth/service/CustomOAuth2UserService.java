@@ -55,6 +55,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .name(oAuth2Response.getName())
                     .imageKey(oAuth2Response.getProfileImage())
                     .role(Role.ROLE_PENDING)
+                    .notificationEnabled(true)
                     .build();
 
             userRepository.save(user);

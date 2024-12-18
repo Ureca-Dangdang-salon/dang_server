@@ -4,6 +4,7 @@ import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestService;
 import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
 import com.dangdangsalon.domain.groomerservice.repository.GroomerServiceRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ class EstimateRequestServiceRepositoryTest {
 
     @Autowired
     private GroomerServiceRepository groomerServiceRepository;
+    
+    @Autowired
+    private EntityManager em;
 
     @Test
     @DisplayName("EstimateRequestProfiles로 EstimateRequestService 조회 - 성공")
@@ -125,4 +129,45 @@ class EstimateRequestServiceRepositoryTest {
         assertThat(result.get().getGroomerService().getDescription()).isEqualTo("발톱 정리");
     }
 
+    @Test
+    @DisplayName("프로필 ID 목록으로 EstimateRequestService 조회 테스트")
+    void testFindByEstimateRequestServicesProfilesIdIn() {
+        GroomerService groomerServiceA = GroomerService.builder()
+                .description("Service A")
+                .build();
+        em.persist(groomerServiceA);
+
+        GroomerService groomerServiceB = GroomerService.builder()
+                .description("Service B")
+                .build();
+        em.persist(groomerServiceB);
+
+        EstimateRequestProfiles profile1 = EstimateRequestProfiles.builder().build();
+        em.persist(profile1);
+
+        EstimateRequestProfiles profile2 = EstimateRequestProfiles.builder().build();
+        em.persist(profile2);
+
+        EstimateRequestService serviceA = EstimateRequestService.builder()
+                .estimateRequestProfiles(profile1)
+                .groomerService(groomerServiceA)
+                .build();
+        em.persist(serviceA);
+
+        EstimateRequestService serviceB = EstimateRequestService.builder()
+                .estimateRequestProfiles(profile2)
+                .groomerService(groomerServiceB)
+                .build();
+        em.persist(serviceB);
+
+        em.flush();
+
+        List<Long> profileIds = List.of(profile1.getId(), profile2.getId());
+        List<EstimateRequestService> services =
+                estimateRequestServiceRepository.findByEstimateRequestServicesProfilesIdIn(profileIds);
+
+        assertThat(services).hasSize(2);
+        assertThat(services).extracting("groomerService.description")
+                .containsExactlyInAnyOrder("Service A", "Service B");
+    }
 }

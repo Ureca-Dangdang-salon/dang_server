@@ -28,7 +28,8 @@ public class StompConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/chat")
-                .setAllowedOrigins("http://localhost:8080", "http://localhost:5173")
+                .setAllowedOrigins("http://localhost:8080", "http://localhost:5173", "https://m.dangdang-salon.com",
+                        "https://api.dangdang-salon.com")
                 .addInterceptors(new WebSocketHandshakeInterceptor())
                 .withSockJS();
     }

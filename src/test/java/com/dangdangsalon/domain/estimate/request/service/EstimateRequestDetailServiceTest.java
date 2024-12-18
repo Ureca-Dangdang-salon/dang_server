@@ -13,7 +13,11 @@ import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestProfi
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestServiceRepository;
 import com.dangdangsalon.domain.estimate.request.service.EstimateRequestDetailService;
+import com.dangdangsalon.domain.groomerprofile.entity.ServiceType;
 import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
+import com.dangdangsalon.domain.region.entity.City;
+import com.dangdangsalon.domain.region.entity.District;
+import com.dangdangsalon.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +25,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,11 +70,32 @@ class EstimateRequestDetailServiceTest {
         DogProfileFeature feature = mock(DogProfileFeature.class);
         Feature mockFeature = mock(Feature.class);
         GroomerService groomerService = mock(GroomerService.class);
+        District district = mock(District.class);
+        City city = mock(City.class);
+        ServiceType serviceType = mock(ServiceType.class);
 
         when(estimateRequestRepository.findById(requestId)).thenReturn(Optional.of(estimateRequest));
         when(estimateRequestProfilesRepository.findByEstimateRequest(estimateRequest))
                 .thenReturn(Optional.of(List.of(profile)));
 
+        // Mock 지역 정보
+        when(estimateRequest.getDistrict()).thenReturn(district);
+        when(district.getCity()).thenReturn(city);
+        when(city.getName()).thenReturn("서울특별시");
+        when(district.getName()).thenReturn("강남구");
+
+        when(estimateRequest.getServiceType()).thenReturn(serviceType);
+        when(serviceType.name()).thenReturn("ANY");
+
+        // Mock 사용자 정보
+        User user = mock(User.class);
+        when(estimateRequest.getUser()).thenReturn(user);
+        when(user.getName()).thenReturn("김철수");
+        when(user.getImageKey()).thenReturn("user-image-key");
+
+        when(estimateRequest.getRequestDate()).thenReturn(LocalDateTime.of(2024, 1, 1, 0, 0));
+
+        // Mock 프로필과 서비스 정보
         when(profile.getDogProfile()).thenReturn(dogProfile);
         when(dogProfile.getId()).thenReturn(2L);
         when(dogProfile.getImageKey()).thenReturn("image-key");
@@ -77,15 +105,14 @@ class EstimateRequestDetailServiceTest {
                 .thenReturn(Optional.of(List.of(service)));
 
         when(service.getGroomerService()).thenReturn(groomerService);
-        when(service.getGroomerService().getId()).thenReturn(3L);
-        when(service.getGroomerService().getDescription()).thenReturn("미용");
+        when(groomerService.getId()).thenReturn(3L);
+        when(groomerService.getDescription()).thenReturn("미용");
 
         when(feature.getFeature()).thenReturn(mockFeature);
         when(mockFeature.getDescription()).thenReturn("말을 하는 강아지");
 
         when(dogProfileFeatureRepository.findByDogProfile(dogProfile))
                 .thenReturn(Optional.of(List.of(feature)));
-        when(feature.getFeature().getDescription()).thenReturn("말을 하는 강아지");
 
         // when
         List<EstimateDetailResponseDto> response = estimateRequestDetailService.getEstimateRequestDetail(requestId);
@@ -104,6 +131,9 @@ class EstimateRequestDetailServiceTest {
 
         assertThat(dto.getFeatureList()).hasSize(1);
         assertThat(dto.getFeatureList().get(0).getDescription()).isEqualTo("말을 하는 강아지");
+
+        assertThat(dto.getUserProfile().getName()).isEqualTo("김철수");
+        assertThat(dto.getUserProfile().getRegion()).isEqualTo("서울특별시 강남구");
 
         verify(estimateRequestRepository, times(1)).findById(requestId);
         verify(estimateRequestProfilesRepository, times(1)).findByEstimateRequest(estimateRequest);

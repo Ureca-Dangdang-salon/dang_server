@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class PaymentCancelRequestDto {
     private String paymentKey;
     private String cancelReason;
+    private Long couponId;
 }

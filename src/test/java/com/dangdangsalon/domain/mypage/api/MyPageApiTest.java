@@ -228,7 +228,7 @@ public class MyPageApiTest {
                 .put("/api/groomerprofile/1")
                 .then()
                 .statusCode(200)
-                .body("response", equalTo("미용사 프로필 상세 정보 등록이 완료되었습니다."));
+                .body("response", equalTo("미용사 프로필 정보 수정이 완료되었습니다."));
     }
 
     @Test
@@ -247,6 +247,45 @@ public class MyPageApiTest {
                 .then()
                 .statusCode(200)
                 .body("response", equalTo("미용사 프로필 삭제가 완료되었습니다."));
+    }
+
+    @Test
+    @DisplayName("메인 페이지 미용사 프로필 조회")
+    void getGroomerProfileMainPageTest() {
+        CustomOAuth2User mockLoginUser = mock(CustomOAuth2User.class);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockLoginUser, null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))));
+
+        GroomerMainResponseDto mockDto = GroomerMainResponseDto.builder()
+                .nationalTopGroomers(List.of(
+                        new GroomerRecommendResponseDto(10L, "NationalGroomer1", "nimg1", "Busan", "Haeundae"),
+                        new GroomerRecommendResponseDto(11L, "NationalGroomer2", "nimg2", "Daegu", "Suseong")
+                ))
+                .districtTopGroomers(List.of(
+                        new GroomerRecommendResponseDto(1L, "LocalGroomer1", "img1", "Seoul", "Gangnam"),
+                        new GroomerRecommendResponseDto(2L, "LocalGroomer2", "img2", "Seoul", "Gangnam")
+                ))
+                .build();
+
+        given(myPageGroomerService.getGroomerProfileMainPage(anyLong())).willReturn(mockDto);
+
+        // When & Then
+        RestAssuredMockMvc
+                .given()
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/groomerprofile/main")
+                .then()
+                .statusCode(200)
+                // nationalTopGroomers 검증
+                .body("response.nationalTopGroomers[0].name", equalTo("NationalGroomer1"))
+                .body("response.nationalTopGroomers[0].city", equalTo("Busan"))
+                .body("response.nationalTopGroomers[0].district", equalTo("Haeundae"))
+                // districtTopGroomers 검증
+                .body("response.districtTopGroomers[0].name", equalTo("LocalGroomer1"))
+                .body("response.districtTopGroomers[0].city", equalTo("Seoul"))
+                .body("response.districtTopGroomers[0].district", equalTo("Gangnam"));
     }
 
     //MyDogProfileController

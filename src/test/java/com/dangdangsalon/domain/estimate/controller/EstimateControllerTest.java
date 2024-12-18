@@ -8,7 +8,9 @@ import com.dangdangsalon.domain.estimate.entity.EstimateStatus;
 import com.dangdangsalon.domain.estimate.request.dto.FeatureResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.ServicePriceResponseDto;
 import com.dangdangsalon.domain.estimate.request.dto.ServiceResponseDto;
+import com.dangdangsalon.domain.estimate.service.EstimateNotificationService;
 import com.dangdangsalon.domain.estimate.service.EstimateService;
+import com.dangdangsalon.domain.estimate.service.EstimateUpdateService;
 import com.dangdangsalon.domain.estimate.service.EstimateWriteService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -53,6 +55,13 @@ class EstimateControllerTest {
 
     @MockBean
     private EstimateService estimateService;
+
+    @MockBean
+    private EstimateNotificationService estimateNotificationService;
+
+    @MockBean
+    private EstimateUpdateService estimateUpdateService;
+
 
     private ObjectMapper objectMapper;
 
@@ -245,7 +254,6 @@ class EstimateControllerTest {
                 .description("테스트 견적 등록")
                 .imageKey("testImageKey123")
                 .totalAmount(150000)
-                .date(LocalDateTime.of(2024, 11, 25, 10, 0, 0))
                 .dogPriceList(List.of(dogPriceRequest))
                 .build();
 
@@ -466,4 +474,54 @@ class EstimateControllerTest {
                 .andExpect(jsonPath("$.response", hasSize(0)));
     }
 
+    @Test
+    @DisplayName("견적서 상태 업데이트 - 성공")
+    void updateEstimateStatus_Success() throws Exception {
+        // Given
+        Long estimateId = 1L;
+
+        // When & Then
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/estimate/{estimateId}", estimateId)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(
+                                SecurityContextHolder.getContext().getAuthentication())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.response", is("견적서 상태 업데이트 완료")));
+    }
+
+    @Test
+    @DisplayName("견적서 업데이트 - 성공")
+    void updateEstimate_Success() throws Exception {
+        // Given
+        EstimateUpdateRequestDto requestDto = EstimateUpdateRequestDto.builder()
+                .estimateId(1L)
+                .description("업데이트된 견적서 내용")
+                .build();
+
+        // When & Then
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/estimate/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(
+                                SecurityContextHolder.getContext().getAuthentication())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.response", is("견적서 업데이트를 성공하였습니다.")));
+    }
+
+    @Test
+    @DisplayName("견적서 거절 - 성공")
+    void rejectedEstimate_Success() throws Exception {
+        // Given
+        Long estimateId = 1L;
+
+        // When & Then
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/estimate/rejected/{estimateId}", estimateId)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(
+                                SecurityContextHolder.getContext().getAuthentication())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.response", is("견적서 거절에 성공하였습니다.")));
+
+    }
 }

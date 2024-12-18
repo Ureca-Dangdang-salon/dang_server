@@ -25,7 +25,7 @@ public class CouponKafkaNotificationService {
     private final FcmTokenRepository fcmTokenRepository;
     private final EventNotificationProducer producer;
 
-    @Scheduled(cron = "0 45 17 * * *")
+    @Scheduled(cron = "0 15 18 * * *")
     public void sendCouponNotifications() {
         log.info("스케줄러 시작");
         LocalDateTime now = LocalDateTime.now();

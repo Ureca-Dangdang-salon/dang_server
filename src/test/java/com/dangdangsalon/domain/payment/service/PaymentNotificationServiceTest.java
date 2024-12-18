@@ -73,7 +73,7 @@ class PaymentNotificationServiceTest {
         when(notificationService.getFcmTokens(1L)).thenReturn(List.of("dummyFcmToken1", "dummyFcmToken2"));
         when(notificationService.sendNotificationWithData(
                 eq("dummyFcmToken1"),
-                eq("결제가 완료되었습니다"),
+                eq("고객님의 결제가 완료되었습니다."),
                 eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
                 eq(101L) // mockOrders의 ID
@@ -81,7 +81,7 @@ class PaymentNotificationServiceTest {
 
         when(notificationService.sendNotificationWithData(
                 eq("dummyFcmToken2"),
-                eq("결제가 완료되었습니다"),
+                eq("고객님의 결제가 완료되었습니다."),
                 eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
                 eq(101L) // mockOrders의 ID
@@ -93,14 +93,14 @@ class PaymentNotificationServiceTest {
         // Then
         verify(notificationService, times(2)).sendNotificationWithData(
                 anyString(),
-                eq("결제가 완료되었습니다"),
+                eq("고객님의 결제가 완료되었습니다."),
                 eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
                 eq(101L)
         );
         verify(redisNotificationService, times(1)).saveNotificationToRedis(
                 eq(1L),
-                eq("결제가 완료되었습니다"),
+                eq("고객님의 결제가 완료되었습니다."),
                 eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
                 eq(101L)
@@ -147,7 +147,7 @@ class PaymentNotificationServiceTest {
         when(notificationService.getFcmTokens(1L)).thenReturn(List.of("dummyFcmToken1"));
         when(notificationService.sendNotificationWithData(
                 eq("dummyFcmToken1"),
-                eq("결제가 완료되었습니다"),
+                eq("고객님의 결제가 완료되었습니다."),
                 eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
                 eq(101L) // mockOrders의 ID 사용
@@ -159,7 +159,7 @@ class PaymentNotificationServiceTest {
         // Then
         verify(notificationService, times(1)).sendNotificationWithData(
                 eq("dummyFcmToken1"),
-                eq("결제가 완료되었습니다"),
+                eq("고객님의 결제가 완료되었습니다."),
                 eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
                 eq(101L) // mockOrders의 ID 사용

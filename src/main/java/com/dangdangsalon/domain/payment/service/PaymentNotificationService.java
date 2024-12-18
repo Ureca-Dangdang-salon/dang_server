@@ -24,7 +24,7 @@ public class PaymentNotificationService {
         Long userId = orders.getEstimate().getGroomerProfile().getUser().getId();
         List<String> fcmTokens = notificationService.getFcmTokens(userId);
 
-        String title = "결제가 완료되었습니다";
+        String title = "고객님의 결제가 완료되었습니다.";
         String body = "견적 요청 내역을 확인해보세요.";
 
         boolean isNotificationSent = false;

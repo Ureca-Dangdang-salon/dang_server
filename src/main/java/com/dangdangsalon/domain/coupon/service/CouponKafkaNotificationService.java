@@ -25,10 +25,12 @@ public class CouponKafkaNotificationService {
     private final FcmTokenRepository fcmTokenRepository;
     private final EventNotificationProducer producer;
 
-    @Scheduled(cron = "0 40 15 * * *")
+    @Scheduled(cron = "0 50 15 * * *")
     public void sendCouponNotifications() {
         log.info("스케줄러 시작");
         LocalDateTime now = LocalDateTime.now();
+        log.info("현재 시간 {}", now);
+
         LocalDateTime oneHourLater = now.plusHours(1);
 
         // 1시간 이내에 시작하고, 아직 종료되지 않은 단일 이벤트 조회
@@ -40,7 +42,7 @@ public class CouponKafkaNotificationService {
             return;
         }
 
-        log.info("조회된 이벤트: {}", upcomingEvent);
+        log.info("조회된 이벤트: {}", upcomingEvent.getStartedAt());
 
         // FCM 토큰
         List<String> fcmTokens = fcmTokenRepository.findAllByUserRole(Role.ROLE_USER);

@@ -27,6 +27,13 @@ jobs:
         run: |
           docker run -d --name redis-test -p 6379:6379 redis:6.2
           docker run -d --name zookeeper-test -p 2181:2181 confluentinc/cp-zookeeper:7.2.1
+          
+          echo "Waiting for Zookeeper to be ready..."
+          while ! docker exec zookeeper-test bash -c "echo ruok | nc localhost 2181 | grep imok"; do
+            echo "Zookeeper is not ready yet. Waiting..."
+            sleep 5
+          done
+          
           docker run -d --name kafka-test \
             --link zookeeper-test:zookeeper \
             -p 9092:9092 \
@@ -35,7 +42,8 @@ jobs:
             -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
             -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
             confluentinc/cp-kafka:7.2.1
-          sleep 15 # Kafka와 Redis 준비 시간
+          
+          echo "Containers started successfully."
 
       - name: Check running containers
         run: docker ps

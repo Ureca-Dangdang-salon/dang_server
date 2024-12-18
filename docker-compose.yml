@@ -35,6 +35,16 @@ services:
     networks:
       - kafka-network
 
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb-test
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: dangdang_dev
+    networks:
+      - dev-network
+
 networks:
   kafka-network:
     driver: bridge

@@ -32,4 +32,8 @@ public class PostRankDto {
                 .likeCount(likeCount + 77)
                 .build();
     }
+
+    public void updateLike() {
+        this.likeCount += 77;
+    }
 }

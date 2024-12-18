@@ -96,6 +96,8 @@ public class ContestService {
                 .limit(5)
                 .toList();
 
+        rankPosts.forEach(post -> post.updateLike());
+
         return WinnerRankDto.create(previousContest.getId(), winnerDto, rankPosts);
     }
 

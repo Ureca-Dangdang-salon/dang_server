@@ -7,10 +7,10 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - kafka-network
+      - dev-network
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:7.2.1
     container_name: zookeeper-test
     ports:
       - "2181:2181"
@@ -18,10 +18,10 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     networks:
-      - kafka-network
+      - dev-network
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.2.1
     container_name: kafka-test
     depends_on:
       - zookeeper
@@ -33,7 +33,7 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
-      - kafka-network
+      - dev-network
 
   mongodb:
     image: mongo:6.0
@@ -46,5 +46,5 @@ services:
       - dev-network
 
 networks:
-  kafka-network:
+  dev-network:
     driver: bridge

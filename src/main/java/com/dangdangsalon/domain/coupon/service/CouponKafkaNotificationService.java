@@ -40,7 +40,7 @@ public class CouponKafkaNotificationService {
         // FCM 토큰
         List<String> fcmTokens = fcmTokenRepository.findAll().stream()
                 .map(FcmToken::getFcmToken)
-                .collect(Collectors.toList());
+                .toList();
 
         if (fcmTokens.isEmpty()) {
             log.warn("알림을 전송할 FCM 토큰이 없습니다.");

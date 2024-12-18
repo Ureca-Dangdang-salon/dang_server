@@ -21,10 +21,17 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # Docker Compose 설치
+      - name: Install Docker Compose
+        run: |
+          curl -L "https://github.com/docker/compose/releases/download/v2.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+          docker-compose version
+
       # Redis와 Kafka를 Docker Compose로 실행
       - name: Start Redis and Kafka with Docker Compose
         run: |
-          docker-compose up -d
+          docker-compose -f docker-compose.yml up -d
           sleep 15 # 컨테이너 준비 시간
 
       - name: Check running containers

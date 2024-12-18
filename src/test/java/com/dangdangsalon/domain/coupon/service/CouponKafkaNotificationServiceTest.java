@@ -56,8 +56,7 @@ class CouponKafkaNotificationServiceTest {
     @DisplayName("쿠폰 알림 전송 테스트 - 성공")
     void testSendCouponNotifications_Success() {
         // Given
-        LocalDateTime now = LocalDateTime.now();
-        given(couponEventRepository.findFirstByStartedAtBetweenAndEndedAtAfter(eq(now), any(), eq(now)))
+        given(couponEventRepository.findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any()))
                 .willReturn(mockEvent);
 
         given(fcmTokenRepository.findAll()).willReturn(mockTokens);
@@ -66,7 +65,7 @@ class CouponKafkaNotificationServiceTest {
         couponKafkaNotificationService.sendCouponNotifications();
 
         // Then
-        verify(couponEventRepository, times(1)).findFirstByStartedAtBetweenAndEndedAtAfter(eq(now), any(), eq(now));
+        verify(couponEventRepository, times(1)).findFirstByStartedAtBetweenAndEndedAtAfter(any(), any(), any());
         verify(fcmTokenRepository, times(1)).findAll();
         verify(producer, times(1)).sendEventNotification(any(EventNotificationDto.class));
     }

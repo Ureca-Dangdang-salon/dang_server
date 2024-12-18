@@ -23,10 +23,10 @@ public class ChatRoom extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "customer_left", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+    @Column(name = "customer_left", nullable = false)
     private Boolean customerLeft;
 
-    @Column(name = "groomer_left", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+    @Column(name = "groomer_left", nullable = false)
     private Boolean groomerLeft;
 
     @ManyToOne

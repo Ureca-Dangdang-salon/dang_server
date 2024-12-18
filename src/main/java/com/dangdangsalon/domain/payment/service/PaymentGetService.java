@@ -31,13 +31,12 @@ public class PaymentGetService {
 
     @Transactional(readOnly = true)
     public List<PaymentResponseDto> getPayments(Long userId) {
-        // 1. ACCEPTED 상태의 모든 주문 조회
-        List<Orders> acceptedOrders = ordersRepository.findAllByUserIdAndStatus(userId, OrderStatus.ACCEPTED)
-                .orElseThrow(() -> new IllegalArgumentException("결제 완료된 주문이 없습니다."));
+        // 1. PENDING이 아닌 상태의 모든 주문 조회
+        List<Orders> orders = ordersRepository.findAllByUserIdAndStatusNot(userId, OrderStatus.PENDING)
+                .orElseThrow(() -> new IllegalArgumentException("결제 관련 주문이 없습니다."));
 
         // 2. 각 주문에 대한 결제 정보와 프로필별 서비스 정보 생성
-        return acceptedOrders.stream().map(order -> {
-            // 결제 정보 가져오기
+        return orders.stream().map(order -> {
             Payment payment = paymentRepository.findByOrders(order)
                     .orElseThrow(() -> new IllegalArgumentException(
                             "주문 ID " + order.getId() + "에 대한 결제 정보가 없습니다."

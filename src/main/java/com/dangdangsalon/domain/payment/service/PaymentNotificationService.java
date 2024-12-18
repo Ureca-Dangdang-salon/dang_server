@@ -21,22 +21,22 @@ public class PaymentNotificationService {
     @Async
     public void sendNotificationToUser(Orders orders) {
 
-        Long userId = orders.getUser().getId();
+        Long userId = orders.getEstimate().getGroomerProfile().getUser().getId();
         List<String> fcmTokens = notificationService.getFcmTokens(userId);
 
         String title = "결제가 완료되었습니다";
-        String body = "결제 내역을 확인해보세요.";
+        String body = "견적 요청 내역을 확인해보세요.";
 
         boolean isNotificationSent = false;
 
         for (String fcmToken : fcmTokens) {
-            if (notificationService.sendNotificationWithData(fcmToken, title, body, "결제", userId)) {
+            if (notificationService.sendNotificationWithData(fcmToken, title, body, "결제", orders.getId())) {
                 isNotificationSent = true;
             }
         }
 
         if (isNotificationSent) {
-            redisNotificationService.saveNotificationToRedis(userId, title, body, "결제", userId);
+            redisNotificationService.saveNotificationToRedis(userId, title, body, "결제", orders.getId());
         }
     }
 }

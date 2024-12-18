@@ -28,6 +28,7 @@ import com.dangdangsalon.domain.user.repository.UserRepository;
 import com.dangdangsalon.util.RedisUtil;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -96,6 +97,7 @@ public class ChatRoomService {
 
         return chatRooms.stream()
                 .map(chatRoom -> convertToChatRoomListDto(chatRoom, userRole))
+                .sorted(Comparator.comparingInt(ChatRoomListDto::getUnreadCount).reversed())
                 .toList();
     }
 

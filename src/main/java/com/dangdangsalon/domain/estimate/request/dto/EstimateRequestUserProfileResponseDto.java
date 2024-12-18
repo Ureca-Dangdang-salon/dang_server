@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Builder
@@ -14,9 +14,8 @@ import java.time.LocalDate;
 public class EstimateRequestUserProfileResponseDto {
 
     private String name;
-    private LocalDate date;
+    private LocalDateTime date;
     private String serviceType;
     private String region;
     private String imageKey;
-
 }

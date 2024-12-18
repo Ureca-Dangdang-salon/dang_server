@@ -25,7 +25,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -90,7 +90,7 @@ public class EstimateRequestApiTest {
         EstimateRequestResponseDto mockResponseDto = EstimateRequestResponseDto.builder()
                 .requestId(1L)
                 .name("이민수")
-                .date(LocalDate.of(2024, 11, 25))
+                .date(LocalDateTime.of(2024, 11, 25, 0, 0, 0, 0))
                 .serviceType("VISIT")
                 .region("서울특별시 강남구")
                 .imageKey("image-key")
@@ -110,10 +110,10 @@ public class EstimateRequestApiTest {
                 .get("/api/estimaterequest/1")
                 .then()
                 .statusCode(200)
-                .body("response", hasSize(1)) // 리스트 크기 확인
+                .body("response", hasSize(1))
                 .body("response[0].requestId", equalTo(1))
                 .body("response[0].name", equalTo("이민수"))
-                .body("response[0].date", equalTo("2024-11-25"))
+                .body("response[0].date", equalTo("2024-11-25T00:00:00"))
                 .body("response[0].serviceType", equalTo("VISIT"))
                 .body("response[0].region", equalTo("서울특별시 강남구"))
                 .body("response[0].imageKey", equalTo("image-key"))

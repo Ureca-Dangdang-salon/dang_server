@@ -47,7 +47,7 @@ public class EstimateRequestDetailService {
 
         EstimateRequestUserProfileResponseDto userProfile = EstimateRequestUserProfileResponseDto.builder()
                 .name(user.getName())
-                .date(estimateRequest.getRequestDate().toLocalDate())
+                .date(estimateRequest.getRequestDate())
                 .serviceType(estimateRequest.getServiceType().name())
                 .region(String.format("%s %s", city.getName(), district.getName()))
                 .imageKey(user.getImageKey())

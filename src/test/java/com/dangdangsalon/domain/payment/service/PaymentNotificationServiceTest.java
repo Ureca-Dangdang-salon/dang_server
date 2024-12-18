@@ -1,5 +1,7 @@
 package com.dangdangsalon.domain.payment.service;
 
+import com.dangdangsalon.domain.estimate.entity.Estimate;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
 import com.dangdangsalon.domain.notification.service.NotificationService;
 import com.dangdangsalon.domain.notification.service.RedisNotificationService;
 import com.dangdangsalon.domain.orders.entity.Orders;
@@ -50,6 +52,16 @@ class PaymentNotificationServiceTest {
                 .user(mockUser)
                 .build();
 
+        // 새로운 객체들 생성 및 연결
+        Estimate mockEstimate = Estimate.builder()
+                .groomerProfile(GroomerProfile.builder()
+                        .user(mockUser) // GroomerProfile 내에 User 연결
+                        .build())
+                .build();
+
+        // mockOrders의 estimate 필드 설정
+        ReflectionTestUtils.setField(mockOrders, "estimate", mockEstimate);
+
         ReflectionTestUtils.setField(mockUser, "id", 1L);
         ReflectionTestUtils.setField(mockOrders, "id", 101L);
     }
@@ -62,17 +74,17 @@ class PaymentNotificationServiceTest {
         when(notificationService.sendNotificationWithData(
                 eq("dummyFcmToken1"),
                 eq("결제가 완료되었습니다"),
-                eq("결제 내역을 확인해보세요."),
+                eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
-                eq(1L) // ID 통일
+                eq(101L) // mockOrders의 ID
         )).thenReturn(true);
 
         when(notificationService.sendNotificationWithData(
                 eq("dummyFcmToken2"),
                 eq("결제가 완료되었습니다"),
-                eq("결제 내역을 확인해보세요."),
+                eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
-                eq(1L) // ID 통일
+                eq(101L) // mockOrders의 ID
         )).thenReturn(true);
 
         // When
@@ -82,16 +94,16 @@ class PaymentNotificationServiceTest {
         verify(notificationService, times(2)).sendNotificationWithData(
                 anyString(),
                 eq("결제가 완료되었습니다"),
-                eq("결제 내역을 확인해보세요."),
+                eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
-                eq(1L)
+                eq(101L)
         );
         verify(redisNotificationService, times(1)).saveNotificationToRedis(
                 eq(1L),
                 eq("결제가 완료되었습니다"),
-                eq("결제 내역을 확인해보세요."),
+                eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
-                eq(1L)
+                eq(101L)
         );
     }
 
@@ -127,17 +139,18 @@ class PaymentNotificationServiceTest {
         verify(notificationService, never()).sendNotificationWithData(any(), any(), any(), any(), any());
         verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
     }
+
     @Test
     @DisplayName("알림 전송 - FCM 전송 실패")
     void sendNotificationToUser_FcmSendFailed() {
-        // Assuming mockOrders returns 1L when getId() is called
+        // Given
         when(notificationService.getFcmTokens(1L)).thenReturn(List.of("dummyFcmToken1"));
         when(notificationService.sendNotificationWithData(
                 eq("dummyFcmToken1"),
                 eq("결제가 완료되었습니다"),
-                eq("결제 내역을 확인해보세요."),
+                eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
-                eq(1L) // Change this to 1L to match the actual implementation
+                eq(101L) // mockOrders의 ID 사용
         )).thenReturn(false);
 
         // When
@@ -147,13 +160,12 @@ class PaymentNotificationServiceTest {
         verify(notificationService, times(1)).sendNotificationWithData(
                 eq("dummyFcmToken1"),
                 eq("결제가 완료되었습니다"),
-                eq("결제 내역을 확인해보세요."),
+                eq("견적 요청 내역을 확인해보세요."),
                 eq("결제"),
-                eq(1L) // Change this to 1L
+                eq(101L) // mockOrders의 ID 사용
         );
         verify(redisNotificationService, never()).saveNotificationToRedis(anyLong(), any(), any(), any(), any());
     }
-
 
     @Test
     @DisplayName("알림 전송 - FCM 토큰 없음")

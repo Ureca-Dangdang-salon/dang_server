@@ -18,7 +18,7 @@ public class CookieUtil {
 
         return ResponseCookie.from(key, value)
                 .path("/")
-//                .domain(".dangdang-salon.com")
+                .domain(".dangdang-salon.com")
                 .maxAge(60 * 60 * 24 * 30)
                 .httpOnly(true)
                 .secure(true)

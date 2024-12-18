@@ -37,9 +37,9 @@ public class MyPageDogProfileService {
                 .filter(coupon -> coupon.getStatus() != null && coupon.getStatus().equals(CouponStatus.NOT_USED))
                 .count();
 
-        // PaymentStatus가 'APPROVED'인 결제 수 계산
+        // OrderStatus 가 'PENDING'이 아닌 결제 수 계산
         long paymentCount = user.getOrders().stream()
-                .filter(order -> order.getStatus() != null && order.getStatus().equals(OrderStatus.ACCEPTED))
+                .filter(order -> order.getStatus() != null && !order.getStatus().equals(OrderStatus.PENDING))
                 .count();
 
         return UserProfileResponseDto.createUserProfileResponseDto(user, notUsedCouponCount, paymentCount);

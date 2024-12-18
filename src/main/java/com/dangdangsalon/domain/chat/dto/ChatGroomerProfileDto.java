@@ -17,7 +17,6 @@ public class ChatGroomerProfileDto {
     public static ChatGroomerProfileDto create(GroomerProfile groomerProfile) {
         return ChatGroomerProfileDto.builder()
                 .groomerProfileId(groomerProfile.getId())
-                .address(groomerProfile.getDetails().getAddress())
                 .serviceName(groomerProfile.getName())
                 .profileImageUrl(groomerProfile.getImageKey())
                 .build();

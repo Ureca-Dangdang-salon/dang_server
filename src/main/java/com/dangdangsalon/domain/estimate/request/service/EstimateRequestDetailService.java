@@ -11,6 +11,9 @@ import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestService;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestProfilesRepository;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestRepository;
 import com.dangdangsalon.domain.estimate.request.repository.EstimateRequestServiceRepository;
+import com.dangdangsalon.domain.region.entity.City;
+import com.dangdangsalon.domain.region.entity.District;
+import com.dangdangsalon.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,15 +40,34 @@ public class EstimateRequestDetailService {
         List<EstimateRequestProfiles> profileList = estimateRequestProfilesRepository.findByEstimateRequest(estimateRequest)
                 .orElseThrow(() -> new IllegalArgumentException("견적 요청 프로필 정보를 찾을 수 없습니다"));
 
+        // 사용자 정보 가져오기
+        User user = estimateRequest.getUser();
+        District district = estimateRequest.getDistrict();
+        City city = district.getCity();
+
+        EstimateRequestUserProfileResponseDto userProfile = EstimateRequestUserProfileResponseDto.builder()
+                .name(user.getName())
+                .date(estimateRequest.getRequestDate().toLocalDate())
+                .serviceType(estimateRequest.getServiceType().name())
+                .region(String.format("%s %s", city.getName(), district.getName()))
+                .imageKey(user.getImageKey())
+                .build();
+
         return profileList.stream()
-                .map(profile -> EstimateDetailResponseDto.toDto(
-                        profile,
-                        new DogProfileResponseDto(
+                .map(profile -> EstimateDetailResponseDto.builder()
+                        .userProfile(userProfile)
+                        .dogProfileResponseDto(new DogProfileResponseDto(
                                 profile.getDogProfile().getId(),
                                 profile.getDogProfile().getImageKey(),
-                                profile.getDogProfile().getName()),
-                        getServiceList(profile),
-                        getFeatureList(profile.getDogProfile())))
+                                profile.getDogProfile().getName()))
+                        .currentPhotoKey(profile.getCurrentImageKey())
+                        .styleRefPhotoKey(profile.getStyleRefImageKey())
+                        .aggression(profile.isAggression())
+                        .healthIssue(profile.isHealthIssue())
+                        .description(profile.getDescription())
+                        .serviceList(getServiceList(profile))
+                        .featureList(getFeatureList(profile.getDogProfile()))
+                        .build())
                 .toList();
     }
 

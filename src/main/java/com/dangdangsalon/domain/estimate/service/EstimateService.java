@@ -129,13 +129,15 @@ public class EstimateService {
                             .mapToInt(ServicePriceResponseDto::getPrice)
                             .sum();
 
+                    int dogFeaturePrice = profile.getAggressionCharge() + profile.getHealthIssueCharge();
+
                     return EstimateDogResponseDto.builder()
                             .dogProfileResponseDto(dogProfileResponseDto)
                             .description(profile.getDescription())
                             .serviceList(serviceList)
                             .isAggression(profile.isAggression())
                             .isHealthIssue(profile.isHealthIssue())
-                            .dogPrice(totalServicePrice)
+                            .dogPrice(totalServicePrice + dogFeaturePrice)
                             .build();
                 })
                 .toList();

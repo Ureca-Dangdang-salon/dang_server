@@ -1,6 +1,7 @@
 package com.dangdangsalon.domain.estimate.request.dto;
 import com.dangdangsalon.domain.dogprofile.dto.DogProfileResponseDto;
 import com.dangdangsalon.domain.estimate.request.entity.EstimateRequestProfiles;
+import com.dangdangsalon.domain.mypage.dto.res.UserProfileResponseDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 public class EstimateDetailResponseDto {
 
+    private EstimateRequestUserProfileResponseDto userProfile;
     private DogProfileResponseDto dogProfileResponseDto;
     private String currentPhotoKey;
     private String styleRefPhotoKey;
@@ -21,12 +23,13 @@ public class EstimateDetailResponseDto {
     private List<FeatureResponseDto> featureList;
 
     @Builder
-    public EstimateDetailResponseDto(DogProfileResponseDto dogProfileResponseDto, String currentPhotoKey, String styleRefPhotoKey,
+    public EstimateDetailResponseDto(EstimateRequestUserProfileResponseDto userProfile, DogProfileResponseDto dogProfileResponseDto, String currentPhotoKey, String styleRefPhotoKey,
                                      boolean aggression,
                                      boolean healthIssue,
                                      String description,
                                      List<ServiceResponseDto> serviceList,
                                      List<FeatureResponseDto> featureList) {
+        this.userProfile = userProfile;
         this.dogProfileResponseDto = dogProfileResponseDto;
         this.currentPhotoKey = currentPhotoKey;
         this.styleRefPhotoKey = styleRefPhotoKey;

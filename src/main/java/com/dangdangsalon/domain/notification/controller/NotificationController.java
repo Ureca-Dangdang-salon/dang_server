@@ -66,17 +66,27 @@ public class NotificationController {
         Long userId = user.getUserId();
 
         notificationService.saveOrUpdateFcmToken(userId, requestDto.getFcmToken());
-        notificationTopicService.subscribeToTopic(requestDto.getFcmToken(), requestDto.getTopic());
+        notificationTopicService.subscribeToTopicInApp(requestDto.getFcmToken(), requestDto.getTopic(), userId);
 
         return ApiUtil.success("성공적으로 구독되었습니다.");
     }
 
     @PostMapping("/unsubscribe")
-    public ApiSuccess<?> unsubscribe(@RequestBody FcmTokenTopicRequestDto requestDto) {
+    public ApiSuccess<?> unsubscribe(@AuthenticationPrincipal CustomOAuth2User user, @RequestBody FcmTokenTopicRequestDto requestDto) {
+        Long userId = user.getUserId();
 
-        notificationTopicService.unsubscribeFromTopic(requestDto.getFcmToken(), requestDto.getTopic());
+        notificationTopicService.unsubscribeFromTopicInApp(requestDto.getFcmToken(), requestDto.getTopic(),userId);
 
         return ApiUtil.success("구독이 해제되었습니다.");
+    }
+
+    @GetMapping("/is-subscribed")
+    public ApiSuccess<?> isSubscribed(@AuthenticationPrincipal CustomOAuth2User user, @RequestParam String topicName) {
+        Long userId = user.getUserId();
+
+        boolean subscribed = notificationTopicService.isSubscribed(topicName, userId);
+
+        return ApiUtil.success(subscribed);
     }
 
     @PostMapping("/update/{enabled}")

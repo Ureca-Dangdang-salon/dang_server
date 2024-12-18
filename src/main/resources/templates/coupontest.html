@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>쿠폰 이벤트 테스트</title>
+    <script>
+        let eventSource;
+
+        // SSE 연결 설정
+        function connectSSE(userId, eventId) {
+            console.log("SSE 연결 시작");
+            eventSource = new EventSource(`/api/coupons/queue/updates?userId=${userId}&eventId=${eventId}`);
+
+            eventSource.onopen = function () {
+                console.log("SSE 연결 성공");
+            };
+
+            eventSource.addEventListener("queue_status", function (event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log("수신된 SSE 데이터:", data);
+
+                    updateModalData(data);
+
+                } catch (e) {
+                    console.error("SSE 데이터 파싱 오류:", e);
+                }
+            });
+
+            eventSource.addEventListener("couponIssueResult", function (event) {
+                try {
+                    const result = JSON.parse(event.data);
+                    console.log("쿠폰 발급 결과 수신:", result);
+
+                    if (result) {
+                        alert("쿠폰이 발급되었습니다!");
+                    } else {
+                        alert("쿠폰 발급에 실패했습니다.");
+                    }
+
+                    closeModal();
+                    eventSource.close();
+                } catch (e) {
+                    console.error("쿠폰 발급 결과 처리 중 오류:", e);
+                }
+            });
+
+            eventSource.onerror = function (event) {
+                console.error("SSE 연결 오류 발생:", event);
+                setTimeout(() => connectSSE(userId, eventId), 5000); // 재연결 시도
+            };
+        }
+
+        // 쿠폰 발급 요청
+        async function issueCoupon() {
+            const userId = document.getElementById("userId").value;
+            const eventId = document.getElementById("eventId").value;
+
+            try {
+                const response = await fetch(`/api/coupons/issued?userId=${userId}&eventId=${eventId}`, {
+                    method: "POST"
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 에러! 상태 코드: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.response && result.response.includes("대기열에 참여했습니다.")) {
+                    showModal();
+                    connectSSE(userId, eventId);
+                } else if (result.response && result.response.includes("쿠폰이 소진되었습니다. 다음 기회에 도전해주세요")) {
+                    alert(result.response);
+                } else {
+                    alert(result.response || "쿠폰 요청 성공!");
+                }
+            } catch (error) {
+                alert("요청 중 오류 발생: " + error.message);
+                console.error(error);
+            }
+        }
+
+        function updateModalData(data) {
+            // 데이터가 올바른지 확인
+            if (!data || typeof data !== "object") {
+                console.error("잘못된 데이터:", data);
+                return;
+            }
+
+            console.log("Updating DOM with data:", data);
+
+            // DOM 요소 가져오기
+            const queueLengthModal = document.getElementById("queueLengthModal");
+            const remainingCouponsModal = document.getElementById("remainingCouponsModal");
+            const aheadCountModal = document.getElementById("aheadCountModal");
+            const behindCountModal = document.getElementById("behindCountModal");
+            const estimatedTimeModal = document.getElementById("estimatedTimeModal");
+            const progressBar = document.getElementById("progressBar");
+
+            // 요소가 제대로 선택되었는지 확인
+            if (!queueLengthModal || !remainingCouponsModal || !aheadCountModal || !behindCountModal || !estimatedTimeModal || !progressBar) {
+                console.error("DOM 요소 선택 실패");
+                return;
+            }
+
+            // 데이터 업데이트
+            queueLengthModal.innerText = data.queueLength || 0;
+            remainingCouponsModal.innerText = data.remainingCoupons || 0;
+            aheadCountModal.innerText = data.aheadCount || 0;
+            behindCountModal.innerText = data.behindCount || 0;
+            estimatedTimeModal.innerText = formatTime(data.estimatedTime || 0);
+
+            // Progress Bar 업데이트
+            if (data.queueLength && data.aheadCount !== undefined) {
+                const progress = ((data.queueLength - data.aheadCount) / data.queueLength) * 100;
+                progressBar.value = progress.toFixed(2);
+            } else {
+                progressBar.value = 0;
+            }
+
+            console.log("DOM 업데이트 완료");
+        }
+
+        function showModal() {
+            const modal = document.getElementById("queueStatusModal");
+            modal.style.display = "block";
+        }
+
+        function closeModal() {
+            const modal = document.getElementById("queueStatusModal");
+            modal.style.display = "none";
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+        }
+    </script>
+    <style>
+        /* Modal 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        progress {
+            width: 100%;
+            height: 20px;
+            appearance: none;
+        }
+
+        progress::-webkit-progress-bar {
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        progress::-webkit-progress-value {
+            background-color: #4caf50;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+<h1>쿠폰 이벤트 테스트</h1>
+
+<!-- 쿠폰 발급 요청 -->
+<div>
+    <h2>쿠폰 발급 요청</h2>
+    <label for="userId">사용자 ID:</label>
+    <input type="number" id="userId" placeholder="사용자 ID 입력">
+    <br>
+    <label for="eventId">이벤트 ID:</label>
+    <input type="number" id="eventId" value="1" readonly>
+    <br>
+    <button onclick="issueCoupon()">쿠폰 발급하기</button>
+</div>
+
+<!-- 모달 -->
+<div id="queueStatusModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>접속 대기 중입니다.</h2>
+        <p>총 대기 인원: <span id="queueLengthModal">0</span>명</p>
+        <p>남은 쿠폰: <span id="remainingCouponsModal">0</span>개</p>
+        <p>앞에 <span id="aheadCountModal">0</span>명, 뒤에 <span id="behindCountModal">0</span>명</p>
+        <p>예상시간: <span id="estimatedTimeModal">0:00</span></p>
+        <progress id="progressBar" value="0" max="100"></progress>
+        <br>
+        <button onclick="closeModal()">중지</button>
+    </div>
+</div>
+</body>
+</html>

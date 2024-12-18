@@ -42,13 +42,11 @@ public class NotificationService {
             return false; // 알림 비활성화 시 false 반환
         }
 
-        // 메시지 구성
+        // 메시지 구성 (data 전용)
         Message message = Message.builder()
                 .setToken(token)
-                .setNotification(Notification.builder()
-                        .setTitle(title)  // 알림 제목
-                        .setBody(body)    // 알림 내용
-                        .build())
+                .putData("title", title)  // 알림 제목
+                .putData("body", body)    // 알림 내용
                 .putData("type", type)
                 .putData("referenceId", String.valueOf(referenceId))
                 .build();
@@ -73,7 +71,6 @@ public class NotificationService {
             return false;
         }
     }
-
 
     @Transactional
     public void saveOrUpdateFcmToken(Long userId, String token) {
@@ -105,9 +102,10 @@ public class NotificationService {
     }
 
 
-    public Optional<String> getFcmToken(Long userId) {
-        return fcmTokenRepository.findByUserId(userId)
-                .map(FcmToken::getFcmToken);
+    public List<String> getFcmTokens(Long userId) {
+        return fcmTokenRepository.findByUserId(userId).stream()
+                .map(FcmToken::getFcmToken)
+                .toList();
     }
 
     public void deleteFcmToken(String token) {

@@ -47,4 +47,8 @@ public class Coupon extends BaseEntity {
         this.discountType = discountType;
         this.user = user;
     }
+
+    public void updateCouponStatus(CouponStatus status){
+        this.status = status;
+    }
 }

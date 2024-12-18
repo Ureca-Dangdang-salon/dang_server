@@ -1,5 +1,5 @@
 package com.dangdangsalon.domain.estimate.request.entity;
 
 public enum RequestStatus {
-    PAID, PENDING, CANCEL, COMPLETED
+    PAID, PENDING, CANCEL, COMPLETED, REFUND
 }

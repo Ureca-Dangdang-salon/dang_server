@@ -2,6 +2,7 @@ package com.dangdangsalon.domain.review.service;
 
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerDetails;
 import com.dangdangsalon.domain.groomerprofile.entity.GroomerProfile;
+import com.dangdangsalon.domain.groomerprofile.entity.GroomerServiceArea;
 import com.dangdangsalon.domain.groomerprofile.repository.GroomerProfileRepository;
 import com.dangdangsalon.domain.groomerprofile.review.dto.ReviewGroomerResponseDto;
 import com.dangdangsalon.domain.groomerprofile.review.dto.ReviewInsertRequestDto;
@@ -11,6 +12,7 @@ import com.dangdangsalon.domain.groomerprofile.review.entity.Review;
 import com.dangdangsalon.domain.groomerprofile.review.repository.ReviewImageRepository;
 import com.dangdangsalon.domain.groomerprofile.review.repository.ReviewRepository;
 import com.dangdangsalon.domain.groomerprofile.review.service.ReviewService;
+import com.dangdangsalon.domain.groomerservice.entity.GroomerService;
 import com.dangdangsalon.domain.region.entity.City;
 import com.dangdangsalon.domain.region.entity.District;
 import com.dangdangsalon.domain.user.entity.User;
@@ -54,15 +56,22 @@ public class ReviewServiceTest {
         User user = mock(User.class);
         given(user.getId()).willReturn(1L);
 
-        GroomerDetails groomerDetails = mock(GroomerDetails.class);
-        given(groomerDetails.getAddress()).willReturn("미용사 주소");
+        City city = mock(City.class);
+        given(city.getName()).willReturn("서울시");
+
+        District district = mock(District.class);
+        given(district.getName()).willReturn("동작구");
+        given(district.getCity()).willReturn(city);
+
+        GroomerServiceArea groomerServiceArea = mock(GroomerServiceArea.class);
+        given(groomerServiceArea.getDistrict()).willReturn(district);
 
         GroomerProfile groomerProfile = mock(GroomerProfile.class);
         given(groomerProfile.getId()).willReturn(1L);
-        given(groomerProfile.getDetails()).willReturn(groomerDetails); // GroomerProfile 의 ID 모킹
+        given(groomerProfile.getGroomerServiceAreas()).willReturn(List.of(groomerServiceArea));
 
         Review review = mock(Review.class);
-        given(review.getGroomerProfile()).willReturn(groomerProfile); // Review 에서 GroomerProfile 반환값 설정
+        given(review.getGroomerProfile()).willReturn(groomerProfile);
         given(reviewRepository.findAllByUserIdWithImages(user.getId())).willReturn(Optional.of(List.of(review)));
 
         // When

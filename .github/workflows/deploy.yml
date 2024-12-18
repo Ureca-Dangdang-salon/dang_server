@@ -9,52 +9,9 @@ on:
       - main # main 브랜치에 Push 발생 시 배포 진행
 
 jobs:
-  # 1. PR에서의 테스트 및 코드 검증
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      # Redis 컨테이너 실행
-      - name: Start Redis
-        run: |
-          docker run -d --name redis-test -p 6379:6379 redis:6.2
-
-      - name: Run tests
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
-          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
-          KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
-          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
-          MONGODB_HOST: ${{ secrets.MONGODB_HOST }}
-          MONGODB_PORT: ${{ secrets.MONGODB_PORT }}
-          MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
-          TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
-          FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          OPENAI_SECRET_KEY: ${{ secrets.OPENAI_SECRET_KEY }}
-        run: |
-          chmod +x ./gradlew
-          ./gradlew clean test -Dspring.profiles.active=test
-
   # 2. Push 이벤트 시 빌드 및 배포
   build-and-deploy:
     runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name == 'push' # Push 이벤트 시에만 실행
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -65,9 +22,23 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Start Redis
+      # Redis와 Kafka 컨테이너 실행
+      - name: Start Redis and Kafka
         run: |
           docker run -d --name redis-test -p 6379:6379 redis:6.2
+          docker run -d --name zookeeper-test -p 2181:2181 confluentinc/cp-zookeeper:7.2.1
+          docker run -d --name kafka-test \
+            --link zookeeper-test:zookeeper \
+            -p 9092:9092 \
+            -e KAFKA_BROKER_ID=1 \
+            -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 \
+            -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
+            -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
+            confluentinc/cp-kafka:7.2.1
+          sleep 15 # Kafka와 Redis 준비 시간
+
+      - name: Check running containers
+        run: docker ps
 
       - name: Build JAR file
         env:
@@ -91,7 +62,6 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew clean build -Dspring.profiles.active=test
-
       - name: Copy JAR to build context
         run: cp build/libs/dangdang-salon-service-*-SNAPSHOT.jar .
 
@@ -99,7 +69,6 @@ jobs:
         run: |
           docker build -t dangdang-salon:latest .
           docker tag dangdang-salon:latest ${{ secrets.DOCKER_USERNAME }}/dangdang-salon:latest
-
       - name: Push Docker image to Docker Hub
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -107,7 +76,6 @@ jobs:
         run: |
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_USERNAME/dangdang-salon:latest
-
       - name: Deploy to Server
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

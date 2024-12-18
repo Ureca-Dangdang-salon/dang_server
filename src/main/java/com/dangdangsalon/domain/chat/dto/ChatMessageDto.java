@@ -66,4 +66,10 @@ public class ChatMessageDto implements Serializable {
     public void updateSequence(Long sequence) {
         this.sequence = sequence;
     }
+
+    public void updateSenderInfo(Long roomId, Long senderId, String senderRole) {
+        this.roomId = roomId;
+        this.senderId = senderId;
+        this.senderRole = senderRole;
+    }
 }

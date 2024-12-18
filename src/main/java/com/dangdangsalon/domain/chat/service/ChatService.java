@@ -30,20 +30,20 @@ public class ChatService {
         return chatMessage;
     }
 
-//    public ChatMessageDto createAndSaveMessage(ChatMessageDto chatMessageDto) {
-//        ChatMessageDto chatMessage = ChatMessageDto.builder()
-//                .messageId(UUIDUtil.generateTimeBasedUUID())
-//                .roomId(chatMessageDto.getRoomId())
-//                .senderId(chatMessageDto.getSenderId())
-//                .senderRole(chatMessageDto.getSenderRole())
-//                .messageText(chatMessageDto.getMessageText())
-//                .imageUrl(chatMessageDto.getImageUrl())
-//                .sendAt(LocalDateTime.now())
-//                .build();
-//
-//        chatMessageService.saveMessageRedis(chatMessage);
-//        chatMessageService.updateLastReadKey(chatMessage);
-//
-//        return chatMessage;
-//    } 테스트 용도
+    public ChatMessageDto createAndSaveMessage(ChatMessageDto chatMessageDto) {
+        ChatMessageDto chatMessage = ChatMessageDto.builder()
+                .messageId(UUIDUtil.generateTimeBasedUUID())
+                .roomId(chatMessageDto.getRoomId())
+                .senderId(chatMessageDto.getSenderId())
+                .senderRole(chatMessageDto.getSenderRole())
+                .messageText(chatMessageDto.getMessageText())
+                .imageUrl(chatMessageDto.getImageUrl())
+                .sendAt(LocalDateTime.now())
+                .build();
+
+        chatMessageService.saveMessageRedis(chatMessage);
+        chatMessageService.updateLastReadKey(chatMessage);
+
+        return chatMessage;
+    } //테스트 용도
 }

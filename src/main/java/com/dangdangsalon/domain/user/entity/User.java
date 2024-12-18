@@ -65,7 +65,8 @@ public class User extends BaseEntity {
     private Boolean notificationEnabled = true;
 
     @Builder
-    public User(String username, String name, String email, String imageKey, Role role, District district, Boolean notificationEnabled) {
+    public User(Long id, String username, String name, String email, String imageKey, Role role, District district) {
+        this.id = id;
         this.username = username;
         this.name = name;
         this.email = email;

@@ -29,7 +29,7 @@ public class PostRankDto {
                 .userId(post.getUser().getId())
                 .dogName(post.getGroomerProfile().getName())
                 .imageUrl(post.getImageKey())
-                .likeCount(likeCount)
+                .likeCount(likeCount + 77)
                 .build();
     }
 }

@@ -73,4 +73,10 @@ public class MyPageGroomerController {
         GroomerMainResponseDto groomerProfile = myPageGroomerService.getGroomerProfileMainPage(userId);
         return ApiUtil.success(groomerProfile);
     }
+
+    @GetMapping("/check/{name}")
+    public ApiSuccess<?> getCheckName(@PathVariable String name) {
+        boolean nameDuplicate = myPageGroomerService.isNameDuplicate(name);
+        return ApiUtil.success(nameDuplicate);
+    }
 }

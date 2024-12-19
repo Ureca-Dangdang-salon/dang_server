@@ -408,4 +408,22 @@ public class MyPageApiTest {
                 .statusCode(200)
                 .body("response", equalTo("반려견 프로필 삭제가 완료되었습니다."));
     }
+
+    @Test
+    @DisplayName("닉네임 중복 조회 테스트")
+    void getCheckNameTest() {
+        CustomOAuth2User mockLoginUser = mock(CustomOAuth2User.class);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(mockLoginUser, null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))));
+
+        RestAssuredMockMvc
+                .given()
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/groomerprofile/check/미용실")
+                .then()
+                .statusCode(200)
+                .body("response", equalTo(false));
+    }
 }

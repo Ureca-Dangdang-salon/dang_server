@@ -273,4 +273,34 @@ class MyPageGroomerControllerTest {
 
         verify(myPageGroomerService, times(1)).getGroomerProfileMainPage(mockUserId);
     }
+
+    @Test
+    @DisplayName("닉네임 중복 여부 확인")
+    void testCheckNameDuplicate_true() throws Exception {
+        // Mock CustomOAuth2User 설정
+        Long mockUserId = 1L;
+        CustomOAuth2User customOAuth2User = mock(CustomOAuth2User.class);
+        when(customOAuth2User.getUserId()).thenReturn(mockUserId);
+
+        // SecurityContext에 사용자 설정
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                customOAuth2User,
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_USER")) // 권한 추가
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Given
+        String testName = "uniqueName";
+        when(myPageGroomerService.isNameDuplicate(testName)).thenReturn(true);
+
+        // When & Then
+        mockMvc.perform(get("/api/groomerprofile/check/{name}", testName)
+                        .principal(new UsernamePasswordAuthenticationToken(customOAuth2User, null))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.response").value(true));
+
+        verify(myPageGroomerService, times(1)).isNameDuplicate(testName);
+    }
 }

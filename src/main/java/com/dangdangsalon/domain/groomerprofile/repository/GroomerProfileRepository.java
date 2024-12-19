@@ -77,4 +77,5 @@ public interface GroomerProfileRepository extends JpaRepository<GroomerProfile, 
             @Param("districtName") String districtName,
             Pageable pageable);
 
+    boolean existsByName(String name);
 }

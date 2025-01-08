@@ -79,9 +79,12 @@ https://github.com/user-attachments/assets/59a3199b-a7aa-41ca-82d7-5b4c84daadba
 
 ### 🔔 알림 서비스
 - 새로운 견적, 결제 완료, 예약일 하루 전 알림 등 실시간 알림 제공
-- FCM을 통한 구현
-- 쿠폰 이벤트 알림 Kafka를 활용한 비동기 전달구조 구현
-  - 많은 유저에게 한 번에 많은 알림을 보내야 하기 때문 
+- FCM(Firebase Cloud Messaging)을 통한 구현
+- Java Mail Sender를 통한 이메일 알림 구현
+- FCM 구독 알림 및 쿠폰 이벤트 알림(kafka 활용) 추가 구현 
+- **FCM 토큰 관리**: [FCM 구현](https://dlalstn1023.tistory.com/24)
+- **Redis**: [알림 리스트 구현](https://dlalstn1023.tistory.com/25)
+- **추가 기능**: [FCM Topic 및 쿠폰 알림 Kafka 활용](https://dlalstn1023.tistory.com/26)
 
 ### 🎁 쿠폰 서비스
 

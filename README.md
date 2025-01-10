@@ -73,6 +73,8 @@ https://github.com/user-attachments/assets/59a3199b-a7aa-41ca-82d7-5b4c84daadba
 - 멱등키를 활용해 같은 요청이 중복되는 것을 방지
 - Retry를 3번 한정하고, 전부 실패 시 로그를 남기고 결제 상태를 저장하는 방식으로 사용자 경험 고려
 
+- **Details**: [PG 결제 구현](https://dlalstn1023.tistory.com/27)
+
 ### ✍️ 리뷰 서비스
 - 서비스 이용 후 별점과 리뷰 작성 가능
 - 미용사는 고객 리뷰 조회 및 관리

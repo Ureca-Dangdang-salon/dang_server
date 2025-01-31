@@ -88,6 +88,14 @@ https://github.com/user-attachments/assets/59a3199b-a7aa-41ca-82d7-5b4c84daadba
 - **Redis**: [알림 리스트 구현](https://dlalstn1023.tistory.com/25)
 - **추가 기능**: [FCM Topic 및 쿠폰 알림 Kafka 활용](https://dlalstn1023.tistory.com/26)
 
+### 🧠 AI 서비스
+<img src="https://github.com/user-attachments/assets/1bb1716e-861f-4049-bc15-e63e2a7ce14a" width=30% height=50%>
+<img src="https://github.com/user-attachments/assets/39715fe0-d141-4e55-80b5-8d82aa73411a" width=30% height=50%>
+<img src="https://github.com/user-attachments/assets/ec749ecb-dcae-443d-b06a-b30732207a4d" width=30% height=50%>
+
+- GPT OpenAI를 활용한 이미지 분석
+- DALL·E 모델을 활용한 AI 기반 미용 스타일 이미지 생성
+  
 ### 🎁 쿠폰 서비스
 
 https://github.com/user-attachments/assets/743cb1d7-08cb-4ea0-925d-c77a5b3c930b
@@ -113,6 +121,9 @@ https://github.com/user-attachments/assets/743cb1d7-08cb-4ea0-925d-c77a5b3c930b
 - **Infra**: AWS EC2, S3, CloudFront, Docker, Nginx
 - **CI/CD**: Github Actions, Prometheus, Grafana
 - **Test Tools**: JUnit, Mockito, Jacoco, Rest-Assured
+
+## 📊 ERD
+![DangDangSalon (2)](https://github.com/user-attachments/assets/f6cd5a6a-1805-4cd4-817c-39628e42db21)
 
 ## 🗂️ 서비스 아키텍처
 

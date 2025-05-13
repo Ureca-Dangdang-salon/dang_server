@@ -5,6 +5,7 @@ import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
 import com.dangdangsalon.domain.chat.util.ChatConst;
 import com.dangdangsalon.domain.chat.util.ChatRedisUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.tracing.annotation.NewSpan;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ public class ChatMessageService {
     private final ChatRedisUtil chatRedisUtil;
     private final ChatMessageMongoService chatMessageMongoService;
 
+    @NewSpan("SaveMessageRedis")
     public void saveMessageRedis(ChatMessageDto message) {
         Long sequence = chatRedisUtil.getNextSequence(message.getRoomId());
         message.updateSequence(sequence);

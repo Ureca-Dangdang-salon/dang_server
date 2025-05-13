@@ -2,6 +2,7 @@ package com.dangdangsalon.domain.chat.service;
 
 import com.dangdangsalon.domain.chat.dto.ChatMessageDto;
 import com.dangdangsalon.util.UUIDUtil;
+import io.micrometer.tracing.annotation.NewSpan;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class ChatService {
         return chatMessage;
     }
 
+    @NewSpan("CreateAndSaveMessage")
     public ChatMessageDto createAndSaveMessage(ChatMessageDto chatMessageDto) {
         ChatMessageDto chatMessage = ChatMessageDto.builder()
                 .messageId(UUIDUtil.generateTimeBasedUUID())

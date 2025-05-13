@@ -66,6 +66,8 @@ dependencies {
 	implementation 'org.springframework:spring-aspects'
 	testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
 	testImplementation 'org.testcontainers:kafka:1.19.0'
+	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 }
 
 tasks.named('test') {
